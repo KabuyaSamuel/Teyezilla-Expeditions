@@ -54,6 +54,7 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-4 lg:flex">
           <select
+            name="language"
             aria-label="Language"
             className="border-none bg-transparent text-sm text-foreground focus:outline-none"
           >
@@ -62,6 +63,7 @@ export default function Navbar() {
             <option>SW</option>
           </select>
           <select
+            name="currency"
             aria-label="Currency"
             className="border-none bg-transparent text-sm text-foreground focus:outline-none"
           >

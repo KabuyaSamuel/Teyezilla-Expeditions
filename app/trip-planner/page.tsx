@@ -15,17 +15,17 @@ export default function TripPlannerPage() {
         in a later build step; this captures the inputs.
       </p>
       <form className="mt-8 space-y-4">
-        <select className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        <select id="destination" name="destination" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
           <option>Kenya</option>
           <option>Tanzania</option>
           <option>Zanzibar</option>
           <option>Egypt</option>
           <option>Morocco</option>
         </select>
-        <input type="number" placeholder="Budget (USD)" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-        <input type="number" placeholder="Number of days" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-        <input type="number" placeholder="Number of travelers" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-        <select className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        <input id="budget" name="budget" type="number" placeholder="Budget (USD)" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        <input id="days" name="days" type="number" placeholder="Number of days" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        <input id="travelers" name="travelers" type="number" placeholder="Number of travelers" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        <select id="travelStyle" name="travelStyle" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
           <option>Relaxed</option>
           <option>Adventure</option>
           <option>Culture-focused</option>

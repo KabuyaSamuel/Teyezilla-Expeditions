@@ -42,7 +42,10 @@ export default function Footer() {
           </h4>
           <form className="mt-3 flex gap-2">
             <input
+              id="newsletter-email"
+              name="email"
               type="email"
+              autoComplete="email"
               placeholder="Your email"
               className="w-full rounded-full border-none px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
             />

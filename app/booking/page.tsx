@@ -14,12 +14,12 @@ export default function BookingPage() {
         captures the booking details in the meantime.
       </p>
       <form className="mt-8 space-y-4">
-        <input type="date" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-        <input type="number" min={1} placeholder="Number of travelers" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-        <input type="email" placeholder="Email for confirmation" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        <input id="travelDate" name="travelDate" type="date" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        <input id="travelerCount" name="travelerCount" type="number" min={1} placeholder="Number of travelers" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        <input id="email" name="email" type="email" autoComplete="email" placeholder="Email for confirmation" className="w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         <div className="flex gap-4">
-          <label className="flex items-center gap-2 text-sm"><input type="radio" name="payment" defaultChecked /> Pay Deposit</label>
-          <label className="flex items-center gap-2 text-sm"><input type="radio" name="payment" /> Pay in Full</label>
+          <label className="flex items-center gap-2 text-sm"><input id="paymentDeposit" type="radio" name="payment" defaultChecked /> Pay Deposit</label>
+          <label className="flex items-center gap-2 text-sm"><input id="paymentFull" type="radio" name="payment" /> Pay in Full</label>
         </div>
         <button type="submit" className="btn-primary">Continue to Payment</button>
       </form>

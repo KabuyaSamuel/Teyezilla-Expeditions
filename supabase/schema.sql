@@ -174,12 +174,63 @@ create table inquiries (
 );
 
 -- ============ STAFF ============
+-- auth_user_id links each staff record to a Supabase Auth user (created via
+-- the Supabase Dashboard, Auth API, or CLI). The staff table itself never
+-- stores a password — Supabase Auth owns credentials entirely.
 create table staff (
   id uuid primary key default uuid_generate_v4(),
+  auth_user_id uuid unique references auth.users(id) on delete set null,
   full_name text not null,
   email text unique not null,
   role text check (role in ('admin', 'manager', 'tour_guide', 'driver', 'sales_agent')),
   permissions jsonb,
+  created_at timestamptz default now()
+);
+
+-- Row Level Security: staff table should only be readable/writable by
+-- authenticated staff, and only the `admin` role should manage other staff
+-- records. Enable RLS and add policies once you're ready to lock this down
+-- for production — left commented out here so local development isn't
+-- blocked by policies before you've created your first admin user.
+-- alter table staff enable row level security;
+-- create policy "Staff can read their own record"
+--   on staff for select
+--   using (auth.uid() = auth_user_id);
+
+-- ============ NOTIFICATIONS ============
+create table notifications (
+  id uuid primary key default uuid_generate_v4(),
+  type text check (type in ('new_booking', 'payment_confirmed', 'tour_reminder', 'follow_up', 'admin_alert')),
+  message text not null,
+  is_read boolean default false,
+  created_at timestamptz default now()
+);
+
+-- ============ AFFILIATE PARTNERS ============
+-- Scaffolded per the Phase 3 spec ("scaffold the schema now; UI can come
+-- later") — commission tracking and live sync are future work.
+create table affiliate_partners (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  status text default 'not_connected' check (status in ('not_connected', 'connected', 'pending')),
+  commission_rate numeric(5,2),
+  notes text,
+  created_at timestamptz default now()
+);
+
+-- ============ AI TRIP PLANNER REQUESTS ============
+create table trip_planner_requests (
+  id uuid primary key default uuid_generate_v4(),
+  customer_name text not null,
+  customer_email text not null,
+  destination text,
+  budget_usd numeric(10,2),
+  days integer,
+  travelers integer,
+  travel_style text,
+  luxury_level text,
+  ai_suggested_itinerary text,
+  status text default 'new' check (status in ('new', 'reviewed', 'quoted', 'converted')),
   created_at timestamptz default now()
 );
 

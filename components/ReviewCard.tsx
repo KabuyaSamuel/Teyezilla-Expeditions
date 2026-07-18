@@ -1,0 +1,25 @@
+import type { Review } from "@/types";
+
+export default function ReviewCard({ review }: { review: Review }) {
+  return (
+    <div className="card p-6">
+      <div className="flex items-center justify-between">
+        <div className="flex text-accent" aria-label={`${review.rating} out of 5 stars`}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <span key={i}>{i < review.rating ? "★" : "☆"}</span>
+          ))}
+        </div>
+        <span className="text-xs font-medium uppercase tracking-wide text-foreground/50">
+          {review.source}
+        </span>
+      </div>
+      <p className="mt-4 text-sm text-foreground/80">&ldquo;{review.quote}&rdquo;</p>
+      <p className="mt-4 font-heading text-sm font-semibold text-foreground">
+        {review.authorName}
+        {review.tourTitle && (
+          <span className="font-body font-normal text-foreground/60"> · {review.tourTitle}</span>
+        )}
+      </p>
+    </div>
+  );
+}

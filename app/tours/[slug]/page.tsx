@@ -1,0 +1,159 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import { tours, getTourBySlug } from "@/lib/tours";
+import { getDestinationBySlug } from "@/lib/destinations";
+
+interface Props {
+  params: Promise<{ slug: string }>;
+}
+
+export function generateStaticParams() {
+  return tours.map((t) => ({ slug: t.slug }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const tour = getTourBySlug(slug);
+  if (!tour) return {};
+
+  return {
+    title: tour.metaTitle,
+    description: tour.metaDescription,
+    alternates: { canonical: `/tours/${tour.slug}` },
+    openGraph: {
+      title: tour.metaTitle,
+      description: tour.metaDescription,
+      images: [tour.ogImage],
+    },
+  };
+}
+
+export default async function TourPage({ params }: Props) {
+  const { slug } = await params;
+  const tour = getTourBySlug(slug);
+  if (!tour) notFound();
+
+  const destination = getDestinationBySlug(tour.destinationId);
+  const whatsappHref = `https://wa.me/254700000000?text=${encodeURIComponent(
+    `Hi! I'm interested in the "${tour.title}" tour. Could you share more details?`
+  )}`;
+
+  const touristTripJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TouristTrip",
+    name: tour.title,
+    description: tour.shortDescription,
+    touristType: tour.categoryLabel,
+    offers: {
+      "@type": "Offer",
+      price: tour.priceFrom,
+      priceCurrency: tour.currency,
+    },
+  };
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: `How much does the ${tour.title} cost?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `The ${tour.title} starts from ${tour.currency} ${tour.priceFrom} per person for ${tour.durationDays} day(s).`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: `How difficult is the ${tour.title}?`,
+        acceptedAnswer: { "@type": "Answer", text: `This tour is rated ${tour.difficulty}.` },
+      },
+    ],
+  };
+
+  return (
+    <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(touristTripJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+
+      <div className="relative h-[380px] w-full">
+        <Image src={tour.heroImage} alt={tour.title} fill priority className="object-cover" />
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 flex items-end">
+          <div className="mx-auto w-full max-w-7xl px-6 pb-10">
+            <span className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-white">
+              {tour.categoryLabel}
+            </span>
+            <h1 className="mt-3 font-heading text-4xl font-bold text-white md:text-5xl">
+              {tour.title}
+            </h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="section">
+        {/* Answer-first block for AEO/GEO */}
+        <p className="max-w-3xl text-lg font-medium text-foreground">
+          The {tour.title} runs {tour.durationDays} day{tour.durationDays > 1 ? "s" : ""} and
+          starts from {tour.currency} {tour.priceFrom} per person
+          {destination ? ` in ${destination.countryName}` : ""}. Difficulty: {tour.difficulty}.
+        </p>
+
+        <div className="mt-8 grid gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>
+            <p className="mt-3 text-foreground/70">{tour.shortDescription}</p>
+
+            <div className="mt-10 card p-6">
+              <h2 className="font-heading text-xl font-semibold text-foreground">FAQs</h2>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <h3 className="font-heading font-semibold text-foreground">
+                    How much does the {tour.title} cost?
+                  </h3>
+                  <p className="mt-1 text-sm text-foreground/70">
+                    Starts from {tour.currency} {tour.priceFrom} per person for {tour.durationDays} day(s).
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-heading font-semibold text-foreground">
+                    How difficult is this tour?
+                  </h3>
+                  <p className="mt-1 text-sm text-foreground/70">Rated {tour.difficulty}.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside className="card h-fit p-6">
+            <p className="font-heading text-2xl font-bold text-accent">
+              {tour.currency} {tour.priceFrom}
+            </p>
+            <p className="text-sm text-foreground/60">per person</p>
+            <a
+              href={`/booking?tour=${tour.slug}`}
+              className="btn-primary mt-4 block text-center"
+            >
+              Book Now
+            </a>
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline mt-3 block text-center"
+            >
+              Enquire on WhatsApp
+            </a>
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
+}

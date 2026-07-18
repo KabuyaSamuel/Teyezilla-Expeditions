@@ -3,16 +3,20 @@
 # Teyezilla Expeditions
 
 Premium African travel platform. Phase 1 (foundation), Phase 2 (public website), and
-Phase 3 (admin dashboard) of the 5-phase build are implemented here.
+Phase 3 (admin dashboard) are built. The data layer and admin auth are now wired to
+real Supabase, with a seed-data fallback for local development.
 
 ## What's in this build
 
 - **Next.js 14 App Router + TypeScript + Tailwind CSS v3** (`tailwind.config.ts` holds
   the brand design tokens: colors, fonts, shadows, animation)
 - **`next/font/google`** loading Poppins (headings) and Inter (body)
-- **Database schema** at `supabase/schema.sql` — run this against a Supabase project
-  to create all Phase 1 tables (destinations, tours, bookings, customers, payments,
-  blog_posts, reviews, discount_codes, media, inquiries, staff)
+- **Real Supabase integration**: all admin data (destinations, tours, bookings,
+  customers, payments, inquiries, coupons, media, notifications, affiliates, blog
+  posts, inventory, staff) reads from live Supabase tables when configured, falling
+  back to seed fixtures otherwise (see "Connecting Supabase" below)
+- **Real Supabase Auth**: admin login/logout uses `supabase.auth.signInWithPassword`,
+  not a mock cookie session
 - **Public site pages**: homepage, destinations index + dynamic `[slug]` pages, tours
   dynamic `[slug]` pages, safaris, experiences, tailor-made trips, blog index + dynamic
   `[slug]` pages, reviews, about, contact, booking form, AI trip planner form
@@ -20,24 +24,101 @@ Phase 3 (admin dashboard) of the 5-phase build are implemented here.
   canonical URLs, JSON-LD (`BreadcrumbList`, `FAQPage`, `TouristTrip`, `BlogPosting`)
 - **AEO/GEO**: `public/llms.txt`, answer-first content blocks on destination/tour/blog
   pages, FAQ schema, comparison-format blog posts
-- **Admin dashboard** (`/admin`) — auth-gated, role-based, all 19 modules from the
-  Phase 3 spec built as their own routes (see below)
+- **Admin dashboard** (`/admin`) — auth-gated via Supabase Auth, role-based, all 19
+  modules from the Phase 3 spec
+
+## Connecting Supabase
+
+There are two ways to get the schema and seed data into your project: the Supabase CLI
+(recommended if you have Node/npm and want migrations tracked in git), or pasting SQL
+directly into the Dashboard's SQL Editor (simplest, no local setup). Both end up in the
+same place.
+
+### Option A — Supabase CLI (recommended)
+
+```bash
+# 1. Install the CLI (one-time, if you don't have it)
+npm install -g supabase
+
+# 2. Log in — opens a browser to authenticate
+supabase login
+
+# 3. Initialize the CLI config in this project (creates supabase/config.toml)
+#    Safe to run even though supabase/migrations and seed.sql already exist —
+#    it won't touch or overwrite them.
+supabase init
+
+# 4. Link to your existing Supabase project
+#    Find your project ref in the Dashboard: Settings > General > Reference ID
+#    (it's also the subdomain in your project URL, https://<ref>.supabase.co)
+supabase link --project-ref YOUR_PROJECT_REF
+
+# 5. Push the schema migration to your remote project
+supabase db push
+
+# 6. Seed the remote database with demo content (destinations, tours, bookings, etc.)
+#    This is the one step NOT covered by `db push` — seed.sql needs to be run
+#    separately against the remote project. The safest way on a fresh project:
+supabase db reset --linked
+```
+
+`supabase db reset --linked` re-applies all migrations from scratch and then runs
+`supabase/seed.sql` automatically — safe on a brand-new project with nothing to lose,
+but it will wipe any data you've already added by hand. If you'd rather not risk that,
+skip step 6 and use Option B below just for the seed step.
+
+### Option B — Dashboard SQL Editor (no CLI needed)
+
+1. Open your project's SQL Editor in the Supabase Dashboard.
+2. Paste the contents of `supabase/migrations/20260718000000_init_schema.sql`, run it.
+3. Paste the contents of `supabase/seed.sql` (skip the commented-out staff section at
+   the bottom for now), run it.
+
+### Creating staff accounts (either option)
+
+Auth users can't be created via plain SQL, so this part is manual regardless of which
+option you used above:
+
+1. Dashboard → Authentication → Users → Add User, once per staff member (set a real
+   password here — this is the actual login credential, nothing is hardcoded in the app).
+2. Copy each new user's UUID from the Users table.
+3. Back in the SQL Editor, run the `insert into staff (...)` statements commented at
+   the bottom of `supabase/seed.sql`, replacing `REPLACE_WITH_AUTH_UUID` with the UUIDs
+   from step 2.
+
+### Environment variables
+
+Copy `.env.example` to `.env.local` and fill in:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (only needed for future admin-side privileged writes)
+
+Both are on your project's Settings > API page. Restart `npm run dev` after adding them.
+
+**Until you do this**, the site still runs and looks identical — every data-fetching
+function in `lib/` falls back to seed data automatically when Supabase env vars are
+absent, and `/admin` fails closed (redirects to login with a config-error message)
+rather than staying open with no auth.
+
+### Making future schema changes
+
+Once you're on migrations, always create new changes as new migration files rather
+than editing the database directly in the Dashboard — editing directly breaks
+`db push`'s ability to track what's already been applied.
+
+```bash
+supabase migration new add_some_new_table
+# edit the generated file in supabase/migrations/, then:
+supabase db push
+```
 
 ## Admin dashboard (Phase 3)
 
-**Auth**: `proxy.ts` (Next.js 16's route-guard convention, formerly `middleware.ts`)
-protects every `/admin/*` route except `/admin/login`. Login uses a mock cookie-based
-session (`lib/admin/session.ts`) — swap this for real Supabase Auth in Phase 4 without
-changing any page, since every page reads the session through the same function.
-
-**Demo accounts** (password `demo123` for all):
-| Email | Role |
-|---|---|
-| admin@teyezilla.com | Admin — full access |
-| manager@teyezilla.com | Manager |
-| sales@teyezilla.com | Sales Agent |
-| guide@teyezilla.com | Tour Guide |
-| driver@teyezilla.com | Driver |
+**Auth**: `proxy.ts` (Next.js 16's route-guard convention) protects every `/admin/*`
+route, checking a real Supabase Auth session on every request and refreshing it as
+needed. `lib/admin/session.ts` additionally requires a matching row in the `staff`
+table — a Supabase Auth user alone isn't enough to get into `/admin`, they also need
+to be added to `staff` with a role (see "Connecting Supabase" above).
 
 **Role permissions** live in one place: `lib/admin/permissions.ts`. The sidebar and
 route access both read from `ROLE_MODULE_ACCESS` in that file, so adjusting who can see
@@ -52,17 +133,24 @@ Analytics, Staff Management, Website Settings, Travel Resources, Affiliate Manag
 (scaffolded per spec — schema only, UI is a readonly placeholder), Notifications, and
 Inventory & Availability.
 
-**Data**: `lib/admin/data/*.ts` holds mock records shaped like the Phase 1 schema
-(bookings, customers, payments, inquiries, staff, coupons, media, notifications,
-affiliates, blog posts, inventory). Forms show a "saved locally" confirmation but don't
-persist — wire each module to Supabase queries/mutations in Phase 4 and the UI won't
-need to change.
+**Data**: every admin module now reads from real Supabase tables (with seed-data
+fallback if Supabase isn't configured) — destinations, tours, bookings, customers,
+payments, inquiries, coupons, media, notifications, affiliates, blog posts, inventory,
+and staff all follow the same pattern in `lib/`. Write operations (the "Save" buttons
+on forms) still only update local component state, not the database — that's the next
+piece of Phase 4 work.
 
 ## What's stubbed, not yet wired (later phases)
 
-- **Data layer**: seed data throughout `lib/` and `lib/admin/data/` matches the schema
-  shape. Swap for real Supabase queries once a project is connected — component props
-  won't need to change.
+- **Writes**: every admin form reads real data but "Save"/"Book Now"/etc. don't
+  persist changes back to Supabase yet — only reads are wired up so far. Each module's
+  data file (`lib/admin/data/*.ts` or `lib/destinations.ts`/`lib/tours.ts`) is the
+  natural place to add the corresponding `insert`/`update` calls.
+- **Public blog content**: the public `/blog` and `/blog/[slug]` pages still hold their
+  article bodies directly in the page code rather than reading from `blog_posts` (the
+  admin Blog Management module does read/write-ready against the real table — this is
+  specifically about the public-facing article text). Migrating those bodies into the
+  database is a content task, not a code change.
 - **Images**: components reference `/images/...` or `picsum.photos` placeholder paths.
   Add real photography to `public/images/` using matching filenames, or point the data
   layer at a CDN/Supabase Storage URLs instead.
@@ -71,9 +159,11 @@ need to change.
   credentials each integration will need.
 - **AI Trip Planner logic**: the public form captures inputs; itinerary generation
   isn't wired to an AI provider yet. The admin module for reviewing/editing/quoting
-  requests is fully built against mock submissions.
-- **Real authentication**: the admin login is a demo cookie session, not production-grade
-  auth. Replace with Supabase Auth (or another provider) before going live.
+  requests reads real submitted requests once seeded.
+- **Guide/driver/vehicle assignment**: the Inventory & Availability module reads real
+  capacity/booking counts from `tour_availability`, but assignment fields aren't in the
+  schema yet — extend that table (or add a linked assignments table) when ready to
+  track this for real.
 
 ## Getting started
 
@@ -92,13 +182,10 @@ Note: `next/font/google` fetches fonts from Google at build time, so build machi
 need outbound internet access to `fonts.googleapis.com` — this works on Vercel and
 any normal dev machine by default.
 
-## Database setup
-
-1. Create a Supabase project.
-2. Run `supabase/schema.sql` in the SQL editor (or via the Supabase CLI).
-3. Add the project URL and keys to `.env.local` (copy from `.env.example`).
-
 ## Next steps
 
-Move to **Phase 4: Integrations** using the phase prompt, then Phase 5 (polish).
+Continue **Phase 4: Integrations** — migrate the remaining mock modules to Supabase,
+then Stripe/M-Pesa/PayPal, WhatsApp Business API, Maps/GA4/GTM, and email — followed by
+Phase 5 (polish).
+
 

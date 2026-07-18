@@ -34,6 +34,14 @@ export const metadata: Metadata = {
       "Premium, tailor-made African travel across Kenya, Tanzania, Zanzibar, Egypt, and Morocco.",
     siteName: "Teyezilla Expeditions",
     type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Teyezilla Expeditions | Extraordinary Journeys Across Africa",
+    description:
+      "Premium, tailor-made African travel across Kenya, Tanzania, Zanzibar, Egypt, and Morocco.",
+    images: ["/og-image.png"],
   },
 };
 

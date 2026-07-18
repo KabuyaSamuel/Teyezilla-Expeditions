@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Footer() {
@@ -5,9 +6,14 @@ export default function Footer() {
     <footer className="bg-primary text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-4">
         <div>
-          <h3 className="font-heading text-lg font-bold">
-            Teyezilla <span className="text-accent">Expeditions</span>
-          </h3>
+          <Image
+            src="/logo.png"
+            alt="Teyezilla Expeditions"
+            width={160}
+            height={155}
+            className="h-12 w-auto brightness-0 invert"
+          />
+          <h3 className="sr-only">Teyezilla Expeditions</h3>
           <p className="mt-3 text-sm text-white/80">
             Extraordinary journeys across Africa, tailor-made for every traveler.
           </p>

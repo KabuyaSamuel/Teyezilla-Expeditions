@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -36,8 +37,15 @@ export default function Navbar() {
           condensed ? "py-3" : "py-5"
         }`}
       >
-        <Link href="/" className="font-heading text-xl font-bold text-primary">
-          Teyezilla <span className="text-accent">Expeditions</span>
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/logo.png"
+            alt="Teyezilla Expeditions"
+            width={160}
+            height={155}
+            priority
+            className="h-10 w-auto lg:h-12"
+          />
         </Link>
 
         <nav className="hidden items-center gap-6 lg:flex">

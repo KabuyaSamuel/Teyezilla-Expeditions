@@ -3,11 +3,10 @@
 -- (meta_title, meta_description, og_image, slug) so pages can pull metadata
 -- directly from the database via generateMetadata().
 
-create extension if not exists "uuid-ossp";
 
 -- ============ DESTINATIONS ============
 create table destinations (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   country_name text not null,
   slug text unique not null,
   flag_emoji text,
@@ -26,7 +25,7 @@ create table destinations (
 
 -- ============ TOURS ============
 create table tours (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   destination_id uuid references destinations(id) on delete cascade,
   title text not null,
   slug text unique not null,
@@ -53,7 +52,7 @@ create table tours (
 
 -- ============ TOUR AVAILABILITY ============
 create table tour_availability (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   tour_id uuid references tours(id) on delete cascade,
   date date not null,
   capacity integer not null,
@@ -62,7 +61,7 @@ create table tour_availability (
 
 -- ============ CUSTOMERS ============
 create table customers (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   full_name text not null,
   email text unique not null,
   phone text,
@@ -76,7 +75,7 @@ create table customers (
 
 -- ============ BOOKINGS ============
 create table bookings (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   booking_reference text unique not null,
   customer_id uuid references customers(id),
   tour_id uuid references tours(id),
@@ -93,7 +92,7 @@ create table bookings (
 
 -- ============ PAYMENTS ============
 create table payments (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   booking_id uuid references bookings(id) on delete cascade,
   provider text check (provider in ('stripe', 'mpesa', 'paypal', 'bank_transfer')),
   provider_reference text,
@@ -105,7 +104,7 @@ create table payments (
 
 -- ============ BLOG POSTS ============
 create table blog_posts (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   title text not null,
   slug text unique not null,
   excerpt text,
@@ -126,7 +125,7 @@ create table blog_posts (
 
 -- ============ REVIEWS ============
 create table reviews (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   tour_id uuid references tours(id),
   author_name text not null,
   source text check (source in ('Google', 'TripAdvisor', 'GetYourGuide')),
@@ -138,7 +137,7 @@ create table reviews (
 
 -- ============ DISCOUNT CODES ============
 create table discount_codes (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   code text unique not null,
   discount_type text check (discount_type in ('percentage', 'fixed')),
   discount_value numeric(10,2) not null,
@@ -151,7 +150,7 @@ create table discount_codes (
 
 -- ============ MEDIA LIBRARY ============
 create table media (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   file_url text not null,
   file_type text check (file_type in ('image', 'video', 'pdf')),
   alt_text text,
@@ -161,7 +160,7 @@ create table media (
 
 -- ============ INQUIRIES ============
 create table inquiries (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   source text check (source in ('website', 'whatsapp', 'contact_form', 'ai_trip_planner')),
   customer_name text,
   customer_email text,
@@ -178,7 +177,7 @@ create table inquiries (
 -- the Supabase Dashboard, Auth API, or CLI). The staff table itself never
 -- stores a password — Supabase Auth owns credentials entirely.
 create table staff (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   auth_user_id uuid unique references auth.users(id) on delete set null,
   full_name text not null,
   email text unique not null,
@@ -199,7 +198,7 @@ create table staff (
 
 -- ============ NOTIFICATIONS ============
 create table notifications (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   type text check (type in ('new_booking', 'payment_confirmed', 'tour_reminder', 'follow_up', 'admin_alert')),
   message text not null,
   is_read boolean default false,
@@ -210,7 +209,7 @@ create table notifications (
 -- Scaffolded per the Phase 3 spec ("scaffold the schema now; UI can come
 -- later") — commission tracking and live sync are future work.
 create table affiliate_partners (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   name text not null,
   status text default 'not_connected' check (status in ('not_connected', 'connected', 'pending')),
   commission_rate numeric(5,2),
@@ -220,7 +219,7 @@ create table affiliate_partners (
 
 -- ============ AI TRIP PLANNER REQUESTS ============
 create table trip_planner_requests (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   customer_name text not null,
   customer_email text not null,
   destination text,

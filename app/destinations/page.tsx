@@ -8,6 +8,8 @@ export const metadata: Metadata = {
     "Explore Teyezilla Expeditions' African destinations, from Kenya's Maasai Mara to Morocco's Sahara desert.",
 };
 
+export const revalidate = 3600;
+
 export default async function DestinationsPage() {
   const destinations = await getDestinations();
 

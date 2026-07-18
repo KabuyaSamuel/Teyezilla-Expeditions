@@ -11,10 +11,11 @@ export default async function CustomerProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const customer = await getCustomerById(id);
+  const [customer, bookings] = await Promise.all([
+    getCustomerById(id),
+    getBookings(),
+  ]);
   if (!customer) notFound();
-
-  const bookings = await getBookings();
   const customerBookings = bookings.filter((b) => b.customerId === id);
 
   return (

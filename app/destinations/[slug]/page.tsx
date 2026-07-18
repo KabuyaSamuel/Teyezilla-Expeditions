@@ -10,6 +10,8 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+export const revalidate = 3600;
+
 export async function generateStaticParams() {
   const destinations = await getDestinations();
   return destinations.map((d) => ({ slug: d.slug }));

@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "Browse safari tours across Kenya and Tanzania with Teyezilla Expeditions.",
 };
 
+export const revalidate = 3600;
+
 export default async function SafarisPage() {
   const tours = await getTours();
   const safariTours = tours.filter((t) => t.categoryLabel === "Safari");

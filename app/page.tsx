@@ -8,9 +8,13 @@ import { getDestinations } from "@/lib/destinations";
 import { getFeaturedTours } from "@/lib/tours";
 import { reviews } from "@/lib/reviews";
 
+export const revalidate = 3600;
+
 export default async function HomePage() {
-  const destinations = await getDestinations();
-  const featuredTours = await getFeaturedTours();
+  const [destinations, featuredTours] = await Promise.all([
+    getDestinations(),
+    getFeaturedTours(),
+  ]);
 
   return (
     <>

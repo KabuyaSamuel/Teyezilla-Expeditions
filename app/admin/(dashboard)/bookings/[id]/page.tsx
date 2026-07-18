@@ -15,8 +15,10 @@ export default async function BookingDetailPage({
   const booking = await getBookingById(id);
   if (!booking) notFound();
 
-  const customer = await getCustomerById(booking.customerId);
-  const payments = await getPayments();
+  const [customer, payments] = await Promise.all([
+    getCustomerById(booking.customerId),
+    getPayments(),
+  ]);
   const relatedPayments = payments.filter((p) => p.bookingReference === booking.bookingReference);
 
   return (

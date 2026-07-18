@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "Food tours, city tours, and cultural experiences across Africa with Teyezilla Expeditions.",
 };
 
+export const revalidate = 3600;
+
 export default async function ExperiencesPage() {
   const tours = await getTours();
   return (

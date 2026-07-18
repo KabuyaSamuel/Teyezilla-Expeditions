@@ -1,163 +1,65 @@
 import type { Tour } from "@/types";
+import { getSupabasePublicClient } from "@/lib/supabase/public";
+import { seedTours } from "@/lib/tours.seed";
 
-// Stands in for a Supabase query against the `tours` table until Phase 4
-// wires up the live database. Keep the return shape stable when swapping.
+// Real data layer for tours. Same Supabase-first, seed-fallback pattern as
+// lib/destinations.ts — see the comment there for the reasoning.
 
-export const tours: Tour[] = [
-  {
-    id: "maasai-mara-safari",
-    slug: "maasai-mara-safari",
-    destinationId: "kenya",
-    title: "Maasai Mara Safari",
-    categoryLabel: "Safari",
-    heroImage: "https://picsum.photos/seed/maasai-mara/1200/800",
-    shortDescription: "Track the big five across the Mara's open plains.",
-    durationDays: 4,
-    priceFrom: 950,
-    currency: "USD",
-    difficulty: "Easy",
-    featured: true,
-    status: "published",
-    metaTitle: "Maasai Mara Safari Tour | Teyezilla Expeditions",
-    metaDescription: "4-day Maasai Mara safari tracking the big five, from $950 per person.",
-    ogImage: "https://picsum.photos/seed/maasai-mara-og/1200/800",
-  },
-  {
-    id: "serengeti-safari",
-    slug: "serengeti-safari",
-    destinationId: "tanzania",
-    title: "Serengeti Safari",
-    categoryLabel: "Safari",
-    heroImage: "https://picsum.photos/seed/serengeti/1200/800",
-    shortDescription: "Follow the great migration across endless plains.",
-    durationDays: 5,
-    priceFrom: 1200,
-    currency: "USD",
-    difficulty: "Easy",
-    featured: true,
-    status: "published",
-    metaTitle: "Serengeti Safari Tour | Teyezilla Expeditions",
-    metaDescription: "5-day Serengeti safari following the great migration, from $1,200 per person.",
-    ogImage: "https://picsum.photos/seed/serengeti-og/1200/800",
-  },
-  {
-    id: "zanzibar-beach-escape",
-    slug: "zanzibar-beach-escape",
-    destinationId: "zanzibar",
-    title: "Zanzibar Beach Escape",
-    categoryLabel: "Beach",
-    heroImage: "https://picsum.photos/seed/zanzibar-beach/1200/800",
-    shortDescription: "Stone Town culture followed by island beach time.",
-    durationDays: 6,
-    priceFrom: 780,
-    currency: "USD",
-    difficulty: "Easy",
-    featured: true,
-    status: "published",
-    metaTitle: "Zanzibar Beach Escape | Teyezilla Expeditions",
-    metaDescription: "6-day Zanzibar beach escape combining Stone Town and island beach time, from $780.",
-    ogImage: "https://picsum.photos/seed/zanzibar-beach-og/1200/800",
-  },
-  {
-    id: "pyramids-of-giza-tour",
-    slug: "pyramids-of-giza-tour",
-    destinationId: "egypt",
-    title: "Pyramids of Giza Tour",
-    categoryLabel: "Culture",
-    heroImage: "https://picsum.photos/seed/pyramids/1200/800",
-    shortDescription: "Stand before the last surviving ancient wonder.",
-    durationDays: 3,
-    priceFrom: 520,
-    currency: "USD",
-    difficulty: "Easy",
-    featured: true,
-    status: "published",
-    metaTitle: "Pyramids of Giza Tour | Teyezilla Expeditions",
-    metaDescription: "3-day Pyramids of Giza tour including the Sphinx and Egyptian Museum, from $520.",
-    ogImage: "https://picsum.photos/seed/pyramids-og/1200/800",
-  },
-  {
-    id: "marrakech-sahara-desert",
-    slug: "marrakech-sahara-desert",
-    destinationId: "morocco",
-    title: "Marrakech & Sahara Desert",
-    categoryLabel: "Desert",
-    heroImage: "https://picsum.photos/seed/sahara/1200/800",
-    shortDescription: "Medina souks to overnight desert camps under the stars.",
-    durationDays: 4,
-    priceFrom: 610,
-    currency: "USD",
-    difficulty: "Moderate",
-    featured: true,
-    status: "published",
-    metaTitle: "Marrakech & Sahara Desert Tour | Teyezilla Expeditions",
-    metaDescription: "4-day Marrakech and Sahara desert tour with overnight desert camp, from $610.",
-    ogImage: "https://picsum.photos/seed/sahara-og/1200/800",
-  },
-  {
-    id: "nairobi-street-food-tour",
-    slug: "nairobi-street-food-tour",
-    destinationId: "kenya",
-    title: "Nairobi Street Food Tour",
-    categoryLabel: "Food",
-    heroImage: "https://picsum.photos/seed/nairobi-food/1200/800",
-    shortDescription: "Taste Nairobi's markets and street-food institutions.",
-    durationDays: 1,
-    priceFrom: 65,
-    currency: "USD",
-    difficulty: "Easy",
-    featured: true,
-    status: "published",
-    metaTitle: "Nairobi Street Food Tour | Teyezilla Expeditions",
-    metaDescription: "Half-day Nairobi street food tour through the city's best markets, from $65.",
-    ogImage: "https://picsum.photos/seed/nairobi-food-og/1200/800",
-  },
-  {
-    id: "tuk-tuk-experience",
-    slug: "tuk-tuk-experience",
-    destinationId: "kenya",
-    title: "Tuk Tuk Experience",
-    categoryLabel: "City",
-    heroImage: "https://picsum.photos/seed/tuk-tuk/1200/800",
-    shortDescription: "See Nairobi from the back of a three-wheeler.",
-    durationDays: 1,
-    priceFrom: 40,
-    currency: "USD",
-    difficulty: "Easy",
-    featured: true,
-    status: "published",
-    metaTitle: "Nairobi Tuk Tuk Experience | Teyezilla Expeditions",
-    metaDescription: "Tuk tuk city tour of Nairobi, from $40 per person.",
-    ogImage: "https://picsum.photos/seed/tuk-tuk-og/1200/800",
-  },
-  {
-    id: "boda-boda-experience",
-    slug: "boda-boda-experience",
-    destinationId: "kenya",
-    title: "Boda Boda Experience",
-    categoryLabel: "City",
-    heroImage: "https://picsum.photos/seed/boda-boda/1200/800",
-    shortDescription: "A local's-eye view of Nairobi by motorbike.",
-    durationDays: 1,
-    priceFrom: 35,
-    currency: "USD",
-    difficulty: "Easy",
-    featured: true,
-    status: "published",
-    metaTitle: "Nairobi Boda Boda Experience | Teyezilla Expeditions",
-    metaDescription: "Guided boda boda motorbike tour of Nairobi, from $35 per person.",
-    ogImage: "https://picsum.photos/seed/boda-boda-og/1200/800",
-  },
-];
-
-export function getFeaturedTours(): Tour[] {
-  return tours.filter((t) => t.featured && t.status === "published");
+function mapRow(row: Record<string, unknown>): Tour {
+  return {
+    id: row.id as string,
+    slug: row.slug as string,
+    destinationId: row.destination_id as string,
+    title: row.title as string,
+    categoryLabel: (row.category_label as string) ?? "",
+    heroImage: (row.hero_image as string) ?? "",
+    shortDescription: (row.short_description as string) ?? "",
+    durationDays: Number(row.duration_days ?? 0),
+    priceFrom: Number(row.price_from ?? 0),
+    currency: (row.currency as string) ?? "USD",
+    difficulty: (row.difficulty as Tour["difficulty"]) ?? "Easy",
+    featured: Boolean(row.featured),
+    status: (row.status as Tour["status"]) ?? "draft",
+    metaTitle: (row.meta_title as string) ?? "",
+    metaDescription: (row.meta_description as string) ?? "",
+    ogImage: (row.og_image as string) ?? "",
+  };
 }
 
-export function getTourBySlug(slug: string): Tour | undefined {
-  return tours.find((t) => t.slug === slug);
+export async function getTours(): Promise<Tour[]> {
+  const supabase = getSupabasePublicClient();
+  if (!supabase) return seedTours;
+
+  const { data, error } = await supabase.from("tours").select("*");
+
+  if (error || !data) {
+    console.warn("[tours] Supabase query failed, using seed data:", error?.message);
+    return seedTours;
+  }
+
+  return data.map(mapRow);
 }
 
-export function getToursByDestination(destinationId: string): Tour[] {
-  return tours.filter((t) => t.destinationId === destinationId);
+export async function getFeaturedTours(): Promise<Tour[]> {
+  const all = await getTours();
+  return all.filter((t) => t.featured && t.status === "published");
+}
+
+export async function getTourBySlug(slug: string): Promise<Tour | undefined> {
+  const supabase = getSupabasePublicClient();
+  if (!supabase) return seedTours.find((t) => t.slug === slug);
+
+  const { data, error } = await supabase.from("tours").select("*").eq("slug", slug).maybeSingle();
+
+  if (error || !data) {
+    if (error) console.warn("[tours] Supabase query failed, using seed data:", error.message);
+    return seedTours.find((t) => t.slug === slug);
+  }
+
+  return mapRow(data);
+}
+
+export async function getToursByDestination(destinationId: string): Promise<Tour[]> {
+  const all = await getTours();
+  return all.filter((t) => t.destinationId === destinationId);
 }

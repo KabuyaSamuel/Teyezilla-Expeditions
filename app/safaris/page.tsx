@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { tours } from "@/lib/tours";
+import { getTours } from "@/lib/tours";
 import TourCard from "@/components/TourCard";
 
 export const metadata: Metadata = {
@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: "Browse safari tours across Kenya and Tanzania with Teyezilla Expeditions.",
 };
 
-export default function SafarisPage() {
+export default async function SafarisPage() {
+  const tours = await getTours();
   const safariTours = tours.filter((t) => t.categoryLabel === "Safari");
   return (
     <div className="section">

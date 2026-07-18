@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { destinations, getDestinationBySlug } from "@/lib/destinations";
+import { getDestinations, getDestinationBySlug } from "@/lib/destinations";
 import { getToursByDestination } from "@/lib/tours";
 import TourCard from "@/components/TourCard";
 
@@ -10,13 +10,14 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const destinations = await getDestinations();
   return destinations.map((d) => ({ slug: d.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const destination = getDestinationBySlug(slug);
+  const destination = await getDestinationBySlug(slug);
   if (!destination) return {};
 
   return {
@@ -33,10 +34,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function DestinationPage({ params }: Props) {
   const { slug } = await params;
-  const destination = getDestinationBySlug(slug);
+  const destination = await getDestinationBySlug(slug);
   if (!destination) notFound();
 
-  const relatedTours = getToursByDestination(destination.id);
+  const relatedTours = await getToursByDestination(destination.id);
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -82,6 +83,7 @@ export default async function DestinationPage({ params }: Props) {
           alt={`${destination.countryName} safari and travel`}
           fill
           priority
+          sizes="100vw"
           className="object-cover"
         />
         <div className="absolute inset-0 bg-black/40" />

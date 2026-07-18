@@ -1,11 +1,12 @@
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { tours } from "@/lib/tours";
-import { destinations } from "@/lib/destinations";
+import { getTours } from "@/lib/tours";
+import { getDestinations } from "@/lib/destinations";
 import { contentStatusTone } from "@/lib/admin/status-tone";
 
-export default function AdminToursPage() {
+export default async function AdminToursPage() {
+  const [tours, destinations] = await Promise.all([getTours(), getDestinations()]);
   return (
     <div>
       <PageHeader

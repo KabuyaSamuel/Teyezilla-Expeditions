@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import DestinationCard from "@/components/DestinationCard";
-import { destinations } from "@/lib/destinations";
+import { getDestinations } from "@/lib/destinations";
 
 export const metadata: Metadata = {
   title: "African Destinations: Kenya, Tanzania, Zanzibar, Egypt, Morocco & More",
@@ -8,7 +8,9 @@ export const metadata: Metadata = {
     "Explore Teyezilla Expeditions' African destinations, from Kenya's Maasai Mara to Morocco's Sahara desert.",
 };
 
-export default function DestinationsPage() {
+export default async function DestinationsPage() {
+  const destinations = await getDestinations();
+
   return (
     <div className="section">
       <h1 className="font-heading text-4xl font-bold text-foreground">Destinations</h1>

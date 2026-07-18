@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { tours } from "@/lib/tours";
+import { getTours } from "@/lib/tours";
 import TourCard from "@/components/TourCard";
 
 export const metadata: Metadata = {
@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: "Food tours, city tours, and cultural experiences across Africa with Teyezilla Expeditions.",
 };
 
-export default function ExperiencesPage() {
+export default async function ExperiencesPage() {
+  const tours = await getTours();
   return (
     <div className="section">
       <h1 className="font-heading text-4xl font-bold text-foreground">Experiences</h1>

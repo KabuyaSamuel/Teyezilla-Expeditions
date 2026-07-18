@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Tour } from "@/types";
-import { destinations } from "@/lib/destinations";
+import type { Tour, Destination } from "@/types";
 
 interface ItineraryDay {
   day: number;
@@ -10,7 +9,13 @@ interface ItineraryDay {
   description: string;
 }
 
-export default function TourForm({ existingTour }: { existingTour?: Tour }) {
+export default function TourForm({
+  existingTour,
+  destinations,
+}: {
+  existingTour?: Tour;
+  destinations: Destination[];
+}) {
   const [saved, setSaved] = useState(false);
   const [itinerary, setItinerary] = useState<ItineraryDay[]>(
     existingTour
@@ -30,9 +35,9 @@ export default function TourForm({ existingTour }: { existingTour?: Tour }) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // NOTE: this mock form doesn't persist yet — wire this submit handler to
-    // a Supabase insert/update against the `tours` table (and `tour_availability`
-    // for the calendar) once the database is connected in Phase 4.
+    // NOTE: this form doesn't persist yet — wire this submit handler to a
+    // Supabase insert/update against the `tours` table (and
+    // `tour_availability` for the calendar below) to make it real.
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   }
@@ -41,7 +46,7 @@ export default function TourForm({ existingTour }: { existingTour?: Tour }) {
     <form onSubmit={handleSubmit} className="space-y-8">
       {saved && (
         <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">
-          Saved locally. Connect Supabase in Phase 4 to persist this for real.
+          Saved locally. Wire this form up to Supabase to persist it for real.
         </div>
       )}
 
@@ -49,41 +54,41 @@ export default function TourForm({ existingTour }: { existingTour?: Tour }) {
         <h2 className="font-heading text-lg font-semibold text-foreground">Basic Details</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-medium text-foreground/60">Tour Title</label>
-            <input defaultValue={existingTour?.title} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <label htmlFor="tourTitle" className="text-xs font-medium text-foreground/60">Tour Title</label>
+            <input id="tourTitle" name="tourTitle" defaultValue={existingTour?.title} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
-            <label className="text-xs font-medium text-foreground/60">Destination</label>
-            <select defaultValue={existingTour?.destinationId} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <label htmlFor="destinationId" className="text-xs font-medium text-foreground/60">Destination</label>
+            <select id="destinationId" name="destinationId" defaultValue={existingTour?.destinationId} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
               {destinations.map((d) => (
                 <option key={d.id} value={d.id}>{d.countryName}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="text-xs font-medium text-foreground/60">Category</label>
-            <input defaultValue={existingTour?.categoryLabel} placeholder="Safari, Beach, Culture..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <label htmlFor="categoryLabel" className="text-xs font-medium text-foreground/60">Category</label>
+            <input id="categoryLabel" name="categoryLabel" defaultValue={existingTour?.categoryLabel} placeholder="Safari, Beach, Culture..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
-            <label className="text-xs font-medium text-foreground/60">Difficulty</label>
-            <select defaultValue={existingTour?.difficulty ?? "Easy"} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <label htmlFor="difficulty" className="text-xs font-medium text-foreground/60">Difficulty</label>
+            <select id="difficulty" name="difficulty" defaultValue={existingTour?.difficulty ?? "Easy"} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
               <option>Easy</option>
               <option>Moderate</option>
               <option>Challenging</option>
             </select>
           </div>
           <div>
-            <label className="text-xs font-medium text-foreground/60">Duration (days)</label>
-            <input type="number" defaultValue={existingTour?.durationDays} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <label htmlFor="durationDays" className="text-xs font-medium text-foreground/60">Duration (days)</label>
+            <input id="durationDays" name="durationDays" type="number" defaultValue={existingTour?.durationDays} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
-            <label className="text-xs font-medium text-foreground/60">Price From (USD)</label>
-            <input type="number" defaultValue={existingTour?.priceFrom} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <label htmlFor="priceFrom" className="text-xs font-medium text-foreground/60">Price From (USD)</label>
+            <input id="priceFrom" name="priceFrom" type="number" defaultValue={existingTour?.priceFrom} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
         <div className="mt-4">
-          <label className="text-xs font-medium text-foreground/60">Short Description</label>
-          <textarea defaultValue={existingTour?.shortDescription} rows={3} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Short Description</label>
+          <textarea id="shortDescription" name="shortDescription" defaultValue={existingTour?.shortDescription} rows={3} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       </section>
 
@@ -91,12 +96,12 @@ export default function TourForm({ existingTour }: { existingTour?: Tour }) {
         <h2 className="font-heading text-lg font-semibold text-foreground">Inclusions & Exclusions</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-medium text-foreground/60">Inclusions (one per line)</label>
-            <textarea rows={4} placeholder="Airport transfers&#10;All game drives&#10;Park fees" className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <label htmlFor="inclusions" className="text-xs font-medium text-foreground/60">Inclusions (one per line)</label>
+            <textarea id="inclusions" name="inclusions" rows={4} placeholder="Airport transfers&#10;All game drives&#10;Park fees" className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
-            <label className="text-xs font-medium text-foreground/60">Exclusions (one per line)</label>
-            <textarea rows={4} placeholder="International flights&#10;Travel insurance&#10;Tips" className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <label htmlFor="exclusions" className="text-xs font-medium text-foreground/60">Exclusions (one per line)</label>
+            <textarea id="exclusions" name="exclusions" rows={4} placeholder="International flights&#10;Travel insurance&#10;Tips" className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
       </section>
@@ -113,12 +118,16 @@ export default function TourForm({ existingTour }: { existingTour?: Tour }) {
             <div key={i} className="rounded-xl bg-secondary/10 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Day {d.day}</p>
               <input
+                id={`itinerary-title-${i}`}
+                name={`itineraryTitle-${i}`}
                 value={d.title}
                 onChange={(e) => updateItineraryDay(i, "title", e.target.value)}
                 placeholder="Day title"
                 className="mt-2 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <textarea
+                id={`itinerary-description-${i}`}
+                name={`itineraryDescription-${i}`}
                 value={d.description}
                 onChange={(e) => updateItineraryDay(i, "description", e.target.value)}
                 placeholder="What happens this day"
@@ -134,12 +143,12 @@ export default function TourForm({ existingTour }: { existingTour?: Tour }) {
         <h2 className="font-heading text-lg font-semibold text-foreground">Logistics</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-medium text-foreground/60">Meeting Point</label>
-            <input placeholder="Jomo Kenyatta International Airport" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <label htmlFor="meetingPoint" className="text-xs font-medium text-foreground/60">Meeting Point</label>
+            <input id="meetingPoint" name="meetingPoint" placeholder="Jomo Kenyatta International Airport" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
-            <label className="text-xs font-medium text-foreground/60">Pickup Locations (comma-separated)</label>
-            <input placeholder="Nairobi CBD hotels, JKIA" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <label htmlFor="pickupLocations" className="text-xs font-medium text-foreground/60">Pickup Locations (comma-separated)</label>
+            <input id="pickupLocations" name="pickupLocations" placeholder="Nairobi CBD hotels, JKIA" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
       </section>
@@ -158,21 +167,21 @@ export default function TourForm({ existingTour }: { existingTour?: Tour }) {
         <h2 className="font-heading text-lg font-semibold text-foreground">Availability Calendar</h2>
         <p className="mt-1 text-xs text-foreground/50">
           Capacity per departure date. Full calendar UI and real-time sync land with the
-          Inventory & Availability module and Phase 4 database connection.
+          Inventory & Availability module once this form writes to `tour_availability`.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <input type="date" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          <input type="number" placeholder="Capacity" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <input id="newAvailabilityDate" name="newAvailabilityDate" type="date" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <input id="newAvailabilityCapacity" name="newAvailabilityCapacity" type="number" placeholder="Capacity" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           <button type="button" className="btn-outline text-sm">+ Add Date</button>
         </div>
       </section>
 
       <section className="card flex flex-wrap items-center justify-between gap-4 p-6">
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" defaultChecked={existingTour?.featured} /> Featured tour
+          <label htmlFor="featured" className="flex items-center gap-2 text-sm">
+            <input id="featured" name="featured" type="checkbox" defaultChecked={existingTour?.featured} /> Featured tour
           </label>
-          <select defaultValue={existingTour?.status ?? "draft"} className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+          <select id="status" name="status" defaultValue={existingTour?.status ?? "draft"} className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
             <option value="draft">Draft</option>
             <option value="published">Published</option>
           </select>

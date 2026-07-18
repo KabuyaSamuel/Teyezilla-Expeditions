@@ -4,12 +4,13 @@ import DestinationCard from "@/components/DestinationCard";
 import TourCard from "@/components/TourCard";
 import WhyChoose from "@/components/WhyChoose";
 import ReviewCard from "@/components/ReviewCard";
-import { destinations } from "@/lib/destinations";
+import { getDestinations } from "@/lib/destinations";
 import { getFeaturedTours } from "@/lib/tours";
 import { reviews } from "@/lib/reviews";
 
-export default function HomePage() {
-  const featuredTours = getFeaturedTours();
+export default async function HomePage() {
+  const destinations = await getDestinations();
+  const featuredTours = await getFeaturedTours();
 
   return (
     <>

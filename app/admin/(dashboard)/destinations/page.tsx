@@ -1,9 +1,10 @@
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { destinations } from "@/lib/destinations";
+import { getDestinations } from "@/lib/destinations";
 
-export default function AdminDestinationsPage() {
+export default async function AdminDestinationsPage() {
+  const destinations = await getDestinations();
   return (
     <div>
       <PageHeader

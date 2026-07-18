@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { tours, getTourBySlug } from "@/lib/tours";
-import { getDestinationBySlug } from "@/lib/destinations";
+import { getTours, getTourBySlug } from "@/lib/tours";
+import { getDestinationById } from "@/lib/destinations";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const tours = await getTours();
   return tours.map((t) => ({ slug: t.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const tour = getTourBySlug(slug);
+  const tour = await getTourBySlug(slug);
   if (!tour) return {};
 
   return {
@@ -31,10 +32,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function TourPage({ params }: Props) {
   const { slug } = await params;
-  const tour = getTourBySlug(slug);
+  const tour = await getTourBySlug(slug);
   if (!tour) notFound();
 
-  const destination = getDestinationBySlug(tour.destinationId);
+  const destination = await getDestinationById(tour.destinationId);
   const whatsappHref = `https://wa.me/254700000000?text=${encodeURIComponent(
     `Hi! I'm interested in the "${tour.title}" tour. Could you share more details?`
   )}`;
@@ -84,7 +85,7 @@ export default async function TourPage({ params }: Props) {
       />
 
       <div className="relative h-[380px] w-full">
-        <Image src={tour.heroImage} alt={tour.title} fill priority className="object-cover" />
+        <Image src={tour.heroImage} alt={tour.title} fill priority sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 flex items-end">
           <div className="mx-auto w-full max-w-7xl px-6 pb-10">

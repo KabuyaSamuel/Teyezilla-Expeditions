@@ -8,7 +8,7 @@ export default async function EditDestinationPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const destination = getDestinationBySlug(slug);
+  const destination = await getDestinationBySlug(slug);
   if (!destination) notFound();
 
   return (
@@ -17,16 +17,16 @@ export default async function EditDestinationPage({
       <form className="space-y-6">
         <section className="card p-6">
           <h2 className="font-heading text-lg font-semibold text-foreground">Overview</h2>
-          <textarea defaultValue={destination.overview} rows={4} className="mt-3 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <textarea id="overview" name="overview" defaultValue={destination.overview} rows={4} className="mt-3 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </section>
         <section className="card grid gap-4 p-6 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-medium text-foreground/60">Best Time to Visit</label>
-            <input defaultValue={destination.bestTimeToVisit} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <label htmlFor="bestTimeToVisit" className="text-xs font-medium text-foreground/60">Best Time to Visit</label>
+            <input id="bestTimeToVisit" name="bestTimeToVisit" defaultValue={destination.bestTimeToVisit} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
-            <label className="text-xs font-medium text-foreground/60">Visa Information</label>
-            <input defaultValue={destination.visaInfo} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <label htmlFor="visaInfo" className="text-xs font-medium text-foreground/60">Visa Information</label>
+            <input id="visaInfo" name="visaInfo" defaultValue={destination.visaInfo} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </section>
         <section className="card p-6">

@@ -53,7 +53,7 @@ supabase init
 #    (it's also the subdomain in your project URL, https://<ref>.supabase.co)
 supabase link --project-ref YOUR_PROJECT_REF
 
-# 5. Push the schema migration to your remote project
+# 5. Push the schema + RLS policy migrations to your remote project
 supabase db push
 
 # 6. Seed the remote database with demo content (destinations, tours, bookings, etc.)
@@ -94,6 +94,21 @@ Copy `.env.example` to `.env.local` and fill in:
 - `SUPABASE_SERVICE_ROLE_KEY` (only needed for future admin-side privileged writes)
 
 Both are on your project's Settings > API page. Restart `npm run dev` after adding them.
+
+### Troubleshooting: pages show no data even though the tables are seeded
+
+Supabase enables Row Level Security on every new table by default, with zero
+policies — so every query returns an empty result to both the public site
+(`anon` role) and the admin dashboard (`authenticated` role), even when the
+underlying table has rows. It doesn't error, so this fails silently. Only a
+`service_role` key bypasses RLS, which is why the data looks fine from the
+Dashboard's table editor while the app shows nothing.
+
+Fix: run `supabase db push` to apply
+`supabase/migrations/20260718163423_add_rls_policies.sql`, which grants
+`anon`/`authenticated` read access to public content (destinations, tours,
+published blog posts, approved reviews) and full read/write access to
+`authenticated` staff on the rest (bookings, customers, payments, etc.).
 
 **Until you do this**, the site still runs and looks identical — every data-fetching
 function in `lib/` falls back to seed data automatically when Supabase env vars are

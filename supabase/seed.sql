@@ -113,6 +113,13 @@ insert into blog_posts (title, slug, category, tags, meta_title, meta_descriptio
 ('Family Safaris: What to Know Before You Go', 'family-safaris-what-to-know', 'Travel Tips', array['kenya','family'], 'Family Safari Guide | Teyezilla Expeditions', 'Planning a safari with kids.', 'https://picsum.photos/seed/blog-family/800/500', 'draft', null),
 ('Zanzibar Diving Guide: Mnemba Island', 'zanzibar-diving-mnemba', 'Destination Guides', array['zanzibar','diving'], 'Mnemba Island Diving Guide', 'What to expect diving Mnemba Island.', 'https://picsum.photos/seed/blog-diving/800/500', 'scheduled', '2026-08-01');
 
+-- ============ TOUR AVAILABILITY ============
+insert into tour_availability (tour_id, date, capacity, booked_count) values
+((select id from tours where slug = 'maasai-mara-safari'), '2026-08-14', 8, 2),
+((select id from tours where slug = 'serengeti-safari'), '2026-09-02', 6, 1),
+((select id from tours where slug = 'marrakech-sahara-desert'), '2026-10-05', 12, 6),
+((select id from tours where slug = 'pyramids-of-giza-tour'), '2026-07-28', 15, 2);
+
 -- ============ STAFF SEEDING ============
 -- Staff records need a matching Supabase Auth user before they can log in.
 -- This part can't run as pure SQL — Supabase Auth users are created via the

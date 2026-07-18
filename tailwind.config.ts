@@ -1,0 +1,53 @@
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          DEFAULT: "#0F5D46", // Forest Emerald Green
+          hover: "#0B4C39",
+        },
+        accent: {
+          DEFAULT: "#C9A227", // Luxury Gold
+          hover: "#B38F1E",
+        },
+        background: "#F8F6F1", // Warm Ivory
+        foreground: "#222222", // Charcoal
+        secondary: "#A8B5A2", // Soft Sage
+        success: "#2E7D32",
+        error: "#C62828",
+      },
+      fontFamily: {
+        heading: ["var(--font-poppins)", "sans-serif"],
+        body: ["var(--font-inter)", "sans-serif"],
+      },
+      borderRadius: {
+        xl2: "1.25rem",
+      },
+      boxShadow: {
+        card: "0 4px 20px -4px rgba(15, 93, 70, 0.12)",
+        cardHover: "0 8px 30px -6px rgba(15, 93, 70, 0.2)",
+      },
+      transitionTimingFunction: {
+        smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
+      },
+      keyframes: {
+        fadeUp: {
+          "0%": { opacity: "0", transform: "translateY(16px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        fadeUp: "fadeUp 0.6s ease-out forwards",
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;

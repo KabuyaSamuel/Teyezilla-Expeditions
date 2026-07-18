@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { SESSION_COOKIE_NAME } from "@/lib/admin/session";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
-  const response = NextResponse.redirect(new URL("/admin/login", request.url));
-  response.cookies.delete(SESSION_COOKIE_NAME);
-  return response;
+  const supabase = await getSupabaseServerClient();
+  if (supabase) {
+    await supabase.auth.signOut();
+  }
+  return NextResponse.redirect(new URL("/admin/login", request.url));
 }

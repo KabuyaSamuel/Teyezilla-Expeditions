@@ -1,7 +1,5 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import { findStaffByEmail } from "@/lib/admin/data/staff";
-import { SESSION_COOKIE_NAME } from "@/lib/admin/session";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 async function login(formData: FormData) {
   "use server";
@@ -10,18 +8,16 @@ async function login(formData: FormData) {
   const password = String(formData.get("password") || "");
   const from = String(formData.get("from") || "/admin");
 
-  const staff = findStaffByEmail(email);
-
-  if (!staff || staff.password !== password) {
-    redirect(`/admin/login?error=1&from=${encodeURIComponent(from)}`);
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) {
+    redirect(`/admin/login?error=config&from=${encodeURIComponent(from)}`);
   }
 
-  const cookieStore = await cookies();
-  cookieStore.set(
-    SESSION_COOKIE_NAME,
-    JSON.stringify({ name: staff.fullName, email: staff.email, role: staff.role }),
-    { httpOnly: true, path: "/", maxAge: 60 * 60 * 8 }
-  );
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    redirect(`/admin/login?error=1&from=${encodeURIComponent(from)}`);
+  }
 
   redirect(from || "/admin");
 }
@@ -29,7 +25,7 @@ async function login(formData: FormData) {
 export default async function AdminLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; from?: string }>;
+  searchParams: Promise<{ error?: string; from?: string; config_error?: string }>;
 }) {
   const params = await searchParams;
 
@@ -41,7 +37,13 @@ export default async function AdminLoginPage({
         </h1>
         <p className="mt-1 text-sm text-foreground/60">Sign in to manage the platform.</p>
 
-        {params.error && (
+        {(params.config_error || params.error === "config") && (
+          <p className="mt-4 rounded-xl bg-error/10 px-4 py-2 text-sm text-error">
+            Supabase isn&apos;t configured yet. Add NEXT_PUBLIC_SUPABASE_URL and
+            NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local, then restart the dev server.
+          </p>
+        )}
+        {params.error === "1" && (
           <p className="mt-4 rounded-xl bg-error/10 px-4 py-2 text-sm text-error">
             Invalid email or password.
           </p>
@@ -50,22 +52,24 @@ export default async function AdminLoginPage({
         <form action={login} className="mt-6 space-y-4">
           <input type="hidden" name="from" value={params.from || "/admin"} />
           <div>
-            <label className="text-xs font-medium text-foreground/60">Email</label>
+            <label htmlFor="email" className="text-xs font-medium text-foreground/60">Email</label>
             <input
+              id="email"
               name="email"
               type="email"
               required
-              defaultValue="admin@teyezilla.com"
+              autoComplete="username"
               className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-foreground/60">Password</label>
+            <label htmlFor="password" className="text-xs font-medium text-foreground/60">Password</label>
             <input
+              id="password"
               name="password"
               type="password"
               required
-              defaultValue="demo123"
+              autoComplete="current-password"
               className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
@@ -73,14 +77,13 @@ export default async function AdminLoginPage({
         </form>
 
         <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">
-          <p className="font-medium text-foreground/80">Demo accounts (password: demo123)</p>
-          <ul className="mt-2 space-y-1">
-            <li>admin@teyezilla.com — Admin (full access)</li>
-            <li>manager@teyezilla.com — Manager</li>
-            <li>sales@teyezilla.com — Sales Agent</li>
-            <li>guide@teyezilla.com — Tour Guide</li>
-            <li>driver@teyezilla.com — Driver</li>
-          </ul>
+          <p className="font-medium text-foreground/80">Setting up staff accounts</p>
+          <p className="mt-2">
+            Create each staff member as a Supabase Auth user (Dashboard → Authentication →
+            Users → Add User), then add a matching row to the <code>staff</code> table with
+            their <code>auth_user_id</code> and role. See <code>supabase/seed.sql</code> for
+            the exact steps.
+          </p>
         </div>
       </div>
     </div>

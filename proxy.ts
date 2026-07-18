@@ -1,28 +1,63 @@
-import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
-// Route guard for /admin/*. Checks for the mock session cookie set by
-// /admin/login. Swap the cookie check for a real Supabase Auth session check
-// in Phase 4 — the redirect logic below can stay as-is.
+// Route guard for /admin/*, using Supabase Auth. This also refreshes the
+// Supabase session cookie on every request, which is required by
+// @supabase/ssr — without it, sessions expire unexpectedly. See:
+// https://supabase.com/docs/guides/auth/server-side/nextjs
 
-const SESSION_COOKIE = "teyezilla_admin_session";
+export async function proxy(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request });
 
-export function proxy(request: NextRequest) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
   const { pathname } = request.nextUrl;
 
   if (pathname === "/admin/login") {
-    return NextResponse.next();
+    return supabaseResponse;
   }
 
-  if (pathname.startsWith("/admin")) {
-    const session = request.cookies.get(SESSION_COOKIE);
-    if (!session) {
-      const loginUrl = new URL("/admin/login", request.url);
-      loginUrl.searchParams.set("from", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+  if (!pathname.startsWith("/admin")) {
+    return supabaseResponse;
   }
 
-  return NextResponse.next();
+  // Fail closed: if Supabase isn't configured yet, there's no way to
+  // authenticate, so every /admin route redirects to login rather than
+  // being left open.
+  if (!url || !anonKey) {
+    const loginUrl = new URL("/admin/login", request.url);
+    loginUrl.searchParams.set("from", pathname);
+    loginUrl.searchParams.set("config_error", "1");
+    return NextResponse.redirect(loginUrl);
+  }
+
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        supabaseResponse = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    const loginUrl = new URL("/admin/login", request.url);
+    loginUrl.searchParams.set("from", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return supabaseResponse;
 }
 
 export const config = {

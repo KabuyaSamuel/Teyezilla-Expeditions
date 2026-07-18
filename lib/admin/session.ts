@@ -1,13 +1,13 @@
-import { cookies } from "next/headers";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { StaffRole } from "./permissions";
 
-// Lightweight cookie-based session for local development and design review.
-// Replace this with real Supabase Auth (auth.getUser() + a `staff` table
-// lookup for role) once Phase 4 wires up authentication. Every function here
-// keeps the same signature so swapping the implementation doesn't require
-// changing any page or component that calls it.
-
-const SESSION_COOKIE = "teyezilla_admin_session";
+// Real admin session backed by Supabase Auth + the `staff` table. A user is
+// only recognized as admin staff if BOTH: (1) they have a valid Supabase
+// Auth session, AND (2) their auth user id has a matching row in `staff`
+// with a role. This means creating a Supabase Auth user alone doesn't grant
+// admin access — someone (you, via the Dashboard or an admin-only mutation)
+// also has to add them to `staff` with auth_user_id set. See
+// supabase/seed.sql for the staff-linking steps.
 
 export interface AdminSession {
   name: string;
@@ -16,14 +16,29 @@ export interface AdminSession {
 }
 
 export async function getAdminSession(): Promise<AdminSession | null> {
-  const cookieStore = await cookies();
-  const raw = cookieStore.get(SESSION_COOKIE)?.value;
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as AdminSession;
-  } catch {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return null;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data: staffRow, error } = await supabase
+    .from("staff")
+    .select("full_name, email, role")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  if (error || !staffRow) {
+    console.warn("[admin session] Authenticated user has no matching staff record:", error?.message);
     return null;
   }
-}
 
-export const SESSION_COOKIE_NAME = SESSION_COOKIE;
+  return {
+    name: staffRow.full_name as string,
+    email: staffRow.email as string,
+    role: staffRow.role as StaffRole,
+  };
+}

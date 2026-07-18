@@ -1,17 +1,39 @@
-export interface InventoryRecord {
-  id: string;
-  tourTitle: string;
-  date: string;
-  capacity: number;
-  bookedCount: number;
-  guideAssigned?: string;
-  driverAssigned?: string;
-  vehicle?: string;
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { seedInventoryRecords, type InventoryRecord } from "./inventory.seed";
+
+export type { InventoryRecord };
+
+// Reads from `tour_availability`, joined to `tours` for the display title.
+// Guide/driver/vehicle assignment isn't in the schema yet as dedicated
+// columns — extend `tour_availability` with those fields (or a linked
+// assignments table) when the Inventory & Availability module needs to
+// write real assignments rather than just display capacity.
+function mapRow(row: Record<string, any>): InventoryRecord {
+  return {
+    id: row.id,
+    tourTitle: row.tour?.title ?? "Unknown Tour",
+    date: row.date,
+    capacity: Number(row.capacity ?? 0),
+    bookedCount: Number(row.booked_count ?? 0),
+    guideAssigned: undefined,
+    driverAssigned: undefined,
+    vehicle: undefined,
+  };
 }
 
-export const inventoryRecords: InventoryRecord[] = [
-  { id: "inv1", tourTitle: "Maasai Mara Safari", date: "2026-08-14", capacity: 8, bookedCount: 2, guideAssigned: "Peter Kamau", driverAssigned: "Samuel Njoroge", vehicle: "Land Cruiser KDA 221B" },
-  { id: "inv2", tourTitle: "Serengeti Safari", date: "2026-09-02", capacity: 6, bookedCount: 1, guideAssigned: "Peter Kamau", driverAssigned: "Samuel Njoroge", vehicle: "Land Cruiser TZ 118C" },
-  { id: "inv3", tourTitle: "Marrakech & Sahara Desert", date: "2026-10-05", capacity: 12, bookedCount: 6, guideAssigned: undefined, driverAssigned: undefined, vehicle: undefined },
-  { id: "inv4", tourTitle: "Pyramids of Giza Tour", date: "2026-07-28", capacity: 15, bookedCount: 2, guideAssigned: "TBD", driverAssigned: undefined, vehicle: undefined },
-];
+export async function getInventoryRecords(): Promise<InventoryRecord[]> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return seedInventoryRecords;
+
+  const { data, error } = await supabase
+    .from("tour_availability")
+    .select("*, tour:tours(title)")
+    .order("date", { ascending: true });
+
+  if (error || !data) {
+    console.warn("[inventory] Supabase query failed, using seed data:", error?.message);
+    return seedInventoryRecords;
+  }
+
+  return data.map(mapRow);
+}

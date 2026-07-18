@@ -1,20 +1,34 @@
-export type PaymentProvider = "stripe" | "mpesa" | "paypal" | "bank_transfer";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { seedPayments, type Payment, type PaymentProvider } from "./payments.seed";
 
-export interface Payment {
-  id: string;
-  bookingReference: string;
-  provider: PaymentProvider;
-  providerReference: string;
-  amount: number;
-  currency: string;
-  status: "pending" | "succeeded" | "failed" | "refunded";
-  createdAt: string;
+export type { Payment, PaymentProvider };
+
+function mapRow(row: Record<string, any>): Payment {
+  return {
+    id: row.id,
+    bookingReference: row.booking?.booking_reference ?? row.booking_id,
+    provider: row.provider,
+    providerReference: row.provider_reference ?? "",
+    amount: Number(row.amount ?? 0),
+    currency: row.currency ?? "USD",
+    status: row.status,
+    createdAt: row.created_at,
+  };
 }
 
-export const payments: Payment[] = [
-  { id: "p1", bookingReference: "TZ-10231", provider: "stripe", providerReference: "pi_3P8x...", amount: 500, currency: "USD", status: "succeeded", createdAt: "2026-06-02" },
-  { id: "p2", bookingReference: "TZ-10232", provider: "mpesa", providerReference: "QK7T8H2X", amount: 1200, currency: "USD", status: "succeeded", createdAt: "2026-06-15" },
-  { id: "p3", bookingReference: "TZ-10233", provider: "paypal", providerReference: "PAYID-M8..", amount: 900, currency: "USD", status: "succeeded", createdAt: "2026-07-01" },
-  { id: "p4", bookingReference: "TZ-10235", provider: "bank_transfer", providerReference: "REF-88213", amount: 1560, currency: "USD", status: "succeeded", createdAt: "2026-05-01" },
-  { id: "p5", bookingReference: "TZ-10236", provider: "stripe", providerReference: "pi_3P9y...", amount: 130, currency: "USD", status: "refunded", createdAt: "2026-06-05" },
-];
+export async function getPayments(): Promise<Payment[]> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return seedPayments;
+
+  const { data, error } = await supabase
+    .from("payments")
+    .select("*, booking:bookings(booking_reference)")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.warn("[payments] Supabase query failed, using seed data:", error?.message);
+    return seedPayments;
+  }
+
+  return data.map(mapRow);
+}

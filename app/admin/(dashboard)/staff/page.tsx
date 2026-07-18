@@ -1,9 +1,10 @@
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { staffMembers } from "@/lib/admin/data/staff";
+import { getStaffMembers } from "@/lib/admin/data/staff";
 import { ROLE_LABELS, getModulesForRole } from "@/lib/admin/permissions";
 
-export default function AdminStaffPage() {
+export default async function AdminStaffPage() {
+  const staffMembers = await getStaffMembers();
   return (
     <div>
       <PageHeader

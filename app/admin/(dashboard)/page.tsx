@@ -2,13 +2,19 @@ import PageHeader from "@/components/admin/PageHeader";
 import StatCard from "@/components/admin/StatCard";
 import Badge from "@/components/admin/Badge";
 import Link from "next/link";
-import { bookings } from "@/lib/admin/data/bookings";
-import { payments } from "@/lib/admin/data/payments";
-import { inquiries } from "@/lib/admin/data/inquiries";
-import { destinations } from "@/lib/destinations";
+import { getBookings } from "@/lib/admin/data/bookings";
+import { getPayments } from "@/lib/admin/data/payments";
+import { getInquiries } from "@/lib/admin/data/inquiries";
+import { getDestinations } from "@/lib/destinations";
 import { bookingStatusTone } from "@/lib/admin/status-tone";
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const [destinations, bookings, payments, inquiries] = await Promise.all([
+    getDestinations(),
+    getBookings(),
+    getPayments(),
+    getInquiries(),
+  ]);
   const totalBookings = bookings.length;
   const revenueTotal = payments
     .filter((p) => p.status === "succeeded")

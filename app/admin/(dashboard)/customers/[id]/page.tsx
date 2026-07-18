@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import { getCustomerById } from "@/lib/admin/data/customers";
-import { bookings } from "@/lib/admin/data/bookings";
+import { getBookings } from "@/lib/admin/data/bookings";
 import { bookingStatusTone } from "@/lib/admin/status-tone";
 
 export default async function CustomerProfilePage({
@@ -11,9 +11,10 @@ export default async function CustomerProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const customer = getCustomerById(id);
+  const customer = await getCustomerById(id);
   if (!customer) notFound();
 
+  const bookings = await getBookings();
   const customerBookings = bookings.filter((b) => b.customerId === id);
 
   return (

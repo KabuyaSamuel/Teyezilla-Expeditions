@@ -1,10 +1,11 @@
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { bookings } from "@/lib/admin/data/bookings";
+import { getBookings } from "@/lib/admin/data/bookings";
 import { bookingStatusTone, paymentStatusTone } from "@/lib/admin/status-tone";
 
-export default function AdminBookingsPage() {
+export default async function AdminBookingsPage() {
+  const bookings = await getBookings();
   return (
     <div>
       <PageHeader

@@ -1,8 +1,9 @@
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { inventoryRecords } from "@/lib/admin/data/inventory";
+import { getInventoryRecords } from "@/lib/admin/data/inventory";
 
-export default function AdminInventoryPage() {
+export default async function AdminInventoryPage() {
+  const inventoryRecords = await getInventoryRecords();
   return (
     <div>
       <PageHeader

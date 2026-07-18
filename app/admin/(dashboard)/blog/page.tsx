@@ -1,10 +1,11 @@
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { adminBlogPosts } from "@/lib/admin/data/blog";
+import { getAdminBlogPosts } from "@/lib/admin/data/blog";
 import { contentStatusTone } from "@/lib/admin/status-tone";
 
-export default function AdminBlogPage() {
+export default async function AdminBlogPage() {
+  const adminBlogPosts = await getAdminBlogPosts();
   return (
     <div>
       <PageHeader

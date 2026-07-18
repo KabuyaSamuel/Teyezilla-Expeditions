@@ -1,21 +1,35 @@
-export type InquirySource = "website" | "whatsapp" | "contact_form" | "ai_trip_planner";
-export type InquiryStatus = "new" | "in_progress" | "quoted" | "converted" | "closed";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { seedInquiries, type Inquiry, type InquirySource, type InquiryStatus } from "./inquiries.seed";
 
-export interface Inquiry {
-  id: string;
-  customerName: string;
-  customerEmail: string;
-  source: InquirySource;
-  tourTitle?: string;
-  message: string;
-  assignedStaff?: string;
-  status: InquiryStatus;
-  createdAt: string;
+export type { Inquiry, InquirySource, InquiryStatus };
+
+function mapRow(row: Record<string, any>): Inquiry {
+  return {
+    id: row.id,
+    customerName: row.customer_name,
+    customerEmail: row.customer_email,
+    source: row.source,
+    tourTitle: row.tour?.title,
+    message: row.message ?? "",
+    assignedStaff: row.assigned_staff_id, // NOTE: join to staff for a display name once that FK is added
+    status: row.status,
+    createdAt: row.created_at,
+  };
 }
 
-export const inquiries: Inquiry[] = [
-  { id: "i1", customerName: "Laila Haddad", customerEmail: "laila.h@example.com", source: "whatsapp", tourTitle: "Marrakech & Sahara Desert", message: "Is the Sahara camp suitable for a 70-year-old traveler?", assignedStaff: "Grace Mwangi", status: "in_progress", createdAt: "2026-07-14" },
-  { id: "i2", customerName: "Tom Reilly", customerEmail: "tom.reilly@example.com", source: "ai_trip_planner", tourTitle: undefined, message: "10-day Kenya + Zanzibar combo, budget $3,500, 2 travelers, mid-range luxury.", assignedStaff: undefined, status: "new", createdAt: "2026-07-16" },
-  { id: "i3", customerName: "Chen Wei", customerEmail: "chen.wei@example.com", source: "contact_form", tourTitle: "Pyramids of Giza Tour", message: "Can you add a private guide for our group of 4?", assignedStaff: "Grace Mwangi", status: "quoted", createdAt: "2026-07-11" },
-  { id: "i4", customerName: "Sofia Rossi", customerEmail: "sofia.rossi@example.com", source: "website", tourTitle: "Zanzibar Beach Escape", message: "Do you have availability the last week of September?", assignedStaff: undefined, status: "new", createdAt: "2026-07-17" },
-];
+export async function getInquiries(): Promise<Inquiry[]> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return seedInquiries;
+
+  const { data, error } = await supabase
+    .from("inquiries")
+    .select("*, tour:tours(title)")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.warn("[inquiries] Supabase query failed, using seed data:", error?.message);
+    return seedInquiries;
+  }
+
+  return data.map(mapRow);
+}

@@ -3,7 +3,7 @@ import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import { getBookingById } from "@/lib/admin/data/bookings";
 import { getCustomerById } from "@/lib/admin/data/customers";
-import { payments } from "@/lib/admin/data/payments";
+import { getPayments } from "@/lib/admin/data/payments";
 import { bookingStatusTone, paymentStatusTone } from "@/lib/admin/status-tone";
 
 export default async function BookingDetailPage({
@@ -12,10 +12,11 @@ export default async function BookingDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const booking = getBookingById(id);
+  const booking = await getBookingById(id);
   if (!booking) notFound();
 
-  const customer = getCustomerById(booking.customerId);
+  const customer = await getCustomerById(booking.customerId);
+  const payments = await getPayments();
   const relatedPayments = payments.filter((p) => p.bookingReference === booking.bookingReference);
 
   return (

@@ -1,8 +1,9 @@
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { tripPlannerRequests } from "@/lib/admin/data/trip-planner-requests";
+import { getTripPlannerRequests } from "@/lib/admin/data/trip-planner-requests";
 
-export default function AdminTripPlannerPage() {
+export default async function AdminTripPlannerPage() {
+  const tripPlannerRequests = await getTripPlannerRequests();
   return (
     <div>
       <PageHeader
@@ -33,6 +34,8 @@ export default function AdminTripPlannerPage() {
             <div className="mt-3">
               <p className="text-xs font-medium text-foreground/50">AI-Suggested Itinerary</p>
               <textarea
+                id={`itinerary-${req.id}`}
+                name="aiSuggestedItinerary"
                 defaultValue={req.aiSuggestedItinerary}
                 rows={3}
                 className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"

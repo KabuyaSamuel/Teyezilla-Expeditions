@@ -1,17 +1,31 @@
-export interface Coupon {
-  id: string;
-  code: string;
-  discountType: "percentage" | "fixed";
-  discountValue: number;
-  isReferral: boolean;
-  usageLimit: number;
-  usedCount: number;
-  expiresAt: string;
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { seedCoupons, type Coupon } from "./coupons.seed";
+
+export type { Coupon };
+
+function mapRow(row: Record<string, any>): Coupon {
+  return {
+    id: row.id,
+    code: row.code,
+    discountType: row.discount_type,
+    discountValue: Number(row.discount_value ?? 0),
+    isReferral: Boolean(row.is_referral),
+    usageLimit: Number(row.usage_limit ?? 0),
+    usedCount: Number(row.used_count ?? 0),
+    expiresAt: row.expires_at,
+  };
 }
 
-export const coupons: Coupon[] = [
-  { id: "co1", code: "SAFARI10", discountType: "percentage", discountValue: 10, isReferral: false, usageLimit: 200, usedCount: 84, expiresAt: "2026-12-31" },
-  { id: "co2", code: "ZANZIBAR50", discountType: "fixed", discountValue: 50, isReferral: false, usageLimit: 100, usedCount: 22, expiresAt: "2026-09-30" },
-  { id: "co3", code: "REFERAMARA", discountType: "percentage", discountValue: 15, isReferral: true, usageLimit: 50, usedCount: 6, expiresAt: "2027-01-01" },
-  { id: "co4", code: "GROUP6PLUS", discountType: "percentage", discountValue: 12, isReferral: false, usageLimit: 999, usedCount: 14, expiresAt: "2026-11-30" },
-];
+export async function getCoupons(): Promise<Coupon[]> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return seedCoupons;
+
+  const { data, error } = await supabase.from("discount_codes").select("*").order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.warn("[coupons] Supabase query failed, using seed data:", error?.message);
+    return seedCoupons;
+  }
+
+  return data.map(mapRow);
+}

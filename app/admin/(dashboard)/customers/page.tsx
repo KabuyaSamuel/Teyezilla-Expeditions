@@ -1,8 +1,9 @@
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
-import { customers } from "@/lib/admin/data/customers";
+import { getCustomers } from "@/lib/admin/data/customers";
 
-export default function AdminCustomersPage() {
+export default async function AdminCustomersPage() {
+  const customers = await getCustomers();
   return (
     <div>
       <PageHeader title="Customer Management (CRM)" description="Profiles, booking history, and loyalty." />

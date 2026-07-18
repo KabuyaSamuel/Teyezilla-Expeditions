@@ -1,19 +1,28 @@
-// Affiliate Management (Phase 3 spec: "scaffold the schema now; UI can come later").
-// This mirrors the intended schema so the module has a real shape once
-// commission tracking is built out; the page renders it as a simple readonly list.
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { seedAffiliatePartners, type AffiliatePartner } from "./affiliates.seed";
 
-export interface AffiliatePartner {
-  id: string;
-  name: string;
-  status: "not_connected" | "connected" | "pending";
-  commissionRate: number | null;
-  notes: string;
+export type { AffiliatePartner };
+
+function mapRow(row: Record<string, any>): AffiliatePartner {
+  return {
+    id: row.id,
+    name: row.name,
+    status: row.status,
+    commissionRate: row.commission_rate !== null ? Number(row.commission_rate) : null,
+    notes: row.notes ?? "",
+  };
 }
 
-export const affiliatePartners: AffiliatePartner[] = [
-  { id: "a1", name: "Viator", status: "not_connected", commissionRate: null, notes: "Planned for post-launch." },
-  { id: "a2", name: "GetYourGuide", status: "not_connected", commissionRate: null, notes: "Reviews already pulled in on the public site; booking sync is future work." },
-  { id: "a3", name: "Booking.com", status: "not_connected", commissionRate: null, notes: "For accommodation bundling, future phase." },
-  { id: "a4", name: "Expedia", status: "not_connected", commissionRate: null, notes: "Not prioritized for launch." },
-  { id: "a5", name: "Klook", status: "not_connected", commissionRate: null, notes: "Not prioritized for launch." },
-];
+export async function getAffiliatePartners(): Promise<AffiliatePartner[]> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return seedAffiliatePartners;
+
+  const { data, error } = await supabase.from("affiliate_partners").select("*").order("name");
+
+  if (error || !data) {
+    console.warn("[affiliates] Supabase query failed, using seed data:", error?.message);
+    return seedAffiliatePartners;
+  }
+
+  return data.map(mapRow);
+}

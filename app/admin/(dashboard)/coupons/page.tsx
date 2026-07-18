@@ -1,8 +1,9 @@
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { coupons } from "@/lib/admin/data/coupons";
+import { getCoupons } from "@/lib/admin/data/coupons";
 
-export default function AdminCouponsPage() {
+export default async function AdminCouponsPage() {
+  const coupons = await getCoupons();
   return (
     <div>
       <PageHeader

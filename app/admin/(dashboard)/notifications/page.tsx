@@ -1,5 +1,5 @@
 import PageHeader from "@/components/admin/PageHeader";
-import { notifications } from "@/lib/admin/data/notifications";
+import { getNotifications } from "@/lib/admin/data/notifications";
 
 const TYPE_ICONS: Record<string, string> = {
   new_booking: "🧳",
@@ -9,7 +9,8 @@ const TYPE_ICONS: Record<string, string> = {
   admin_alert: "⚠️",
 };
 
-export default function AdminNotificationsPage() {
+export default async function AdminNotificationsPage() {
+  const notifications = await getNotifications();
   return (
     <div>
       <PageHeader title="Notifications" description="Booking alerts, payment confirmations, and follow-up reminders." />

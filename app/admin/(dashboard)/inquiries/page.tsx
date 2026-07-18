@@ -1,6 +1,6 @@
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { inquiries } from "@/lib/admin/data/inquiries";
+import { getInquiries } from "@/lib/admin/data/inquiries";
 import { inquiryStatusTone } from "@/lib/admin/status-tone";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -10,7 +10,8 @@ const SOURCE_LABELS: Record<string, string> = {
   ai_trip_planner: "AI Trip Planner",
 };
 
-export default function AdminInquiriesPage() {
+export default async function AdminInquiriesPage() {
+  const inquiries = await getInquiries();
   return (
     <div>
       <PageHeader
@@ -33,7 +34,7 @@ export default function AdminInquiriesPage() {
             {inq.tourTitle && <p className="mt-2 text-xs text-foreground/50">Re: {inq.tourTitle}</p>}
             <p className="mt-2 text-sm text-foreground/80">{inq.message}</p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <select defaultValue={inq.assignedStaff ?? ""} className="rounded-full border border-secondary/40 px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary">
+              <select id={`assign-${inq.id}`} name="assignedStaff" defaultValue={inq.assignedStaff ?? ""} className="rounded-full border border-secondary/40 px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary">
                 <option value="">Assign to staff...</option>
                 <option>Grace Mwangi</option>
                 <option>James Otieno</option>

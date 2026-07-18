@@ -1,9 +1,10 @@
 import Image from "next/image";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { mediaItems } from "@/lib/admin/data/media";
+import { getMediaItems } from "@/lib/admin/data/media";
 
-export default function AdminMediaPage() {
+export default async function AdminMediaPage() {
+  const mediaItems = await getMediaItems();
   return (
     <div>
       <PageHeader
@@ -16,7 +17,13 @@ export default function AdminMediaPage() {
           <div key={item.id} className="card overflow-hidden">
             {item.fileType === "image" ? (
               <div className="relative h-36 w-full">
-                <Image src={item.fileUrl} alt={item.altText} fill className="object-cover" />
+                <Image
+                  src={item.fileUrl}
+                  alt={item.altText}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover"
+                />
               </div>
             ) : (
               <div className="flex h-36 w-full items-center justify-center bg-secondary/15 text-3xl">

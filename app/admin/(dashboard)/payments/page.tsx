@@ -1,7 +1,7 @@
 import PageHeader from "@/components/admin/PageHeader";
 import StatCard from "@/components/admin/StatCard";
 import Badge from "@/components/admin/Badge";
-import { payments } from "@/lib/admin/data/payments";
+import { getPayments } from "@/lib/admin/data/payments";
 import { paymentStatusTone } from "@/lib/admin/status-tone";
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -11,7 +11,8 @@ const PROVIDER_LABELS: Record<string, string> = {
   bank_transfer: "Bank Transfer",
 };
 
-export default function AdminPaymentsPage() {
+export default async function AdminPaymentsPage() {
+  const payments = await getPayments();
   const succeeded = payments.filter((p) => p.status === "succeeded");
   const pending = payments.filter((p) => p.status === "pending");
   const refunded = payments.filter((p) => p.status === "refunded");

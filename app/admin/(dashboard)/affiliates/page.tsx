@@ -1,8 +1,9 @@
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { affiliatePartners } from "@/lib/admin/data/affiliates";
+import { getAffiliatePartners } from "@/lib/admin/data/affiliates";
 
-export default function AdminAffiliatesPage() {
+export default async function AdminAffiliatesPage() {
+  const affiliatePartners = await getAffiliatePartners();
   return (
     <div>
       <PageHeader

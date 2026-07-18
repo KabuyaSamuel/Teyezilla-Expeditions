@@ -1,11 +1,17 @@
 import PageHeader from "@/components/admin/PageHeader";
 import StatCard from "@/components/admin/StatCard";
-import { bookings } from "@/lib/admin/data/bookings";
-import { payments } from "@/lib/admin/data/payments";
-import { destinations } from "@/lib/destinations";
-import { tours } from "@/lib/tours";
+import { getBookings } from "@/lib/admin/data/bookings";
+import { getPayments } from "@/lib/admin/data/payments";
+import { getDestinations } from "@/lib/destinations";
+import { getTours } from "@/lib/tours";
 
-export default function AdminReportsPage() {
+export default async function AdminReportsPage() {
+  const [destinations, tours, bookings, payments] = await Promise.all([
+    getDestinations(),
+    getTours(),
+    getBookings(),
+    getPayments(),
+  ]);
   const revenue = payments.filter((p) => p.status === "succeeded").reduce((s, p) => s + p.amount, 0);
   const conversion = Math.round(
     (bookings.filter((b) => b.bookingStatus !== "cancelled").length / bookings.length) * 100

@@ -1,14 +1,5 @@
 import type { Destination } from "@/types";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
-import { seedDestinations } from "@/lib/destinations.seed";
-
-// Real data layer for destinations. Tries Supabase first; falls back to the
-// seed fixture (lib/destinations.seed.ts) if Supabase isn't configured yet,
-// or if a query fails for any reason. This means the site keeps working
-// during local development before .env.local is set up, and a transient DB
-// issue in production degrades to stale-but-correct content instead of a
-// broken page. Failures are logged via console.warn so they're visible in
-// server logs rather than silently masked.
 
 function mapRow(row: Record<string, unknown>): Destination {
   return {
@@ -30,7 +21,10 @@ function mapRow(row: Record<string, unknown>): Destination {
 
 export async function getDestinations(): Promise<Destination[]> {
   const supabase = getSupabasePublicClient();
-  if (!supabase) return seedDestinations;
+  if (!supabase) {
+    console.warn("[destinations] Supabase not configured, returning no destinations.");
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("destinations")
@@ -38,8 +32,8 @@ export async function getDestinations(): Promise<Destination[]> {
     .order("is_launch_destination", { ascending: false });
 
   if (error || !data) {
-    console.warn("[destinations] Supabase query failed, using seed data:", error?.message);
-    return seedDestinations;
+    console.warn("[destinations] Supabase query failed:", error?.message);
+    return [];
   }
 
   return data.map(mapRow);
@@ -52,7 +46,10 @@ export async function getLaunchDestinations(): Promise<Destination[]> {
 
 export async function getDestinationBySlug(slug: string): Promise<Destination | undefined> {
   const supabase = getSupabasePublicClient();
-  if (!supabase) return seedDestinations.find((d) => d.slug === slug);
+  if (!supabase) {
+    console.warn("[destinations] Supabase not configured, returning no destination.");
+    return undefined;
+  }
 
   const { data, error } = await supabase
     .from("destinations")
@@ -61,20 +58,21 @@ export async function getDestinationBySlug(slug: string): Promise<Destination | 
     .maybeSingle();
 
   if (error || !data) {
-    if (error) console.warn("[destinations] Supabase query failed, using seed data:", error.message);
-    return seedDestinations.find((d) => d.slug === slug);
+    if (error) console.warn("[destinations] Supabase query failed:", error.message);
+    return undefined;
   }
 
   return mapRow(data);
 }
 
-// Tours reference their destination by id (a UUID once Supabase is
-// connected), not by slug — use this for that lookup rather than
-// getDestinationBySlug, which only happens to work against seed data because
-// the seed fixture's id and slug are the same string for convenience.
+// Tours reference their destination by id (a UUID), not by slug — use this
+// for that lookup rather than getDestinationBySlug.
 export async function getDestinationById(id: string): Promise<Destination | undefined> {
   const supabase = getSupabasePublicClient();
-  if (!supabase) return seedDestinations.find((d) => d.id === id);
+  if (!supabase) {
+    console.warn("[destinations] Supabase not configured, returning no destination.");
+    return undefined;
+  }
 
   const { data, error } = await supabase
     .from("destinations")
@@ -83,8 +81,8 @@ export async function getDestinationById(id: string): Promise<Destination | unde
     .maybeSingle();
 
   if (error || !data) {
-    if (error) console.warn("[destinations] Supabase query failed, using seed data:", error.message);
-    return seedDestinations.find((d) => d.id === id);
+    if (error) console.warn("[destinations] Supabase query failed:", error.message);
+    return undefined;
   }
 
   return mapRow(data);

@@ -1,9 +1,5 @@
 import type { Tour } from "@/types";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
-import { seedTours } from "@/lib/tours.seed";
-
-// Real data layer for tours. Same Supabase-first, seed-fallback pattern as
-// lib/destinations.ts — see the comment there for the reasoning.
 
 function mapRow(row: Record<string, unknown>): Tour {
   return {
@@ -28,13 +24,16 @@ function mapRow(row: Record<string, unknown>): Tour {
 
 export async function getTours(): Promise<Tour[]> {
   const supabase = getSupabasePublicClient();
-  if (!supabase) return seedTours;
+  if (!supabase) {
+    console.warn("[tours] Supabase not configured, returning no tours.");
+    return [];
+  }
 
   const { data, error } = await supabase.from("tours").select("*");
 
   if (error || !data) {
-    console.warn("[tours] Supabase query failed, using seed data:", error?.message);
-    return seedTours;
+    console.warn("[tours] Supabase query failed:", error?.message);
+    return [];
   }
 
   return data.map(mapRow);
@@ -47,13 +46,16 @@ export async function getFeaturedTours(): Promise<Tour[]> {
 
 export async function getTourBySlug(slug: string): Promise<Tour | undefined> {
   const supabase = getSupabasePublicClient();
-  if (!supabase) return seedTours.find((t) => t.slug === slug);
+  if (!supabase) {
+    console.warn("[tours] Supabase not configured, returning no tour.");
+    return undefined;
+  }
 
   const { data, error } = await supabase.from("tours").select("*").eq("slug", slug).maybeSingle();
 
   if (error || !data) {
-    if (error) console.warn("[tours] Supabase query failed, using seed data:", error.message);
-    return seedTours.find((t) => t.slug === slug);
+    if (error) console.warn("[tours] Supabase query failed:", error.message);
+    return undefined;
   }
 
   return mapRow(data);

@@ -108,6 +108,7 @@ create table blog_posts (
   title text not null,
   slug text unique not null,
   excerpt text,
+  answer text,
   body text,
   hero_image text,
   author_name text,
@@ -155,6 +156,7 @@ create table media (
   file_type text check (file_type in ('image', 'video', 'pdf')),
   alt_text text,
   tags text[],
+  storage_path text, -- Storage object path, for deleting the underlying file
   uploaded_at timestamptz default now()
 );
 
@@ -169,6 +171,8 @@ create table inquiries (
   message text,
   assigned_staff_id uuid,
   status text default 'new' check (status in ('new', 'in_progress', 'quoted', 'converted', 'closed')),
+  staff_reply text,
+  replied_at timestamptz,
   created_at timestamptz default now()
 );
 

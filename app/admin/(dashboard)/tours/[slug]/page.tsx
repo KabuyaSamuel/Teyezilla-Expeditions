@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/PageHeader";
 import TourForm from "@/components/admin/TourForm";
-import { getTourBySlug } from "@/lib/tours";
+import { getAdminTourBySlug } from "@/lib/admin/data/tours";
 import { getDestinations } from "@/lib/destinations";
 
 export default async function EditTourPage({
@@ -10,7 +10,7 @@ export default async function EditTourPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [tour, destinations] = await Promise.all([getTourBySlug(slug), getDestinations()]);
+  const [tour, destinations] = await Promise.all([getAdminTourBySlug(slug), getDestinations()]);
   if (!tour) notFound();
 
   return (

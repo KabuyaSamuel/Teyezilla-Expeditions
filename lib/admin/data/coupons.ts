@@ -1,7 +1,15 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { seedCoupons, type Coupon } from "./coupons.seed";
 
-export type { Coupon };
+export interface Coupon {
+  id: string;
+  code: string;
+  discountType: "percentage" | "fixed";
+  discountValue: number;
+  isReferral: boolean;
+  usageLimit: number;
+  usedCount: number;
+  expiresAt: string;
+}
 
 function mapRow(row: Record<string, any>): Coupon {
   return {
@@ -18,14 +26,34 @@ function mapRow(row: Record<string, any>): Coupon {
 
 export async function getCoupons(): Promise<Coupon[]> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedCoupons;
+  if (!supabase) {
+    console.warn("[coupons] Supabase not configured, returning no coupons.");
+    return [];
+  }
 
   const { data, error } = await supabase.from("discount_codes").select("*").order("created_at", { ascending: false });
 
   if (error || !data) {
-    console.warn("[coupons] Supabase query failed, using seed data:", error?.message);
-    return seedCoupons;
+    console.warn("[coupons] Supabase query failed:", error?.message);
+    return [];
   }
 
   return data.map(mapRow);
+}
+
+export async function getCouponByCode(code: string): Promise<Coupon | undefined> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) {
+    console.warn("[coupons] Supabase not configured, returning no coupon.");
+    return undefined;
+  }
+
+  const { data, error } = await supabase.from("discount_codes").select("*").eq("code", code).maybeSingle();
+
+  if (error || !data) {
+    if (error) console.warn("[coupons] Supabase query failed:", error.message);
+    return undefined;
+  }
+
+  return mapRow(data);
 }

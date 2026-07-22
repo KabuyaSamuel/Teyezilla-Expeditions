@@ -1,15 +1,23 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { seedAdminBlogPosts, type AdminBlogPost } from "./blog.seed";
 
-export type { AdminBlogPost };
-
-// NOTE: the public-facing /blog and /blog/[slug] pages currently hold their
-// own hardcoded article content (with the answer-first/AEO blocks written
-// directly into the page) rather than reading from `blog_posts`. This admin
-// module reads/writes the real table so editorial workflow (draft/schedule/
-// publish) works against real data; migrating the public pages' article
-// bodies into the database is a follow-up content-migration task, not a
-// code change — the schema and this data layer are already ready for it.
+export interface AdminBlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  tags: string[];
+  excerpt: string;
+  answer: string;
+  body: string;
+  authorName: string;
+  authorBio: string;
+  metaTitle: string;
+  metaDescription: string;
+  featuredImage: string;
+  status: "draft" | "published" | "scheduled";
+  scheduledFor?: string;
+  publishedAt?: string;
+}
 
 function mapRow(row: Record<string, any>): AdminBlogPost {
   return {
@@ -18,6 +26,11 @@ function mapRow(row: Record<string, any>): AdminBlogPost {
     slug: row.slug,
     category: row.category ?? "",
     tags: row.tags ?? [],
+    excerpt: row.excerpt ?? "",
+    answer: row.answer ?? "",
+    body: row.body ?? "",
+    authorName: row.author_name ?? "",
+    authorBio: row.author_bio ?? "",
     metaTitle: row.meta_title ?? "",
     metaDescription: row.meta_description ?? "",
     featuredImage: row.hero_image ?? "",
@@ -29,13 +42,16 @@ function mapRow(row: Record<string, any>): AdminBlogPost {
 
 export async function getAdminBlogPosts(): Promise<AdminBlogPost[]> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedAdminBlogPosts;
+  if (!supabase) {
+    console.warn("[blog] Supabase not configured, returning no posts.");
+    return [];
+  }
 
   const { data, error } = await supabase.from("blog_posts").select("*").order("created_at", { ascending: false });
 
   if (error || !data) {
-    console.warn("[blog] Supabase query failed, using seed data:", error?.message);
-    return seedAdminBlogPosts;
+    console.warn("[blog] Supabase query failed:", error?.message);
+    return [];
   }
 
   return data.map(mapRow);
@@ -43,13 +59,16 @@ export async function getAdminBlogPosts(): Promise<AdminBlogPost[]> {
 
 export async function getAdminBlogPostBySlug(slug: string): Promise<AdminBlogPost | undefined> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedAdminBlogPosts.find((p) => p.slug === slug);
+  if (!supabase) {
+    console.warn("[blog] Supabase not configured, returning no post.");
+    return undefined;
+  }
 
   const { data, error } = await supabase.from("blog_posts").select("*").eq("slug", slug).maybeSingle();
 
   if (error || !data) {
-    if (error) console.warn("[blog] Supabase query failed, using seed data:", error.message);
-    return seedAdminBlogPosts.find((p) => p.slug === slug);
+    if (error) console.warn("[blog] Supabase query failed:", error.message);
+    return undefined;
   }
 
   return mapRow(data);

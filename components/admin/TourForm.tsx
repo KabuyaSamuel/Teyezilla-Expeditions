@@ -1,26 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import type { Tour, Destination } from "@/types";
-
-interface ItineraryDay {
-  day: number;
-  title: string;
-  description: string;
-}
+import type { Destination } from "@/types";
+import type { AdminTourDetail, ItineraryDay } from "@/lib/admin/data/tours";
+import { createTour, updateTour, deleteTour } from "@/lib/admin/actions/tours";
 
 export default function TourForm({
   existingTour,
   destinations,
 }: {
-  existingTour?: Tour;
+  existingTour?: AdminTourDetail;
   destinations: Destination[];
 }) {
-  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [itinerary, setItinerary] = useState<ItineraryDay[]>(
-    existingTour
-      ? [{ day: 1, title: "Arrival", description: existingTour.shortDescription }]
-      : [{ day: 1, title: "", description: "" }]
+    existingTour?.itinerary?.length ? existingTour.itinerary : [{ day: 1, title: "", description: "" }]
   );
 
   function addItineraryDay() {
@@ -33,21 +28,73 @@ export default function TourForm({
     );
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // NOTE: this form doesn't persist yet — wire this submit handler to a
-    // Supabase insert/update against the `tours` table (and
-    // `tour_availability` for the calendar below) to make it real.
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setError(null);
+    setSaving(true);
+
+    const formData = new FormData(e.currentTarget);
+    const splitLines = (v: FormDataEntryValue | null) =>
+      String(v ?? "").split("\n").map((s) => s.trim()).filter(Boolean);
+    const splitCommas = (v: FormDataEntryValue | null) =>
+      String(v ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+
+    const input = {
+      title: String(formData.get("tourTitle") ?? ""),
+      slug: existingTour?.slug ?? "",
+      destinationId: String(formData.get("destinationId") ?? ""),
+      categoryLabel: String(formData.get("categoryLabel") ?? ""),
+      difficulty: String(formData.get("difficulty") ?? "Easy"),
+      durationDays: Number(formData.get("durationDays") ?? 0),
+      priceFrom: Number(formData.get("priceFrom") ?? 0),
+      shortDescription: String(formData.get("shortDescription") ?? ""),
+      inclusions: splitLines(formData.get("inclusions")),
+      exclusions: splitLines(formData.get("exclusions")),
+      itinerary,
+      meetingPoint: String(formData.get("meetingPoint") ?? ""),
+      pickupLocations: splitCommas(formData.get("pickupLocations")),
+      featured: formData.get("featured") === "on",
+      status: String(formData.get("status") ?? "draft"),
+    };
+
+    try {
+      if (existingTour) {
+        await updateTour(existingTour.id, input);
+      } else {
+        await createTour(input);
+      }
+      // On success the action redirects to /admin/tours; if we get here
+      // without a redirect having thrown, something unexpected happened.
+    } catch (err) {
+      // Next.js redirect() throws a special error to trigger navigation —
+      // let that propagate instead of treating it as a failure.
+      if (err && typeof err === "object" && "digest" in err && String(err.digest).startsWith("NEXT_REDIRECT")) {
+        throw err;
+      }
+      setError(err instanceof Error ? err.message : "Failed to save tour.");
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!existingTour) return;
+    if (!confirm(`Delete "${existingTour.title}"? This can't be undone.`)) return;
+    setSaving(true);
+    try {
+      await deleteTour(existingTour.id);
+    } catch (err) {
+      if (err && typeof err === "object" && "digest" in err && String(err.digest).startsWith("NEXT_REDIRECT")) {
+        throw err;
+      }
+      setError(err instanceof Error ? err.message : "Failed to delete tour.");
+      setSaving(false);
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {saved && (
-        <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">
-          Saved locally. Wire this form up to Supabase to persist it for real.
-        </div>
+      {error && (
+        <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>
       )}
 
       <section className="card p-6">
@@ -55,11 +102,11 @@ export default function TourForm({
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="tourTitle" className="text-xs font-medium text-foreground/60">Tour Title</label>
-            <input id="tourTitle" name="tourTitle" defaultValue={existingTour?.title} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input id="tourTitle" name="tourTitle" required defaultValue={existingTour?.title} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="destinationId" className="text-xs font-medium text-foreground/60">Destination</label>
-            <select id="destinationId" name="destinationId" defaultValue={existingTour?.destinationId} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <select id="destinationId" name="destinationId" required defaultValue={existingTour?.destinationId} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
               {destinations.map((d) => (
                 <option key={d.id} value={d.id}>{d.countryName}</option>
               ))}
@@ -79,11 +126,11 @@ export default function TourForm({
           </div>
           <div>
             <label htmlFor="durationDays" className="text-xs font-medium text-foreground/60">Duration (days)</label>
-            <input id="durationDays" name="durationDays" type="number" defaultValue={existingTour?.durationDays} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input id="durationDays" name="durationDays" type="number" min={1} defaultValue={existingTour?.durationDays} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="priceFrom" className="text-xs font-medium text-foreground/60">Price From (USD)</label>
-            <input id="priceFrom" name="priceFrom" type="number" defaultValue={existingTour?.priceFrom} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input id="priceFrom" name="priceFrom" type="number" min={0} defaultValue={existingTour?.priceFrom} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
         <div className="mt-4">
@@ -97,11 +144,11 @@ export default function TourForm({
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="inclusions" className="text-xs font-medium text-foreground/60">Inclusions (one per line)</label>
-            <textarea id="inclusions" name="inclusions" rows={4} placeholder="Airport transfers&#10;All game drives&#10;Park fees" className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <textarea id="inclusions" name="inclusions" rows={4} defaultValue={existingTour?.inclusions?.join("\n")} placeholder="Airport transfers&#10;All game drives&#10;Park fees" className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="exclusions" className="text-xs font-medium text-foreground/60">Exclusions (one per line)</label>
-            <textarea id="exclusions" name="exclusions" rows={4} placeholder="International flights&#10;Travel insurance&#10;Tips" className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <textarea id="exclusions" name="exclusions" rows={4} defaultValue={existingTour?.exclusions?.join("\n")} placeholder="International flights&#10;Travel insurance&#10;Tips" className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
       </section>
@@ -119,7 +166,6 @@ export default function TourForm({
               <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Day {d.day}</p>
               <input
                 id={`itinerary-title-${i}`}
-                name={`itineraryTitle-${i}`}
                 value={d.title}
                 onChange={(e) => updateItineraryDay(i, "title", e.target.value)}
                 placeholder="Day title"
@@ -127,7 +173,6 @@ export default function TourForm({
               />
               <textarea
                 id={`itinerary-description-${i}`}
-                name={`itineraryDescription-${i}`}
                 value={d.description}
                 onChange={(e) => updateItineraryDay(i, "description", e.target.value)}
                 placeholder="What happens this day"
@@ -144,11 +189,11 @@ export default function TourForm({
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="meetingPoint" className="text-xs font-medium text-foreground/60">Meeting Point</label>
-            <input id="meetingPoint" name="meetingPoint" placeholder="Jomo Kenyatta International Airport" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input id="meetingPoint" name="meetingPoint" defaultValue={existingTour?.meetingPoint} placeholder="Jomo Kenyatta International Airport" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="pickupLocations" className="text-xs font-medium text-foreground/60">Pickup Locations (comma-separated)</label>
-            <input id="pickupLocations" name="pickupLocations" placeholder="Nairobi CBD hotels, JKIA" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input id="pickupLocations" name="pickupLocations" defaultValue={existingTour?.pickupLocations?.join(", ")} placeholder="Nairobi CBD hotels, JKIA" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
       </section>
@@ -163,19 +208,6 @@ export default function TourForm({
         </a>
       </section>
 
-      <section className="card p-6">
-        <h2 className="font-heading text-lg font-semibold text-foreground">Availability Calendar</h2>
-        <p className="mt-1 text-xs text-foreground/50">
-          Capacity per departure date. Full calendar UI and real-time sync land with the
-          Inventory & Availability module once this form writes to `tour_availability`.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <input id="newAvailabilityDate" name="newAvailabilityDate" type="date" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          <input id="newAvailabilityCapacity" name="newAvailabilityCapacity" type="number" placeholder="Capacity" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          <button type="button" className="btn-outline text-sm">+ Add Date</button>
-        </div>
-      </section>
-
       <section className="card flex flex-wrap items-center justify-between gap-4 p-6">
         <div className="flex items-center gap-3">
           <label htmlFor="featured" className="flex items-center gap-2 text-sm">
@@ -186,7 +218,16 @@ export default function TourForm({
             <option value="published">Published</option>
           </select>
         </div>
-        <button type="submit" className="btn-primary">Save Tour</button>
+        <div className="flex gap-3">
+          {existingTour && (
+            <button type="button" onClick={handleDelete} disabled={saving} className="rounded-full border-2 border-error px-5 py-2 text-sm font-medium text-error hover:bg-error hover:text-white transition-colors disabled:opacity-50">
+              Delete
+            </button>
+          )}
+          <button type="submit" disabled={saving} className="btn-primary disabled:opacity-50">
+            {saving ? "Saving…" : "Save Tour"}
+          </button>
+        </div>
       </section>
     </form>
   );

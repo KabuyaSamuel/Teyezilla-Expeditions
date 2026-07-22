@@ -11,7 +11,11 @@ export default async function AdminBlogPage() {
       <PageHeader
         title="Blog Management"
         description="Posts, categories, tags, and SEO for every travel guide article."
-        action={<button className="btn-primary text-sm">+ New Post</button>}
+        action={
+          <Link href="/admin/blog/new" className="btn-primary text-sm">
+            + New Post
+          </Link>
+        }
       />
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">

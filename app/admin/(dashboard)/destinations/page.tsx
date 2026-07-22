@@ -10,6 +10,11 @@ export default async function AdminDestinationsPage() {
       <PageHeader
         title="Destination Management"
         description="Countries, attractions, hotels, and travel guidance for each destination."
+        action={
+          <Link href="/admin/destinations/new" className="btn-primary text-sm">
+            + Add Destination
+          </Link>
+        }
       />
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import { getAffiliatePartners } from "@/lib/admin/data/affiliates";
@@ -8,7 +9,12 @@ export default async function AdminAffiliatesPage() {
     <div>
       <PageHeader
         title="Affiliate Management"
-        description="Future integration with Viator, GetYourGuide, Booking.com, Expedia, and Klook for commission-based bookings."
+        description="Viator, GetYourGuide, Booking.com, Expedia, Klook, and other partners."
+        action={
+          <Link href="/admin/affiliates/new" className="btn-primary text-sm">
+            + Add Partner
+          </Link>
+        }
       />
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -18,6 +24,7 @@ export default async function AdminAffiliatesPage() {
               <th className="px-5 py-3">Status</th>
               <th className="px-5 py-3">Commission Rate</th>
               <th className="px-5 py-3">Notes</th>
+              <th className="px-5 py-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -31,14 +38,19 @@ export default async function AdminAffiliatesPage() {
                 </td>
                 <td className="px-5 py-3 text-foreground/70">{a.commissionRate ? `${a.commissionRate}%` : "—"}</td>
                 <td className="px-5 py-3 text-foreground/70">{a.notes}</td>
+                <td className="px-5 py-3">
+                  <Link href={`/admin/affiliates/${a.id}`} className="text-primary hover:underline">
+                    Edit
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">
-        Per the Phase 3 spec, this module scaffolds the schema and a readonly view now;
-        the full connect/commission-tracking UI is future work once affiliate deals are signed.
+        Live booking sync and commission tracking with these partners is future work once deals are signed —
+        this manages the partner records themselves.
       </div>
     </div>
   );

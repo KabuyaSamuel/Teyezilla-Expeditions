@@ -1,13 +1,27 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { seedBookings, type Booking, type PaymentStatus, type BookingStatus } from "./bookings.seed";
 
-export type { Booking, PaymentStatus, BookingStatus };
+export type PaymentStatus = "pending" | "partial" | "paid" | "refunded";
+export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
 
-// Real bookings data layer. Joins customers and tours to get display names,
-// since the `bookings` table only stores foreign keys. Falls back to seed
-// data when Supabase isn't configured — see lib/destinations.ts for the
-// reasoning behind this pattern, used consistently across the admin data layer.
+export interface Booking {
+  id: string;
+  bookingReference: string;
+  customerId: string;
+  customerName: string;
+  tourSlug: string;
+  tourTitle: string;
+  travelDate: string;
+  travelerCount: number;
+  totalAmount: number;
+  depositAmount: number;
+  currency: string;
+  paymentStatus: PaymentStatus;
+  bookingStatus: BookingStatus;
+  createdAt: string;
+}
 
+// Joins customers and tours to get display names, since the `bookings`
+// table only stores foreign keys.
 function mapRow(row: Record<string, any>): Booking {
   return {
     id: row.id,
@@ -29,7 +43,10 @@ function mapRow(row: Record<string, any>): Booking {
 
 export async function getBookings(): Promise<Booking[]> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedBookings;
+  if (!supabase) {
+    console.warn("[bookings] Supabase not configured, returning no bookings.");
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("bookings")
@@ -37,8 +54,8 @@ export async function getBookings(): Promise<Booking[]> {
     .order("created_at", { ascending: false });
 
   if (error || !data) {
-    console.warn("[bookings] Supabase query failed, using seed data:", error?.message);
-    return seedBookings;
+    console.warn("[bookings] Supabase query failed:", error?.message);
+    return [];
   }
 
   return data.map(mapRow);
@@ -46,7 +63,10 @@ export async function getBookings(): Promise<Booking[]> {
 
 export async function getBookingById(id: string): Promise<Booking | undefined> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedBookings.find((b) => b.id === id);
+  if (!supabase) {
+    console.warn("[bookings] Supabase not configured, returning no booking.");
+    return undefined;
+  }
 
   const { data, error } = await supabase
     .from("bookings")
@@ -55,8 +75,8 @@ export async function getBookingById(id: string): Promise<Booking | undefined> {
     .maybeSingle();
 
   if (error || !data) {
-    if (error) console.warn("[bookings] Supabase query failed, using seed data:", error.message);
-    return seedBookings.find((b) => b.id === id);
+    if (error) console.warn("[bookings] Supabase query failed:", error.message);
+    return undefined;
   }
 
   return mapRow(data);

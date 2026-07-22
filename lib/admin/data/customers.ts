@@ -1,7 +1,16 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { seedCustomers, type Customer } from "./customers.seed";
 
-export type { Customer };
+export interface Customer {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  nationality: string;
+  emergencyContact: string;
+  notes: string;
+  loyaltyPoints: number;
+  createdAt: string;
+}
 
 function mapRow(row: Record<string, any>): Customer {
   return {
@@ -19,13 +28,16 @@ function mapRow(row: Record<string, any>): Customer {
 
 export async function getCustomers(): Promise<Customer[]> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedCustomers;
+  if (!supabase) {
+    console.warn("[customers] Supabase not configured, returning no customers.");
+    return [];
+  }
 
   const { data, error } = await supabase.from("customers").select("*").order("created_at", { ascending: false });
 
   if (error || !data) {
-    console.warn("[customers] Supabase query failed, using seed data:", error?.message);
-    return seedCustomers;
+    console.warn("[customers] Supabase query failed:", error?.message);
+    return [];
   }
 
   return data.map(mapRow);
@@ -33,13 +45,16 @@ export async function getCustomers(): Promise<Customer[]> {
 
 export async function getCustomerById(id: string): Promise<Customer | undefined> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedCustomers.find((c) => c.id === id);
+  if (!supabase) {
+    console.warn("[customers] Supabase not configured, returning no customer.");
+    return undefined;
+  }
 
   const { data, error } = await supabase.from("customers").select("*").eq("id", id).maybeSingle();
 
   if (error || !data) {
-    if (error) console.warn("[customers] Supabase query failed, using seed data:", error.message);
-    return seedCustomers.find((c) => c.id === id);
+    if (error) console.warn("[customers] Supabase query failed:", error.message);
+    return undefined;
   }
 
   return mapRow(data);

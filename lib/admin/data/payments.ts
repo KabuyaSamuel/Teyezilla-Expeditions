@@ -1,7 +1,17 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { seedPayments, type Payment, type PaymentProvider } from "./payments.seed";
 
-export type { Payment, PaymentProvider };
+export type PaymentProvider = "stripe" | "mpesa" | "paypal" | "bank_transfer";
+
+export interface Payment {
+  id: string;
+  bookingReference: string;
+  provider: PaymentProvider;
+  providerReference: string;
+  amount: number;
+  currency: string;
+  status: "pending" | "succeeded" | "failed" | "refunded";
+  createdAt: string;
+}
 
 function mapRow(row: Record<string, any>): Payment {
   return {
@@ -18,7 +28,10 @@ function mapRow(row: Record<string, any>): Payment {
 
 export async function getPayments(): Promise<Payment[]> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedPayments;
+  if (!supabase) {
+    console.warn("[payments] Supabase not configured, returning no payments.");
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("payments")
@@ -26,8 +39,8 @@ export async function getPayments(): Promise<Payment[]> {
     .order("created_at", { ascending: false });
 
   if (error || !data) {
-    console.warn("[payments] Supabase query failed, using seed data:", error?.message);
-    return seedPayments;
+    console.warn("[payments] Supabase query failed:", error?.message);
+    return [];
   }
 
   return data.map(mapRow);

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import { getInventoryRecords } from "@/lib/admin/data/inventory";
@@ -9,6 +10,11 @@ export default async function AdminInventoryPage() {
       <PageHeader
         title="Inventory & Availability"
         description="Tour capacity, guide and driver assignment, and real-time availability."
+        action={
+          <Link href="/admin/inventory/new" className="btn-primary text-sm">
+            + Add Availability
+          </Link>
+        }
       />
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -21,6 +27,7 @@ export default async function AdminInventoryPage() {
               <th className="px-5 py-3">Guide</th>
               <th className="px-5 py-3">Driver</th>
               <th className="px-5 py-3">Vehicle</th>
+              <th className="px-5 py-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -37,6 +44,11 @@ export default async function AdminInventoryPage() {
                 <td className="px-5 py-3 text-foreground/70">{r.guideAssigned ?? "Unassigned"}</td>
                 <td className="px-5 py-3 text-foreground/70">{r.driverAssigned ?? "Unassigned"}</td>
                 <td className="px-5 py-3 text-foreground/70">{r.vehicle ?? "—"}</td>
+                <td className="px-5 py-3">
+                  <Link href={`/admin/inventory/${r.id}`} className="text-primary hover:underline">
+                    Edit
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>

@@ -6,7 +6,15 @@ export default async function AdminCustomersPage() {
   const customers = await getCustomers();
   return (
     <div>
-      <PageHeader title="Customer Management (CRM)" description="Profiles, booking history, and loyalty." />
+      <PageHeader
+        title="Customer Management (CRM)"
+        description="Profiles, booking history, and loyalty."
+        action={
+          <Link href="/admin/customers/new" className="btn-primary text-sm">
+            + Add Customer
+          </Link>
+        }
+      />
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-secondary/20 text-xs uppercase tracking-wide text-foreground/50">

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
@@ -20,7 +21,15 @@ export default async function CustomerProfilePage({
 
   return (
     <div>
-      <PageHeader title={customer.fullName} description={customer.email} />
+      <PageHeader
+        title={customer.fullName}
+        description={customer.email}
+        action={
+          <Link href={`/admin/customers/${customer.id}/edit`} className="btn-primary text-sm">
+            Edit
+          </Link>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="card p-6 lg:col-span-2">

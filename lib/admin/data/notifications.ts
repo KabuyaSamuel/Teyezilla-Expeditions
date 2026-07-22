@@ -1,7 +1,12 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { seedNotifications, type AdminNotification } from "./notifications.seed";
 
-export type { AdminNotification };
+export interface AdminNotification {
+  id: string;
+  type: "new_booking" | "payment_confirmed" | "tour_reminder" | "follow_up" | "admin_alert";
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
 
 function mapRow(row: Record<string, any>): AdminNotification {
   return {
@@ -15,13 +20,16 @@ function mapRow(row: Record<string, any>): AdminNotification {
 
 export async function getNotifications(): Promise<AdminNotification[]> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedNotifications;
+  if (!supabase) {
+    console.warn("[notifications] Supabase not configured, returning no notifications.");
+    return [];
+  }
 
   const { data, error } = await supabase.from("notifications").select("*").order("created_at", { ascending: false });
 
   if (error || !data) {
-    console.warn("[notifications] Supabase query failed, using seed data:", error?.message);
-    return seedNotifications;
+    console.warn("[notifications] Supabase query failed:", error?.message);
+    return [];
   }
 
   return data.map(mapRow);

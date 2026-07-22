@@ -1,7 +1,19 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { seedTripPlannerRequests, type TripPlannerRequest } from "./trip-planner-requests.seed";
 
-export type { TripPlannerRequest };
+export interface TripPlannerRequest {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  destination: string;
+  budgetUsd: number;
+  days: number;
+  travelers: number;
+  travelStyle: string;
+  luxuryLevel: string;
+  aiSuggestedItinerary: string;
+  status: "new" | "reviewed" | "quoted" | "converted";
+  createdAt: string;
+}
 
 function mapRow(row: Record<string, any>): TripPlannerRequest {
   return {
@@ -22,7 +34,10 @@ function mapRow(row: Record<string, any>): TripPlannerRequest {
 
 export async function getTripPlannerRequests(): Promise<TripPlannerRequest[]> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedTripPlannerRequests;
+  if (!supabase) {
+    console.warn("[trip-planner] Supabase not configured, returning no requests.");
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("trip_planner_requests")
@@ -30,8 +45,8 @@ export async function getTripPlannerRequests(): Promise<TripPlannerRequest[]> {
     .order("created_at", { ascending: false });
 
   if (error || !data) {
-    console.warn("[trip-planner] Supabase query failed, using seed data:", error?.message);
-    return seedTripPlannerRequests;
+    console.warn("[trip-planner] Supabase query failed:", error?.message);
+    return [];
   }
 
   return data.map(mapRow);

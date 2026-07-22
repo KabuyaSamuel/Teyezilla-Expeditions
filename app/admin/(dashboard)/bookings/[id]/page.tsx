@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
+import BookingActions from "@/components/admin/BookingActions";
 import { getBookingById } from "@/lib/admin/data/bookings";
 import { getCustomerById } from "@/lib/admin/data/customers";
 import { getPayments } from "@/lib/admin/data/payments";
@@ -57,13 +58,15 @@ export default async function BookingDetailPage({
             ))}
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <button className="rounded-full border-2 border-error px-5 py-2 text-sm font-medium text-error hover:bg-error hover:text-white transition-colors">
-              Cancel Booking
-            </button>
-            <button className="rounded-full border-2 border-accent px-5 py-2 text-sm font-medium text-accent hover:bg-accent hover:text-white transition-colors">
-              Process Refund
-            </button>
+          <div className="mt-8">
+            <BookingActions
+              id={booking.id}
+              bookingReference={booking.bookingReference}
+              bookingStatus={booking.bookingStatus}
+              paymentStatus={booking.paymentStatus}
+              totalAmount={booking.totalAmount}
+              currency={booking.currency}
+            />
           </div>
         </div>
 

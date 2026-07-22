@@ -1,7 +1,16 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { seedInventoryRecords, type InventoryRecord } from "./inventory.seed";
 
-export type { InventoryRecord };
+export interface InventoryRecord {
+  id: string;
+  tourId: string;
+  tourTitle: string;
+  date: string;
+  capacity: number;
+  bookedCount: number;
+  guideAssigned?: string;
+  driverAssigned?: string;
+  vehicle?: string;
+}
 
 // Reads from `tour_availability`, joined to `tours` for the display title.
 // Guide/driver/vehicle assignment isn't in the schema yet as dedicated
@@ -11,6 +20,7 @@ export type { InventoryRecord };
 function mapRow(row: Record<string, any>): InventoryRecord {
   return {
     id: row.id,
+    tourId: row.tour_id,
     tourTitle: row.tour?.title ?? "Unknown Tour",
     date: row.date,
     capacity: Number(row.capacity ?? 0),
@@ -23,7 +33,10 @@ function mapRow(row: Record<string, any>): InventoryRecord {
 
 export async function getInventoryRecords(): Promise<InventoryRecord[]> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedInventoryRecords;
+  if (!supabase) {
+    console.warn("[inventory] Supabase not configured, returning no records.");
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("tour_availability")
@@ -31,9 +44,30 @@ export async function getInventoryRecords(): Promise<InventoryRecord[]> {
     .order("date", { ascending: true });
 
   if (error || !data) {
-    console.warn("[inventory] Supabase query failed, using seed data:", error?.message);
-    return seedInventoryRecords;
+    console.warn("[inventory] Supabase query failed:", error?.message);
+    return [];
   }
 
   return data.map(mapRow);
+}
+
+export async function getInventoryRecordById(id: string): Promise<InventoryRecord | undefined> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) {
+    console.warn("[inventory] Supabase not configured, returning no record.");
+    return undefined;
+  }
+
+  const { data, error } = await supabase
+    .from("tour_availability")
+    .select("*, tour:tours(title)")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.warn("[inventory] Supabase query failed:", error.message);
+    return undefined;
+  }
+
+  return mapRow(data);
 }

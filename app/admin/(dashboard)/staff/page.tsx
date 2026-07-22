@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import { getStaffMembers } from "@/lib/admin/data/staff";
@@ -10,7 +11,11 @@ export default async function AdminStaffPage() {
       <PageHeader
         title="Staff Management"
         description="Roles and module permissions for the admin team."
-        action={<button className="btn-primary text-sm">+ Add Staff Member</button>}
+        action={
+          <Link href="/admin/staff/new" className="btn-primary text-sm">
+            + Add Staff Member
+          </Link>
+        }
       />
       <div className="space-y-4">
         {staffMembers.map((s) => (
@@ -20,7 +25,12 @@ export default async function AdminStaffPage() {
                 <p className="font-heading font-semibold text-foreground">{s.fullName}</p>
                 <p className="text-xs text-foreground/50">{s.email}</p>
               </div>
-              <Badge tone="info">{ROLE_LABELS[s.role]}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge tone="info">{ROLE_LABELS[s.role]}</Badge>
+                <Link href={`/admin/staff/${s.id}`} className="text-sm text-primary hover:underline">
+                  Edit
+                </Link>
+              </div>
             </div>
             <p className="mt-3 text-xs font-medium text-foreground/50">Module access</p>
             <div className="mt-2 flex flex-wrap gap-1">

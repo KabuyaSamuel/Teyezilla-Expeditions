@@ -1,6 +1,8 @@
 import Image from "next/image";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
+import MediaUploadForm from "@/components/admin/MediaUploadForm";
+import MediaDeleteButton from "@/components/admin/MediaDeleteButton";
 import { getMediaItems } from "@/lib/admin/data/media";
 
 export default async function AdminMediaPage() {
@@ -10,7 +12,7 @@ export default async function AdminMediaPage() {
       <PageHeader
         title="Media Library"
         description="Images, videos, PDFs, and travel guide brochures."
-        action={<button className="btn-primary text-sm">+ Upload</button>}
+        action={<MediaUploadForm />}
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {mediaItems.map((item) => (
@@ -32,14 +34,18 @@ export default async function AdminMediaPage() {
             )}
             <div className="p-3">
               <p className="truncate text-xs font-medium text-foreground">{item.altText}</p>
-              <div className="mt-2 flex flex-wrap gap-1">
-                {item.tags.map((tag) => (
-                  <Badge key={tag} tone="neutral">{tag}</Badge>
-                ))}
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-1">
+                <div className="flex flex-wrap gap-1">
+                  {item.tags.map((tag) => (
+                    <Badge key={tag} tone="neutral">{tag}</Badge>
+                  ))}
+                </div>
+                <MediaDeleteButton id={item.id} storagePath={item.storagePath} />
               </div>
             </div>
           </div>
         ))}
+        {mediaItems.length === 0 && <p className="text-sm text-foreground/50">No media yet.</p>}
       </div>
     </div>
   );

@@ -2,41 +2,60 @@ import type { StaffRole } from "../permissions";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 // Staff directory for the Staff Management module. Reads from the real
-// `staff` table when Supabase is configured; falls back to a seed list (no
-// passwords — auth is entirely owned by Supabase Auth now, not this file)
-// so the module still renders during local development before Supabase is
-// connected.
+// `staff` table — auth is entirely owned by Supabase Auth, not this file.
 
 export interface StaffMember {
   id: string;
+  authUserId: string;
   fullName: string;
   email: string;
   role: StaffRole;
 }
 
-const seedStaff: StaffMember[] = [
-  { id: "s1", fullName: "Amina Wanjiru", email: "admin@teyezilla.com", role: "admin" },
-  { id: "s2", fullName: "James Otieno", email: "manager@teyezilla.com", role: "manager" },
-  { id: "s3", fullName: "Grace Mwangi", email: "sales@teyezilla.com", role: "sales_agent" },
-  { id: "s4", fullName: "Peter Kamau", email: "guide@teyezilla.com", role: "tour_guide" },
-  { id: "s5", fullName: "Samuel Njoroge", email: "driver@teyezilla.com", role: "driver" },
-];
+function mapRow(row: Record<string, any>): StaffMember {
+  return {
+    id: row.id,
+    authUserId: row.auth_user_id,
+    fullName: row.full_name,
+    email: row.email,
+    role: row.role as StaffRole,
+  };
+}
 
 export async function getStaffMembers(): Promise<StaffMember[]> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) return seedStaff;
-
-  const { data, error } = await supabase.from("staff").select("id, full_name, email, role");
-
-  if (error || !data) {
-    console.warn("[staff] Supabase query failed, using seed data:", error?.message);
-    return seedStaff;
+  if (!supabase) {
+    console.warn("[staff] Supabase not configured, returning no staff.");
+    return [];
   }
 
-  return data.map((row) => ({
-    id: row.id as string,
-    fullName: row.full_name as string,
-    email: row.email as string,
-    role: row.role as StaffRole,
-  }));
+  const { data, error } = await supabase.from("staff").select("id, auth_user_id, full_name, email, role");
+
+  if (error || !data) {
+    console.warn("[staff] Supabase query failed:", error?.message);
+    return [];
+  }
+
+  return data.map(mapRow);
+}
+
+export async function getStaffMemberById(id: string): Promise<StaffMember | undefined> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) {
+    console.warn("[staff] Supabase not configured, returning no staff member.");
+    return undefined;
+  }
+
+  const { data, error } = await supabase
+    .from("staff")
+    .select("id, auth_user_id, full_name, email, role")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.warn("[staff] Supabase query failed:", error.message);
+    return undefined;
+  }
+
+  return mapRow(data);
 }

@@ -1,9 +1,36 @@
 import PageHeader from "@/components/admin/PageHeader";
+import { getSiteSetting } from "@/lib/settings";
+import { updateSiteSetting } from "@/lib/admin/actions/settings";
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  const happyTravelersCount = (await getSiteSetting("happy_travelers_count")) ?? "";
+
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader title="Website Settings" description="Company info, contact details, currency, and SEO defaults." />
+
+      <section className="card p-6">
+        <h2 className="font-heading text-lg font-semibold text-foreground">Homepage Content</h2>
+        <p className="mt-1 text-xs text-foreground/50">
+          Shown in the &ldquo;Why Choose Teyezilla&rdquo; and stats sections on the homepage.
+        </p>
+        <form action={updateSiteSetting} className="mt-4 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="key" value="happy_travelers_count" />
+          <div>
+            <label htmlFor="happyTravelersCount" className="text-xs font-medium text-foreground/60">
+              Happy Travelers Count
+            </label>
+            <input
+              id="happyTravelersCount"
+              name="value"
+              defaultValue={happyTravelersCount}
+              className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <button type="submit" className="btn-primary text-sm">Save</button>
+        </form>
+      </section>
+
       <form className="space-y-6">
         <section className="card grid gap-4 p-6 sm:grid-cols-2">
           <h2 className="font-heading text-lg font-semibold text-foreground sm:col-span-2">Company Information</h2>

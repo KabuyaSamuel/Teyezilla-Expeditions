@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Destination } from "@/types";
+import WishlistButton from "./WishlistButton";
 
 export default function DestinationCard({ destination }: { destination: Destination }) {
   return (
@@ -18,10 +19,11 @@ export default function DestinationCard({ destination }: { destination: Destinat
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
         {!destination.isLaunchDestination && (
-          <span className="absolute right-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-medium text-white">
+          <span className="absolute left-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-medium text-white">
             Coming Soon
           </span>
         )}
+        <WishlistButton id={destination.id} label={destination.countryName} />
       </div>
       <div className="p-5">
         <h3 className="font-heading text-lg font-semibold text-foreground">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Tour } from "@/types";
+import WishlistButton from "./WishlistButton";
 
 export default function TourCard({ tour }: { tour: Tour }) {
   const whatsappHref = `https://wa.me/254700000000?text=${encodeURIComponent(
@@ -21,6 +22,7 @@ export default function TourCard({ tour }: { tour: Tour }) {
           <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-medium text-white">
             {tour.categoryLabel}
           </span>
+          <WishlistButton id={tour.id} label={tour.title} />
         </div>
       </Link>
       <div className="p-5">

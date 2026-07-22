@@ -58,7 +58,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen flex flex-col" suppressHydrationWarning>
         <Navbar />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 pt-20">{children}</main>
         <Footer />
         <WhatsAppButton phoneNumber="254700000000" />
         <SpeedInsights />

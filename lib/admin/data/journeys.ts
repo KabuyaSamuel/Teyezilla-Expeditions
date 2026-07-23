@@ -1,0 +1,143 @@
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+
+export interface ItineraryDay {
+  day: number;
+  title: string;
+  description: string;
+}
+
+export interface AdminJourneyListItem {
+  id: string;
+  slug: string;
+  title: string;
+  durationDays: number;
+  priceFrom: number;
+  currency: string;
+  featured: boolean;
+  status: string;
+  primaryDestinationName: string;
+}
+
+export interface AdminJourneyDetail {
+  id: string;
+  slug: string;
+  title: string;
+  heroImage: string;
+  shortDescription: string;
+  overview: string;
+  durationDays: number;
+  priceFrom: number;
+  currency: string;
+  difficulty: string;
+  inclusions: string[];
+  exclusions: string[];
+  itinerary: ItineraryDay[];
+  meetingPoint: string;
+  pickupLocations: string[];
+  featured: boolean;
+  status: string;
+  destinationIds: string[];
+  primaryDestinationId: string;
+  journeyTypeIds: string[];
+  experienceTypeIds: string[];
+  safariThemeIds: string[];
+}
+
+const LIST_SELECT = `
+  id, slug, title, duration_days, price_from, currency, featured, status,
+  journey_destinations(destination_id, is_primary, display_order, destinations(country_name))
+`;
+
+// Uses the authenticated staff session (not the public client) because
+// journeys' public-read RLS only exposes status='published' rows — the
+// admin list needs drafts too, which the "Staff can manage journeys"
+// policy grants via its unconditional using(true).
+export async function getAdminJourneys(): Promise<AdminJourneyListItem[]> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) {
+    console.warn("[admin/journeys] Supabase not configured, returning no journeys.");
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("journeys")
+    .select(LIST_SELECT)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.warn("[admin/journeys] Supabase query failed:", error?.message);
+    return [];
+  }
+
+  return data.map((row: any) => {
+    const dests = (row.journey_destinations ?? []) as any[];
+    const primary =
+      dests.find((d) => d.is_primary) ??
+      [...dests].sort((a, b) => a.display_order - b.display_order)[0];
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      durationDays: Number(row.duration_days ?? 0),
+      priceFrom: Number(row.price_from ?? 0),
+      currency: row.currency ?? "USD",
+      featured: Boolean(row.featured),
+      status: row.status ?? "draft",
+      primaryDestinationName: primary?.destinations?.country_name ?? "—",
+    };
+  });
+}
+
+const DETAIL_SELECT = `
+  *,
+  journey_destinations(destination_id, is_primary, display_order),
+  journey_journey_types(journey_type_id),
+  journey_experience_types(experience_type_id),
+  journey_safari_themes(safari_theme_id)
+`;
+
+export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyDetail | undefined> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) {
+    console.warn("[admin/journeys] Supabase not configured, returning no journey.");
+    return undefined;
+  }
+
+  const { data, error } = await supabase.from("journeys").select(DETAIL_SELECT).eq("slug", slug).maybeSingle();
+
+  if (error || !data) {
+    if (error) console.warn("[admin/journeys] Supabase query failed:", error.message);
+    return undefined;
+  }
+
+  const row = data as any;
+  const destinations = [...(row.journey_destinations ?? [])].sort(
+    (a: any, b: any) => a.display_order - b.display_order
+  );
+  const primary = destinations.find((d: any) => d.is_primary);
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    heroImage: row.hero_image ?? "",
+    shortDescription: row.short_description ?? "",
+    overview: row.overview ?? "",
+    durationDays: Number(row.duration_days ?? 0),
+    priceFrom: Number(row.price_from ?? 0),
+    currency: row.currency ?? "USD",
+    difficulty: row.difficulty ?? "Easy",
+    inclusions: row.inclusions ?? [],
+    exclusions: row.exclusions ?? [],
+    itinerary: row.itinerary ?? [],
+    meetingPoint: row.meeting_point ?? "",
+    pickupLocations: row.pickup_locations ?? [],
+    featured: Boolean(row.featured),
+    status: row.status ?? "draft",
+    destinationIds: destinations.map((d: any) => d.destination_id),
+    primaryDestinationId: primary?.destination_id ?? destinations[0]?.destination_id ?? "",
+    journeyTypeIds: (row.journey_journey_types ?? []).map((j: any) => j.journey_type_id),
+    experienceTypeIds: (row.journey_experience_types ?? []).map((j: any) => j.experience_type_id),
+    safariThemeIds: (row.journey_safari_themes ?? []).map((j: any) => j.safari_theme_id),
+  };
+}

@@ -1,3 +1,5 @@
+import type { Destination } from "@/types";
+import Link from "next/link";
 import Hero from "@/components/Hero";
 import TrustIndicators from "@/components/TrustIndicators";
 import TripSearch from "@/components/TripSearch";
@@ -7,20 +9,57 @@ import WhyChoose from "@/components/WhyChoose";
 import StatsBar from "@/components/StatsBar";
 import ReviewCard from "@/components/ReviewCard";
 import { getDestinations } from "@/lib/destinations";
+import { getRegionsWithDestinations, type RegionWithDestinations } from "@/lib/regions";
 import { getFeaturedTours } from "@/lib/tours";
 import { getApprovedReviews, getFeaturedReview } from "@/lib/reviews";
 import { getSiteSetting } from "@/lib/settings";
 
 export const revalidate = 3600;
 
+const FEATURED_DESTINATIONS_COUNT = 6;
+const FEATURED_EXPERIENCES_COUNT = 4;
+
+// Round-robins across regions (launch destinations sort first within each
+// region already) so the homepage doesn't just dump the first N rows in
+// insertion order, e.g. four East African countries and nothing else.
+function pickBalancedDestinations(
+  all: Destination[],
+  regions: RegionWithDestinations[],
+  count: number
+): Destination[] {
+  const byId = new Map(all.map((d) => [d.id, d]));
+  const seen = new Set<string>();
+  const picked: Destination[] = [];
+
+  for (let round = 0; picked.length < count; round++) {
+    let addedAny = false;
+    for (const region of regions) {
+      const candidate = region.destinations[round];
+      if (candidate && !seen.has(candidate.id) && byId.has(candidate.id)) {
+        seen.add(candidate.id);
+        picked.push(byId.get(candidate.id)!);
+        addedAny = true;
+        if (picked.length === count) break;
+      }
+    }
+    if (!addedAny) break;
+  }
+
+  return picked;
+}
+
 export default async function HomePage() {
-  const [destinations, featuredTours, reviews, featuredReview, happyTravelersCount] = await Promise.all([
+  const [destinations, regions, featuredTours, reviews, featuredReview, happyTravelersCount] = await Promise.all([
     getDestinations(),
+    getRegionsWithDestinations(),
     getFeaturedTours(),
     getApprovedReviews(),
     getFeaturedReview(),
     getSiteSetting("happy_travelers_count"),
   ]);
+
+  const featuredDestinations = pickBalancedDestinations(destinations, regions, FEATURED_DESTINATIONS_COUNT);
+  const featuredExperiences = featuredTours.slice(0, FEATURED_EXPERIENCES_COUNT);
 
   return (
     <>
@@ -33,12 +72,17 @@ export default async function HomePage() {
           Featured Destinations
         </h2>
         <p className="mt-2 text-foreground/70">
-          Ten African destinations, five open for booking today.
+          A balanced spread across Africa, from safari heartlands to island escapes.
         </p>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {destinations.map((destination) => (
+          {featuredDestinations.map((destination) => (
             <DestinationCard key={destination.id} destination={destination} />
           ))}
+        </div>
+        <div className="mt-10 text-center">
+          <Link href="/destinations" className="btn-outline">
+            View More Destinations
+          </Link>
         </div>
       </section>
 
@@ -50,9 +94,14 @@ export default async function HomePage() {
           Handpicked tours our travelers book again and again.
         </p>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredTours.map((tour) => (
+          {featuredExperiences.map((tour) => (
             <TourCard key={tour.id} tour={tour} />
           ))}
+        </div>
+        <div className="mt-10 text-center">
+          <Link href="/experiences" className="btn-outline">
+            View More Experiences
+          </Link>
         </div>
       </section>
 

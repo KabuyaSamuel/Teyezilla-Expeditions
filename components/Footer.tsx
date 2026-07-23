@@ -97,9 +97,12 @@ export default async function Footer() {
           <ul className="mt-3 space-y-2 text-sm text-white/80">
             <li><Link href="/">Home</Link></li>
             <li><Link href="/destinations">Destinations</Link></li>
-            <li><Link href="/safaris">Safaris</Link></li>
+            <li><Link href="/journeys">Journeys</Link></li>
+            <li><Link href="/safari">Safari</Link></li>
             <li><Link href="/experiences">Experiences</Link></li>
-            <li><Link href="/blog">Travel Guides</Link></li>
+            <li><Link href="/about">About Us</Link></li>
+            <li><Link href="/reviews">Reviews</Link></li>
+            <li><Link href="/contact">Contact</Link></li>
           </ul>
         </div>
 

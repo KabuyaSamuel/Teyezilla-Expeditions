@@ -237,6 +237,140 @@ create table trip_planner_requests (
   created_at timestamptz default now()
 );
 
+-- ============ IA REDESIGN (regions, journeys, experiences, collections, safari) ============
+-- See supabase/migrations/20260723000000_ia_redesign_schema.sql for full DDL + RLS + rationale.
+
+create table regions (
+  id uuid primary key default gen_random_uuid(),
+  name text not null, slug text unique not null,
+  description text, hero_image text, display_order integer default 0,
+  meta_title text, meta_description text, og_image text,
+  created_at timestamptz default now(), updated_at timestamptz default now()
+);
+create table destination_regions (
+  destination_id uuid not null references destinations(id) on delete cascade,
+  region_id uuid not null references regions(id) on delete cascade,
+  primary key (destination_id, region_id)
+);
+
+create table journeys (
+  id uuid primary key default gen_random_uuid(),
+  title text not null, slug text unique not null,
+  hero_image text, short_description text, overview text,
+  duration_days integer, price_from numeric(10,2), currency text default 'USD',
+  difficulty text check (difficulty in ('Easy', 'Moderate', 'Challenging')),
+  inclusions text[], exclusions text[], itinerary jsonb,
+  meeting_point text, pickup_locations text[],
+  featured boolean default false,
+  status text default 'draft' check (status in ('draft', 'published')),
+  meta_title text, meta_description text, og_image text,
+  created_at timestamptz default now(), updated_at timestamptz default now()
+);
+-- No destination_id shortcut column — multi-country journeys use journey_destinations only.
+create table journey_destinations (
+  journey_id uuid not null references journeys(id) on delete cascade,
+  destination_id uuid not null references destinations(id) on delete restrict,
+  is_primary boolean not null default false, display_order integer default 0,
+  primary key (journey_id, destination_id)
+);
+create table journey_types (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique, slug text unique not null, description text,
+  created_at timestamptz default now()
+);
+create table journey_journey_types (
+  journey_id uuid not null references journeys(id) on delete cascade,
+  journey_type_id uuid not null references journey_types(id) on delete cascade,
+  primary key (journey_id, journey_type_id)
+);
+
+create table experience_types (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique, slug text unique not null, icon text, display_order integer default 0,
+  created_at timestamptz default now()
+);
+create table tour_experience_types (
+  tour_id uuid not null references tours(id) on delete cascade,
+  experience_type_id uuid not null references experience_types(id) on delete cascade,
+  primary key (tour_id, experience_type_id)
+);
+create table journey_experience_types (
+  journey_id uuid not null references journeys(id) on delete cascade,
+  experience_type_id uuid not null references experience_types(id) on delete cascade,
+  primary key (journey_id, experience_type_id)
+);
+
+create table collections (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique, slug text unique not null,
+  description text, hero_image text, display_order integer default 0,
+  status text default 'draft' check (status in ('draft', 'published')),
+  meta_title text, meta_description text, og_image text,
+  created_at timestamptz default now(), updated_at timestamptz default now()
+);
+create table collection_tours (
+  collection_id uuid not null references collections(id) on delete cascade,
+  tour_id uuid not null references tours(id) on delete cascade,
+  display_order integer default 0,
+  primary key (collection_id, tour_id)
+);
+create table collection_journeys (
+  collection_id uuid not null references collections(id) on delete cascade,
+  journey_id uuid not null references journeys(id) on delete cascade,
+  display_order integer default 0,
+  primary key (collection_id, journey_id)
+);
+
+create table safari_themes (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique, slug text unique not null, description text, hero_image text,
+  display_order integer default 0, created_at timestamptz default now()
+);
+create table tour_safari_themes (
+  tour_id uuid not null references tours(id) on delete cascade,
+  safari_theme_id uuid not null references safari_themes(id) on delete cascade,
+  primary key (tour_id, safari_theme_id)
+);
+create table journey_safari_themes (
+  journey_id uuid not null references journeys(id) on delete cascade,
+  safari_theme_id uuid not null references safari_themes(id) on delete cascade,
+  primary key (journey_id, safari_theme_id)
+);
+
+create table attractions (
+  id uuid primary key default gen_random_uuid(),
+  destination_id uuid not null references destinations(id) on delete cascade,
+  name text not null, slug text, description text, hero_image text, category text,
+  display_order integer default 0,
+  status text default 'draft' check (status in ('draft', 'published')),
+  created_at timestamptz default now(), updated_at timestamptz default now(),
+  unique (destination_id, slug)
+);
+create table accommodations (
+  id uuid primary key default gen_random_uuid(),
+  destination_id uuid not null references destinations(id) on delete cascade,
+  name text not null, slug text, description text, hero_image text,
+  tier text check (tier in ('Budget', 'Mid-Range', 'Luxury')),
+  display_order integer default 0,
+  status text default 'draft' check (status in ('draft', 'published')),
+  created_at timestamptz default now(), updated_at timestamptz default now(),
+  unique (destination_id, slug)
+);
+
+create table team_members (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null, role_title text, bio text, photo text, display_order integer default 0,
+  status text default 'draft' check (status in ('draft', 'published')),
+  created_at timestamptz default now(), updated_at timestamptz default now()
+);
+create table faqs (
+  id uuid primary key default gen_random_uuid(),
+  category text not null default 'safari-guide', question text not null, answer text not null,
+  display_order integer default 0,
+  status text default 'draft' check (status in ('draft', 'published')),
+  created_at timestamptz default now(), updated_at timestamptz default now()
+);
+
 -- Indexes for common lookups
 create index idx_tours_destination on tours(destination_id);
 create index idx_bookings_customer on bookings(customer_id);

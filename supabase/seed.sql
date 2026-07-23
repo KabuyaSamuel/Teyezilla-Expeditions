@@ -34,6 +34,94 @@ insert into reviews (tour_id, author_name, source, rating, quote, is_approved) v
 ((select id from tours where slug = 'zanzibar-beach-escape'), 'Daniel K.', 'Google', 5, 'The Zanzibar beach escape struck the perfect balance between Stone Town culture and beach downtime.', true),
 ((select id from tours where slug = 'pyramids-of-giza-tour'), 'Priya S.', 'GetYourGuide', 5, 'Our guide''s knowledge of the pyramids and Egyptian history made the whole day come alive.', true);
 
+-- ============ IA REDESIGN: REGIONS, JOURNEYS, EXPERIENCE TYPES, COLLECTIONS, SAFARI THEMES, FAQS ============
+-- Mirrors the seed block in supabase/migrations/20260723000000_ia_redesign_schema.sql
+-- so a fresh install matches the live database.
+
+insert into regions (name, slug, description, display_order) values
+('East Africa', 'east-africa', 'Kenya, Tanzania, Zanzibar, Uganda, and Rwanda — the classic safari heartland.', 1),
+('North Africa', 'north-africa', 'Egypt and Morocco — ancient wonders and desert landscapes.', 2),
+('Southern Africa', 'southern-africa', 'South Africa, Namibia, Botswana, Zambia, and Zimbabwe — dramatic wilderness and world-class safaris.', 3),
+('Indian Ocean', 'indian-ocean', 'Zanzibar, Mauritius, and Seychelles — white-sand islands off Africa''s coast.', 4);
+
+insert into destinations (country_name, slug, flag_emoji, hero_image, short_description, overview, best_time_to_visit, visa_info, is_launch_destination, meta_title, meta_description, og_image) values
+('Namibia', 'namibia', '🇳🇦', 'https://picsum.photos/seed/namibia-hero/1200/800', 'The red dunes of Sossusvlei and the wildlife of Etosha National Park.', 'Coming soon to Teyezilla Expeditions.', 'May to October.', 'eVisa available online.', false, 'Namibia Safari & Desert Tours | Teyezilla Expeditions', 'Namibia desert and safari tours, coming soon to Teyezilla Expeditions.', 'https://picsum.photos/seed/namibia-og/1200/800'),
+('Mauritius', 'mauritius', '🇲🇺', 'https://picsum.photos/seed/mauritius-hero/1200/800', 'Turquoise lagoons and white-sand beaches in the Indian Ocean.', 'Coming soon to Teyezilla Expeditions.', 'May to December.', 'Visa-free for many nationalities for short stays.', false, 'Mauritius Beach Holidays | Teyezilla Expeditions', 'Mauritius island escapes, coming soon to Teyezilla Expeditions.', 'https://picsum.photos/seed/mauritius-og/1200/800'),
+('Seychelles', 'seychelles', '🇸🇨', 'https://picsum.photos/seed/seychelles-hero/1200/800', 'Granite islands, coral reefs, and some of the world''s most secluded beaches.', 'Coming soon to Teyezilla Expeditions.', 'April to May, and October to November.', 'Visa-free for most nationalities for short stays.', false, 'Seychelles Island Escapes | Teyezilla Expeditions', 'Seychelles island getaways, coming soon to Teyezilla Expeditions.', 'https://picsum.photos/seed/seychelles-og/1200/800');
+
+insert into destination_regions (destination_id, region_id)
+select d.id, r.id from destinations d, regions r where d.slug = 'kenya' and r.slug = 'east-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'tanzania' and r.slug = 'east-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'zanzibar' and r.slug = 'east-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'uganda' and r.slug = 'east-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'rwanda' and r.slug = 'east-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'egypt' and r.slug = 'north-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'morocco' and r.slug = 'north-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'south-africa' and r.slug = 'southern-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'namibia' and r.slug = 'southern-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'botswana' and r.slug = 'southern-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'zambia' and r.slug = 'southern-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'zimbabwe' and r.slug = 'southern-africa'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'zanzibar' and r.slug = 'indian-ocean'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'mauritius' and r.slug = 'indian-ocean'
+union all select d.id, r.id from destinations d, regions r where d.slug = 'seychelles' and r.slug = 'indian-ocean';
+
+insert into journey_types (name, slug, description) values
+('Signature Journeys', 'signature-journeys', 'Teyezilla''s flagship itineraries.'),
+('Multi-Country Expeditions', 'multi-country-expeditions', 'Journeys spanning more than one African country.'),
+('Luxury Journeys', 'luxury-journeys', 'High-end travel experiences.'),
+('Family Journeys', 'family-journeys', 'Family and multi-generational travel.'),
+('Honeymoon Journeys', 'honeymoon-journeys', 'Romantic safari and beach journeys.'),
+('Private Journeys', 'private-journeys', 'Exclusive journeys for individuals and groups.');
+
+insert into experience_types (name, slug, display_order) values
+('Wildlife & Safari', 'wildlife-safari', 1),
+('Beach & Islands', 'beach-islands', 2),
+('Culture & Heritage', 'culture-heritage', 3),
+('Adventure', 'adventure', 4),
+('Food & Lifestyle', 'food-lifestyle', 5),
+('Cities & Local Life', 'cities-local-life', 6);
+
+insert into tour_experience_types (tour_id, experience_type_id)
+select t.id, et.id from tours t, experience_types et where t.slug in ('maasai-mara-safari', 'serengeti-safari') and et.slug = 'wildlife-safari'
+union all select t.id, et.id from tours t, experience_types et where t.slug = 'zanzibar-beach-escape' and et.slug = 'beach-islands'
+union all select t.id, et.id from tours t, experience_types et where t.slug = 'pyramids-of-giza-tour' and et.slug = 'culture-heritage'
+union all select t.id, et.id from tours t, experience_types et where t.slug = 'marrakech-sahara-desert' and et.slug = 'adventure'
+union all select t.id, et.id from tours t, experience_types et where t.slug = 'marrakech-sahara-desert' and et.slug = 'culture-heritage'
+union all select t.id, et.id from tours t, experience_types et where t.slug = 'nairobi-street-food-tour' and et.slug = 'food-lifestyle'
+union all select t.id, et.id from tours t, experience_types et where t.slug in ('tuk-tuk-experience', 'boda-boda-experience') and et.slug = 'cities-local-life';
+
+insert into safari_themes (name, slug, description, display_order) values
+('Great Migration', 'great-migration', 'Follow the wildebeest migration across the Serengeti and Maasai Mara.', 1),
+('Big Five', 'big-five', 'Track lion, leopard, elephant, buffalo, and rhino.', 2),
+('Gorilla Trekking', 'gorilla-trekking', 'Trek to see mountain gorillas in Rwanda and Uganda.', 3),
+('Conservation', 'conservation', 'Safaris that directly support wildlife conservation efforts.', 4);
+
+insert into tour_safari_themes (tour_id, safari_theme_id)
+select t.id, st.id from tours t, safari_themes st where t.slug = 'maasai-mara-safari' and st.slug = 'big-five'
+union all select t.id, st.id from tours t, safari_themes st where t.slug = 'serengeti-safari' and st.slug = 'great-migration';
+
+insert into collections (name, slug, description, display_order, status) values
+('The Wild', 'the-wild', 'Wildlife & safari journeys across Africa''s greatest reserves.', 1, 'published'),
+('The Ocean', 'the-ocean', 'Beach and island escapes along Africa''s coastlines.', 2, 'published'),
+('The Heritage', 'the-heritage', 'Culture and history, from ancient wonders to living traditions.', 3, 'published'),
+('The Adventure', 'the-adventure', 'Expeditions and exploration for the adventurous traveler.', 4, 'published'),
+('The Romance', 'the-romance', 'Honeymoons and romantic escapes.', 5, 'draft'),
+('The Family', 'the-family', 'Family and multi-generational journeys.', 6, 'draft'),
+('The Private', 'the-private', 'Exclusive, bespoke travel for individuals and groups.', 7, 'draft');
+
+insert into collection_tours (collection_id, tour_id)
+select c.id, t.id from collections c, tours t where c.slug = 'the-wild' and t.slug in ('maasai-mara-safari', 'serengeti-safari')
+union all select c.id, t.id from collections c, tours t where c.slug = 'the-ocean' and t.slug = 'zanzibar-beach-escape'
+union all select c.id, t.id from collections c, tours t where c.slug = 'the-heritage' and t.slug = 'pyramids-of-giza-tour'
+union all select c.id, t.id from collections c, tours t where c.slug = 'the-adventure' and t.slug = 'marrakech-sahara-desert';
+
+insert into faqs (category, question, answer, display_order, status) values
+('safari-guide', 'When is the best time to go on safari?', 'It depends on the destination: Kenya and Tanzania are best July to October for the wildebeest migration, while Rwanda and Uganda gorilla trekking is best in the dry seasons of June to September and December to February. Check the "Best Time to Visit" section on each destination page for specifics.', 1, 'published'),
+('safari-guide', 'What should I pack for a safari?', 'Neutral-colored, breathable clothing, a warm layer for early morning game drives, comfortable closed shoes, sunscreen, a hat, and binoculars. Avoid bright colors and camouflage patterns.', 2, 'published'),
+('safari-guide', 'Do I need a visa?', 'Most Teyezilla destinations offer an eVisa or visa-on-arrival for the majority of nationalities. Visa requirements are listed on each destination page — check well before booking, as processing times vary by country.', 3, 'published'),
+('safari-guide', 'How physically demanding is a safari?', 'Most game-drive safaris require no special fitness — you''re seated in a vehicle for most of the day. Gorilla trekking is the exception and involves several hours of hiking, sometimes at altitude and over uneven terrain.', 4, 'published');
+
 -- ============ CUSTOMERS ============
 insert into customers (id, full_name, email, phone, nationality, emergency_contact, notes, loyalty_points, created_at) values
 ('11111111-1111-1111-1111-111111111111', 'Amara Okafor', 'amara.okafor@example.com', '+234 803 555 0101', 'Nigerian', 'Chidi Okafor, +234 803 555 0199', 'Prefers window seats on game drives.', 320, '2026-01-14'),

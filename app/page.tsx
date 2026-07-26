@@ -2,6 +2,7 @@ import type { Destination } from "@/types";
 import Link from "next/link";
 import Hero from "@/components/Hero";
 import TrustIndicators from "@/components/TrustIndicators";
+import CategoryOverview from "@/components/CategoryOverview";
 import TripSearch from "@/components/TripSearch";
 import DestinationCard from "@/components/DestinationCard";
 import TourCard from "@/components/TourCard";
@@ -65,6 +66,7 @@ export default async function HomePage() {
     <>
       <Hero />
       <TrustIndicators />
+      <CategoryOverview />
       <TripSearch />
 
       <section className="section">

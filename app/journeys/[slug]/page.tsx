@@ -149,7 +149,7 @@ export default async function JourneyPage({ params }: Props) {
             </p>
             <p className="text-sm text-foreground/60">per person</p>
             <a href={bookingHref} className="btn-primary mt-4 block text-center">
-              Book This Journey
+              Enquire About This Journey
             </a>
             <a
               href={whatsappHref}

@@ -40,7 +40,7 @@ export default function TourCard({ tour }: { tour: Tour }) {
         </div>
         <div className="mt-4 flex gap-2">
           <Link href={`/booking?tour=${tour.slug}`} className="btn-primary flex-1 px-3 py-2 text-sm">
-            Book Now
+            Enquire Now
           </Link>
           <a
             href={whatsappHref}
@@ -48,7 +48,7 @@ export default function TourCard({ tour }: { tour: Tour }) {
             rel="noopener noreferrer"
             className="btn-outline flex-1 px-3 py-2 text-sm"
           >
-            Enquire
+            WhatsApp
           </a>
         </div>
       </div>

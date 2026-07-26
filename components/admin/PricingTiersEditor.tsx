@@ -66,7 +66,7 @@ export default function PricingTiersEditor({
               <input
                 value={t.ctaLabel}
                 onChange={(e) => update(i, "ctaLabel", e.target.value)}
-                placeholder="CTA label (e.g. Book the Signature Journey)"
+                placeholder="CTA label (e.g. Enquire About the Signature Journey)"
                 className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>

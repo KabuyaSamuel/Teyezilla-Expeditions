@@ -122,6 +122,17 @@ insert into faqs (category, question, answer, display_order, status) values
 ('safari-guide', 'Do I need a visa?', 'Most Teyezilla destinations offer an eVisa or visa-on-arrival for the majority of nationalities. Visa requirements are listed on each destination page — check well before booking, as processing times vary by country.', 3, 'published'),
 ('safari-guide', 'How physically demanding is a safari?', 'Most game-drive safaris require no special fitness — you''re seated in a vehicle for most of the day. Gorilla trekking is the exception and involves several hours of hiking, sometimes at altitude and over uneven terrain.', 4, 'published');
 
+-- ============ PRODUCTS ENRICHMENT: ACTIVITIES LIBRARY ============
+-- Mirrors the seed block in supabase/migrations/20260726000000_products_enrichment_schema.sql.
+insert into activities (name, slug, description, display_order) values
+('Game Drive', 'game-drive', 'Guided wildlife viewing by 4x4 safari vehicle.', 1),
+('Guided Nature Walk', 'guided-nature-walk', 'On-foot exploration with a local guide.', 2),
+('Cultural Village Visit', 'cultural-village-visit', 'A guided visit to a local community.', 3),
+('Sunset Dhow Sail', 'sunset-dhow-sail', 'Traditional dhow sailing at golden hour.', 4),
+('Spice Farm Tour', 'spice-farm-tour', 'Guided tour through a working spice plantation.', 5),
+('Snorkelling', 'snorkelling', 'Guided snorkelling in reef or lagoon waters.', 6),
+('Private Bush Dining', 'private-bush-dining', 'An intimate dining setup in the wilderness.', 7);
+
 -- ============ CUSTOMERS ============
 insert into customers (id, full_name, email, phone, nationality, emergency_contact, notes, loyalty_points, created_at) values
 ('11111111-1111-1111-1111-111111111111', 'Amara Okafor', 'amara.okafor@example.com', '+234 803 555 0101', 'Nigerian', 'Chidi Okafor, +234 803 555 0199', 'Prefers window seats on game drives.', 320, '2026-01-14'),

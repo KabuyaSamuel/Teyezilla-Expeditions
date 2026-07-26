@@ -38,7 +38,7 @@ create table tours (
   difficulty text check (difficulty in ('Easy', 'Moderate', 'Challenging')),
   inclusions text[],
   exclusions text[],
-  itinerary jsonb, -- array of { day, title, description }
+  itinerary jsonb, -- array of { day, fromLocation?, toLocation?, title, description, teyezillaMoment?, overnight?, meals? }
   meeting_point text,
   pickup_locations text[],
   featured boolean default false,
@@ -46,6 +46,10 @@ create table tours (
   meta_title text,
   meta_description text,
   og_image text,
+  product_type text default 'experience' check (product_type in ('experience', 'safari', 'private_travel')),
+  min_guests integer, max_guests integer, fitness_level text, best_for text[], languages text[],
+  transportation text, guide_info text, food_and_drinks text, important_info text,
+  bring_list text[], cancellation_policy text, availability_note text, teyezilla_moment text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -259,11 +263,16 @@ create table journeys (
   hero_image text, short_description text, overview text,
   duration_days integer, price_from numeric(10,2), currency text default 'USD',
   difficulty text check (difficulty in ('Easy', 'Moderate', 'Challenging')),
-  inclusions text[], exclusions text[], itinerary jsonb,
+  inclusions text[], exclusions text[],
+  itinerary jsonb, -- array of { day, fromLocation?, toLocation?, title, description, teyezillaMoment?, overnight?, meals? }
   meeting_point text, pickup_locations text[],
   featured boolean default false,
   status text default 'draft' check (status in ('draft', 'published')),
   meta_title text, meta_description text, og_image text,
+  product_type text default 'signature_journey' check (product_type in ('signature_journey', 'multi_country_expedition')),
+  min_guests integer, max_guests integer, fitness_level text, best_for text[], languages text[],
+  transportation text, guide_info text, food_and_drinks text, important_info text,
+  bring_list text[], cancellation_policy text, availability_note text, teyezilla_moment text,
   created_at timestamptz default now(), updated_at timestamptz default now()
 );
 -- No destination_id shortcut column — multi-country journeys use journey_destinations only.
@@ -369,6 +378,71 @@ create table faqs (
   display_order integer default 0,
   status text default 'draft' check (status in ('draft', 'published')),
   created_at timestamptz default now(), updated_at timestamptz default now()
+);
+
+-- ============ PRODUCTS ENRICHMENT (pricing tiers, highlights, add-ons, activities library) ============
+-- See supabase/migrations/20260726000000_products_enrichment_schema.sql for full DDL + RLS + rationale.
+-- Paired tour_X/journey_X tables (not dual-nullable-parent tables) to match the
+-- existing tour_experience_types/journey_experience_types convention.
+
+create table tour_pricing_tiers (
+  id uuid primary key default gen_random_uuid(),
+  tour_id uuid not null references tours(id) on delete cascade,
+  tier_name text not null, tagline text, price numeric(10,2), currency text default 'USD',
+  accommodation_summary text, features text[], cta_label text, display_order integer default 0
+);
+create table journey_pricing_tiers (
+  id uuid primary key default gen_random_uuid(),
+  journey_id uuid not null references journeys(id) on delete cascade,
+  tier_name text not null, tagline text, price numeric(10,2), currency text default 'USD',
+  accommodation_summary text, features text[], cta_label text, display_order integer default 0
+);
+
+create table tour_highlights (
+  id uuid primary key default gen_random_uuid(),
+  tour_id uuid not null references tours(id) on delete cascade,
+  title text not null, description text, display_order integer default 0
+);
+create table journey_highlights (
+  id uuid primary key default gen_random_uuid(),
+  journey_id uuid not null references journeys(id) on delete cascade,
+  title text not null, description text, display_order integer default 0
+);
+
+-- kind: 'addon' (same-product upsell) or 'extension' (cross-sell trip extension)
+create table tour_addons (
+  id uuid primary key default gen_random_uuid(),
+  tour_id uuid not null references tours(id) on delete cascade,
+  kind text not null check (kind in ('addon', 'extension')),
+  title text not null, description text, price numeric(10,2), currency text default 'USD',
+  extra_days_min integer, extra_days_max integer, cta_label text, display_order integer default 0
+);
+create table journey_addons (
+  id uuid primary key default gen_random_uuid(),
+  journey_id uuid not null references journeys(id) on delete cascade,
+  kind text not null check (kind in ('addon', 'extension')),
+  title text not null, description text, price numeric(10,2), currency text default 'USD',
+  extra_days_min integer, extra_days_max integer, cta_label text, display_order integer default 0
+);
+
+-- Reusable named bookable sub-experiences (e.g. "Maasai Mara Game Drive"),
+-- distinct from experience_types (broad nav-filter tags like "Wildlife & Safari").
+create table activities (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique, slug text unique not null, description text,
+  icon text, display_order integer default 0, created_at timestamptz default now()
+);
+create table tour_activities (
+  tour_id uuid not null references tours(id) on delete cascade,
+  activity_id uuid not null references activities(id) on delete cascade,
+  display_order integer default 0,
+  primary key (tour_id, activity_id)
+);
+create table journey_activities (
+  journey_id uuid not null references journeys(id) on delete cascade,
+  activity_id uuid not null references activities(id) on delete cascade,
+  display_order integer default 0,
+  primary key (journey_id, activity_id)
 );
 
 -- Indexes for common lookups

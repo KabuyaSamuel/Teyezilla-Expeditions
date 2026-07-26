@@ -5,8 +5,14 @@ import type { Destination } from "@/types";
 import type { JourneyType } from "@/lib/journeys";
 import type { ExperienceType } from "@/lib/experienceTypes";
 import type { SafariTheme } from "@/lib/safari";
+import type { Activity } from "@/lib/activities";
 import type { AdminJourneyDetail, ItineraryDay } from "@/lib/admin/data/journeys";
+import type { PricingTierInput, HighlightInput, AddonInput } from "@/lib/admin/actions/productShared";
 import { createJourney, updateJourney, deleteJourney } from "@/lib/admin/actions/journeys";
+import PricingTiersEditor from "./PricingTiersEditor";
+import HighlightsEditor from "./HighlightsEditor";
+import AddonsEditor from "./AddonsEditor";
+import ActivitiesPicker from "./ActivitiesPicker";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as any).digest).startsWith("NEXT_REDIRECT");
@@ -18,12 +24,14 @@ export default function JourneyForm({
   journeyTypes,
   experienceTypes,
   safariThemes,
+  activities,
 }: {
   existingJourney?: AdminJourneyDetail;
   destinations: Destination[];
   journeyTypes: JourneyType[];
   experienceTypes: ExperienceType[];
   safariThemes: SafariTheme[];
+  activities: Activity[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +43,14 @@ export default function JourneyForm({
   const [journeyTypeIds, setJourneyTypeIds] = useState<string[]>(existingJourney?.journeyTypeIds ?? []);
   const [experienceTypeIds, setExperienceTypeIds] = useState<string[]>(existingJourney?.experienceTypeIds ?? []);
   const [safariThemeIds, setSafariThemeIds] = useState<string[]>(existingJourney?.safariThemeIds ?? []);
+  const [pricingTiers, setPricingTiers] = useState<PricingTierInput[]>(
+    existingJourney?.pricingTiers.map((t) => ({ ...t })) ?? []
+  );
+  const [highlights, setHighlights] = useState<HighlightInput[]>(
+    existingJourney?.highlights.map((h) => ({ ...h })) ?? []
+  );
+  const [addons, setAddons] = useState<AddonInput[]>(existingJourney?.addons.map((a) => ({ ...a })) ?? []);
+  const [activityIds, setActivityIds] = useState<string[]>(existingJourney?.activityIds ?? []);
 
   function toggleId(list: string[], setList: (v: string[]) => void, id: string) {
     setList(list.includes(id) ? list.filter((v) => v !== id) : [...list, id]);
@@ -56,6 +72,11 @@ export default function JourneyForm({
     setItinerary((prev) => prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)));
   }
 
+  function updateItineraryMeals(index: number, value: string) {
+    const meals = value.split(",").map((s) => s.trim()).filter(Boolean);
+    setItinerary((prev) => prev.map((d, i) => (i === index ? { ...d, meals } : d)));
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -73,6 +94,7 @@ export default function JourneyForm({
       heroImage: String(formData.get("heroImage") ?? ""),
       shortDescription: String(formData.get("shortDescription") ?? ""),
       overview: String(formData.get("overview") ?? ""),
+      productType: String(formData.get("productType") ?? "signature_journey"),
       durationDays: Number(formData.get("durationDays") ?? 0),
       priceFrom: Number(formData.get("priceFrom") ?? 0),
       currency: String(formData.get("currency") ?? "USD"),
@@ -82,11 +104,31 @@ export default function JourneyForm({
       itinerary,
       meetingPoint: String(formData.get("meetingPoint") ?? ""),
       pickupLocations: splitCommas(formData.get("pickupLocations")),
+      minGuests: formData.get("minGuests") ? Number(formData.get("minGuests")) : null,
+      maxGuests: formData.get("maxGuests") ? Number(formData.get("maxGuests")) : null,
+      fitnessLevel: String(formData.get("fitnessLevel") ?? ""),
+      bestFor: splitCommas(formData.get("bestFor")),
+      languages: splitCommas(formData.get("languages")),
+      transportation: String(formData.get("transportation") ?? ""),
+      guideInfo: String(formData.get("guideInfo") ?? ""),
+      foodAndDrinks: String(formData.get("foodAndDrinks") ?? ""),
+      importantInfo: String(formData.get("importantInfo") ?? ""),
+      bringList: splitCommas(formData.get("bringList")),
+      cancellationPolicy: String(formData.get("cancellationPolicy") ?? ""),
+      availabilityNote: String(formData.get("availabilityNote") ?? ""),
+      teyezillaMoment: String(formData.get("teyezillaMoment") ?? ""),
+      metaTitle: String(formData.get("metaTitle") ?? ""),
+      metaDescription: String(formData.get("metaDescription") ?? ""),
+      ogImage: String(formData.get("ogImage") ?? ""),
       destinationIds,
       primaryDestinationId,
       journeyTypeIds,
       experienceTypeIds,
       safariThemeIds,
+      pricingTiers,
+      highlights,
+      addons,
+      activityIds,
       featured: formData.get("featured") === "on",
       status: String(formData.get("status") ?? "draft"),
     };
@@ -131,6 +173,13 @@ export default function JourneyForm({
           <div>
             <label htmlFor="heroImage" className="text-xs font-medium text-foreground/60">Hero Image URL</label>
             <input id="heroImage" name="heroImage" defaultValue={existingJourney?.heroImage} placeholder="https://..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="productType" className="text-xs font-medium text-foreground/60">Product Type</label>
+            <select id="productType" name="productType" defaultValue={existingJourney?.productType ?? "signature_journey"} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+              <option value="signature_journey">Signature Journey</option>
+              <option value="multi_country_expedition">Multi-Country Expedition</option>
+            </select>
           </div>
           <div>
             <label htmlFor="difficulty" className="text-xs font-medium text-foreground/60">Difficulty</label>
@@ -237,6 +286,8 @@ export default function JourneyForm({
         </div>
       </section>
 
+      <HighlightsEditor highlights={highlights} onChange={setHighlights} />
+
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Inclusions & Exclusions</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -262,6 +313,20 @@ export default function JourneyForm({
           {itinerary.map((d, i) => (
             <div key={i} className="rounded-xl bg-secondary/10 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Day {d.day}</p>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <input
+                  value={d.fromLocation ?? ""}
+                  onChange={(e) => updateItineraryDay(i, "fromLocation", e.target.value)}
+                  placeholder="From (optional)"
+                  className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                  value={d.toLocation ?? ""}
+                  onChange={(e) => updateItineraryDay(i, "toLocation", e.target.value)}
+                  placeholder="To (optional)"
+                  className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
               <input
                 value={d.title}
                 onChange={(e) => updateItineraryDay(i, "title", e.target.value)}
@@ -275,10 +340,35 @@ export default function JourneyForm({
                 rows={2}
                 className="mt-2 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
+              <textarea
+                value={d.teyezillaMoment ?? ""}
+                onChange={(e) => updateItineraryDay(i, "teyezillaMoment", e.target.value)}
+                placeholder="Teyezilla Moment (optional highlighted callout)"
+                rows={2}
+                className="mt-2 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <input
+                  value={d.overnight ?? ""}
+                  onChange={(e) => updateItineraryDay(i, "overnight", e.target.value)}
+                  placeholder="Overnight (optional)"
+                  className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                  defaultValue={d.meals?.join(", ") ?? ""}
+                  onChange={(e) => updateItineraryMeals(i, e.target.value)}
+                  placeholder="Meals, comma-separated (e.g. Breakfast, Lunch, Dinner)"
+                  className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
             </div>
           ))}
         </div>
       </section>
+
+      <PricingTiersEditor tiers={pricingTiers} onChange={setPricingTiers} />
+      <AddonsEditor addons={addons} onChange={setAddons} />
+      <ActivitiesPicker activities={activities} selectedIds={activityIds} onChange={setActivityIds} />
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Logistics</h2>
@@ -290,6 +380,76 @@ export default function JourneyForm({
           <div>
             <label htmlFor="pickupLocations" className="text-xs font-medium text-foreground/60">Pickup Locations (comma-separated)</label>
             <input id="pickupLocations" name="pickupLocations" defaultValue={existingJourney?.pickupLocations?.join(", ")} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="minGuests" className="text-xs font-medium text-foreground/60">Min Guests</label>
+            <input id="minGuests" name="minGuests" type="number" min={1} defaultValue={existingJourney?.minGuests ?? undefined} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="maxGuests" className="text-xs font-medium text-foreground/60">Max Guests</label>
+            <input id="maxGuests" name="maxGuests" type="number" min={1} defaultValue={existingJourney?.maxGuests ?? undefined} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="fitnessLevel" className="text-xs font-medium text-foreground/60">Fitness Level</label>
+            <input id="fitnessLevel" name="fitnessLevel" defaultValue={existingJourney?.fitnessLevel} placeholder="Easy to Moderate" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="bestFor" className="text-xs font-medium text-foreground/60">Best For (comma-separated)</label>
+            <input id="bestFor" name="bestFor" defaultValue={existingJourney?.bestFor?.join(", ")} placeholder="Couples, Families, Photographers" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="languages" className="text-xs font-medium text-foreground/60">Languages (comma-separated)</label>
+            <input id="languages" name="languages" defaultValue={existingJourney?.languages?.join(", ")} placeholder="English" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="transportation" className="text-xs font-medium text-foreground/60">Transportation</label>
+            <input id="transportation" name="transportation" defaultValue={existingJourney?.transportation} placeholder="Private 4x4 Safari Vehicle" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="guideInfo" className="text-xs font-medium text-foreground/60">Guide Information</label>
+            <input id="guideInfo" name="guideInfo" defaultValue={existingJourney?.guideInfo} placeholder="Dedicated Professional Safari Guide" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="foodAndDrinks" className="text-xs font-medium text-foreground/60">Food & Drinks</label>
+            <input id="foodAndDrinks" name="foodAndDrinks" defaultValue={existingJourney?.foodAndDrinks} placeholder="Full Board" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="availabilityNote" className="text-xs font-medium text-foreground/60">Availability</label>
+            <input id="availabilityNote" name="availabilityNote" defaultValue={existingJourney?.availabilityNote} placeholder="Migration Season" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="bringList" className="text-xs font-medium text-foreground/60">What to Bring (comma-separated)</label>
+            <input id="bringList" name="bringList" defaultValue={existingJourney?.bringList?.join(", ")} placeholder="Neutral-coloured clothing, Binoculars, Camera" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+        </div>
+        <div className="mt-4">
+          <label htmlFor="importantInfo" className="text-xs font-medium text-foreground/60">Important Information / Good to Know</label>
+          <textarea id="importantInfo" name="importantInfo" defaultValue={existingJourney?.importantInfo} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div className="mt-4">
+          <label htmlFor="cancellationPolicy" className="text-xs font-medium text-foreground/60">Cancellation & Refund Policy</label>
+          <textarea id="cancellationPolicy" name="cancellationPolicy" defaultValue={existingJourney?.cancellationPolicy} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div className="mt-4">
+          <label htmlFor="teyezillaMoment" className="text-xs font-medium text-foreground/60">Your Teyezilla Moment (standalone highlighted callout)</label>
+          <textarea id="teyezillaMoment" name="teyezillaMoment" defaultValue={existingJourney?.teyezillaMoment} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+      </section>
+
+      <section className="card p-6">
+        <h2 className="font-heading text-lg font-semibold text-foreground">SEO</h2>
+        <div className="mt-4 grid gap-4">
+          <div>
+            <label htmlFor="metaTitle" className="text-xs font-medium text-foreground/60">Meta Title</label>
+            <input id="metaTitle" name="metaTitle" defaultValue={existingJourney?.metaTitle} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="metaDescription" className="text-xs font-medium text-foreground/60">Meta Description</label>
+            <textarea id="metaDescription" name="metaDescription" defaultValue={existingJourney?.metaDescription} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="ogImage" className="text-xs font-medium text-foreground/60">Social Share Image URL</label>
+            <input id="ogImage" name="ogImage" defaultValue={existingJourney?.ogImage} placeholder="https://..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
       </section>

@@ -6,6 +6,7 @@ import { getDestinations } from "@/lib/destinations";
 import { getJourneyTypes } from "@/lib/journeys";
 import { getExperienceTypes } from "@/lib/experienceTypes";
 import { getSafariThemes } from "@/lib/safari";
+import { getActivities } from "@/lib/activities";
 
 export default async function EditJourneyPage({
   params,
@@ -13,12 +14,13 @@ export default async function EditJourneyPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [journey, destinations, journeyTypes, experienceTypes, safariThemes] = await Promise.all([
+  const [journey, destinations, journeyTypes, experienceTypes, safariThemes, activities] = await Promise.all([
     getAdminJourneyBySlug(slug),
     getDestinations(),
     getJourneyTypes(),
     getExperienceTypes(),
     getSafariThemes(),
+    getActivities(),
   ]);
   if (!journey) notFound();
 
@@ -31,6 +33,7 @@ export default async function EditJourneyPage({
         journeyTypes={journeyTypes}
         experienceTypes={experienceTypes}
         safariThemes={safariThemes}
+        activities={activities}
       />
     </div>
   );

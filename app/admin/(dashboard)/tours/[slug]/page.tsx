@@ -3,6 +3,7 @@ import PageHeader from "@/components/admin/PageHeader";
 import TourForm from "@/components/admin/TourForm";
 import { getAdminTourBySlug } from "@/lib/admin/data/tours";
 import { getDestinations } from "@/lib/destinations";
+import { getActivities } from "@/lib/activities";
 
 export default async function EditTourPage({
   params,
@@ -10,13 +11,17 @@ export default async function EditTourPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [tour, destinations] = await Promise.all([getAdminTourBySlug(slug), getDestinations()]);
+  const [tour, destinations, activities] = await Promise.all([
+    getAdminTourBySlug(slug),
+    getDestinations(),
+    getActivities(),
+  ]);
   if (!tour) notFound();
 
   return (
     <div>
       <PageHeader title={`Edit: ${tour.title}`} description="Update this tour's details." />
-      <TourForm existingTour={tour} destinations={destinations} />
+      <TourForm existingTour={tour} destinations={destinations} activities={activities} />
     </div>
   );
 }

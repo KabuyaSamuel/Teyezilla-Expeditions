@@ -3,8 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  syncPricingTiers,
+  syncHighlights,
+  syncAddons,
+  syncActivities,
+  productScalarsToRow,
+  type PricingTierInput,
+  type HighlightInput,
+  type AddonInput,
+  type ProductScalarsInput,
+} from "./productShared";
 
-export interface JourneyInput {
+export interface JourneyInput extends ProductScalarsInput {
   title: string;
   slug: string;
   heroImage: string;
@@ -26,6 +37,13 @@ export interface JourneyInput {
   safariThemeIds: string[];
   featured: boolean;
   status: string;
+  metaTitle: string;
+  metaDescription: string;
+  ogImage: string;
+  pricingTiers: PricingTierInput[];
+  highlights: HighlightInput[];
+  addons: AddonInput[];
+  activityIds: string[];
 }
 
 function slugify(title: string): string {
@@ -54,6 +72,10 @@ function toRow(input: JourneyInput) {
     pickup_locations: input.pickupLocations,
     featured: input.featured,
     status: input.status,
+    meta_title: input.metaTitle,
+    meta_description: input.metaDescription,
+    og_image: input.ogImage,
+    ...productScalarsToRow(input),
   };
 }
 
@@ -110,6 +132,11 @@ async function syncJourneyRelations(
     );
     if (error) throw new Error(error.message);
   }
+
+  await syncPricingTiers(supabase, "journey_pricing_tiers", "journey_id", journeyId, input.pricingTiers);
+  await syncHighlights(supabase, "journey_highlights", "journey_id", journeyId, input.highlights);
+  await syncAddons(supabase, "journey_addons", "journey_id", journeyId, input.addons);
+  await syncActivities(supabase, "journey_activities", "journey_id", journeyId, input.activityIds);
 }
 
 export async function createJourney(input: JourneyInput): Promise<void> {

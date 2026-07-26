@@ -17,6 +17,7 @@ export type AdminModuleKey =
   | "tours"
   | "journeys"
   | "collections"
+  | "activities"
   | "destinations"
   | "bookings"
   | "customers"
@@ -48,6 +49,7 @@ export const ADMIN_MODULES: AdminModuleDef[] = [
   { key: "tours", label: "Tour Management", href: "/admin/tours", icon: "🧭", description: "Create and manage tours" },
   { key: "journeys", label: "Journey Management", href: "/admin/journeys", icon: "✈️", description: "Multi-country and signature journeys" },
   { key: "collections", label: "Collections", href: "/admin/collections", icon: "🧩", description: "Curated tour and journey collections" },
+  { key: "activities", label: "Activities Library", href: "/admin/activities", icon: "🎯", description: "Reusable named activities for tours and journeys" },
   { key: "destinations", label: "Destination Management", href: "/admin/destinations", icon: "🌍", description: "Countries, cities, attractions" },
   { key: "bookings", label: "Booking Management", href: "/admin/bookings", icon: "📅", description: "Bookings, vouchers, cancellations" },
   { key: "customers", label: "Customer Management (CRM)", href: "/admin/customers", icon: "👥", description: "Customer profiles and history" },
@@ -77,6 +79,7 @@ export const ROLE_MODULE_ACCESS: Record<StaffRole, AdminModuleKey[]> = {
     "tours",
     "journeys",
     "collections",
+    "activities",
     "destinations",
     "bookings",
     "customers",

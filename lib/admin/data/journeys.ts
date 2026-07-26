@@ -1,10 +1,17 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  mapPricingTierRow,
+  mapHighlightRow,
+  mapAddonRow,
+  mapProductScalars,
+  type ItineraryDay,
+  type PricingTier,
+  type ProductHighlight,
+  type ProductAddon,
+  type ProductScalars,
+} from "@/lib/productShared";
 
-export interface ItineraryDay {
-  day: number;
-  title: string;
-  description: string;
-}
+export type { ItineraryDay };
 
 export interface AdminJourneyListItem {
   id: string;
@@ -18,7 +25,7 @@ export interface AdminJourneyListItem {
   primaryDestinationName: string;
 }
 
-export interface AdminJourneyDetail {
+export interface AdminJourneyDetail extends ProductScalars {
   id: string;
   slug: string;
   title: string;
@@ -36,11 +43,18 @@ export interface AdminJourneyDetail {
   pickupLocations: string[];
   featured: boolean;
   status: string;
+  metaTitle: string;
+  metaDescription: string;
+  ogImage: string;
   destinationIds: string[];
   primaryDestinationId: string;
   journeyTypeIds: string[];
   experienceTypeIds: string[];
   safariThemeIds: string[];
+  pricingTiers: PricingTier[];
+  highlights: ProductHighlight[];
+  addons: ProductAddon[];
+  activityIds: string[];
 }
 
 const LIST_SELECT = `
@@ -93,7 +107,11 @@ const DETAIL_SELECT = `
   journey_destinations(destination_id, is_primary, display_order),
   journey_journey_types(journey_type_id),
   journey_experience_types(experience_type_id),
-  journey_safari_themes(safari_theme_id)
+  journey_safari_themes(safari_theme_id),
+  journey_pricing_tiers(*),
+  journey_highlights(*),
+  journey_addons(*),
+  journey_activities(activity_id)
 `;
 
 export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyDetail | undefined> {
@@ -134,10 +152,18 @@ export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyD
     pickupLocations: row.pickup_locations ?? [],
     featured: Boolean(row.featured),
     status: row.status ?? "draft",
+    metaTitle: row.meta_title ?? "",
+    metaDescription: row.meta_description ?? "",
+    ogImage: row.og_image ?? "",
     destinationIds: destinations.map((d: any) => d.destination_id),
     primaryDestinationId: primary?.destination_id ?? destinations[0]?.destination_id ?? "",
     journeyTypeIds: (row.journey_journey_types ?? []).map((j: any) => j.journey_type_id),
     experienceTypeIds: (row.journey_experience_types ?? []).map((j: any) => j.experience_type_id),
     safariThemeIds: (row.journey_safari_themes ?? []).map((j: any) => j.safari_theme_id),
+    ...mapProductScalars(row),
+    pricingTiers: (row.journey_pricing_tiers ?? []).map(mapPricingTierRow),
+    highlights: (row.journey_highlights ?? []).map(mapHighlightRow),
+    addons: (row.journey_addons ?? []).map(mapAddonRow),
+    activityIds: (row.journey_activities ?? []).map((a: any) => a.activity_id),
   };
 }

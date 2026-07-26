@@ -1,18 +1,29 @@
 import type { Tour } from "@/types";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  mapPricingTierRow,
+  mapHighlightRow,
+  mapAddonRow,
+  mapProductScalars,
+  type ItineraryDay,
+  type PricingTier,
+  type ProductHighlight,
+  type ProductAddon,
+  type ProductScalars,
+} from "@/lib/productShared";
 
-export interface ItineraryDay {
-  day: number;
-  title: string;
-  description: string;
-}
+export type { ItineraryDay };
 
-export interface AdminTourDetail extends Tour {
+export interface AdminTourDetail extends Tour, ProductScalars {
   inclusions: string[];
   exclusions: string[];
   itinerary: ItineraryDay[];
   meetingPoint: string;
   pickupLocations: string[];
+  pricingTiers: PricingTier[];
+  highlights: ProductHighlight[];
+  addons: ProductAddon[];
+  activityIds: string[];
 }
 
 function mapRow(row: Record<string, any>): AdminTourDetail {
@@ -38,11 +49,24 @@ function mapRow(row: Record<string, any>): AdminTourDetail {
     itinerary: row.itinerary ?? [],
     meetingPoint: row.meeting_point ?? "",
     pickupLocations: row.pickup_locations ?? [],
+    ...mapProductScalars(row),
+    pricingTiers: (row.tour_pricing_tiers ?? []).map(mapPricingTierRow),
+    highlights: (row.tour_highlights ?? []).map(mapHighlightRow),
+    addons: (row.tour_addons ?? []).map(mapAddonRow),
+    activityIds: (row.tour_activities ?? []).map((a: any) => a.activity_id),
   };
 }
 
-// Admin edit form needs fields (inclusions/exclusions/itinerary/logistics)
-// that the public Tour type doesn't carry.
+const DETAIL_SELECT = `
+  *,
+  tour_pricing_tiers(*),
+  tour_highlights(*),
+  tour_addons(*),
+  tour_activities(activity_id)
+`;
+
+// Admin edit form needs fields (inclusions/exclusions/itinerary/logistics/
+// pricing tiers/highlights/add-ons/activities) that the public Tour type doesn't carry.
 export async function getAdminTourBySlug(slug: string): Promise<AdminTourDetail | undefined> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) {
@@ -50,7 +74,7 @@ export async function getAdminTourBySlug(slug: string): Promise<AdminTourDetail 
     return undefined;
   }
 
-  const { data, error } = await supabase.from("tours").select("*").eq("slug", slug).maybeSingle();
+  const { data, error } = await supabase.from("tours").select(DETAIL_SELECT).eq("slug", slug).maybeSingle();
 
   if (error || !data) {
     if (error) console.warn("[admin/tours] Supabase query failed:", error.message);

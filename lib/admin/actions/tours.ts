@@ -3,8 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  syncPricingTiers,
+  syncHighlights,
+  syncAddons,
+  syncActivities,
+  productScalarsToRow,
+  type PricingTierInput,
+  type HighlightInput,
+  type AddonInput,
+  type ProductScalarsInput,
+} from "./productShared";
 
-export interface TourInput {
+export interface TourInput extends ProductScalarsInput {
   title: string;
   slug: string;
   destinationId: string;
@@ -20,6 +31,13 @@ export interface TourInput {
   pickupLocations: string[];
   featured: boolean;
   status: string;
+  metaTitle: string;
+  metaDescription: string;
+  ogImage: string;
+  pricingTiers: PricingTierInput[];
+  highlights: HighlightInput[];
+  addons: AddonInput[];
+  activityIds: string[];
 }
 
 function slugify(title: string): string {
@@ -47,15 +65,28 @@ function toRow(input: TourInput) {
     pickup_locations: input.pickupLocations,
     featured: input.featured,
     status: input.status,
+    meta_title: input.metaTitle,
+    meta_description: input.metaDescription,
+    og_image: input.ogImage,
+    ...productScalarsToRow(input),
   };
+}
+
+async function syncTourRelations(supabase: any, tourId: string, input: TourInput) {
+  await syncPricingTiers(supabase, "tour_pricing_tiers", "tour_id", tourId, input.pricingTiers);
+  await syncHighlights(supabase, "tour_highlights", "tour_id", tourId, input.highlights);
+  await syncAddons(supabase, "tour_addons", "tour_id", tourId, input.addons);
+  await syncActivities(supabase, "tour_activities", "tour_id", tourId, input.activityIds);
 }
 
 export async function createTour(input: TourInput): Promise<void> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
-  const { error } = await supabase.from("tours").insert(toRow(input));
-  if (error) throw new Error(error.message);
+  const { data, error } = await supabase.from("tours").insert(toRow(input)).select("id").single();
+  if (error || !data) throw new Error(error?.message ?? "Failed to create tour.");
+
+  await syncTourRelations(supabase, data.id, input);
 
   revalidatePath("/admin/tours");
   revalidatePath("/");
@@ -68,6 +99,8 @@ export async function updateTour(id: string, input: TourInput): Promise<void> {
 
   const { error } = await supabase.from("tours").update(toRow(input)).eq("id", id);
   if (error) throw new Error(error.message);
+
+  await syncTourRelations(supabase, id, input);
 
   revalidatePath("/admin/tours");
   revalidatePath("/");

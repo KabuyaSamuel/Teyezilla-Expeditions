@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Menu, X, ChevronDown, Search } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
+import SearchBox from "./SearchBox";
 
 interface DropdownLink {
   label: string;
@@ -41,7 +42,6 @@ export default function NavbarClient({
   const [menuOpen, setMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openMobileSection, setOpenMobileSection] = useState<string | null>(null);
-  const [searchOpen, setSearchOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
 
   const isHome = pathname === "/";
@@ -69,20 +69,17 @@ export default function NavbarClient({
     setMenuOpen(false);
     setOpenDropdown(null);
     setOpenMobileSection(null);
-    setSearchOpen(false);
   }, [pathname]);
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
         setOpenDropdown(null);
-        setSearchOpen(false);
       }
     }
     function onEscape(e: KeyboardEvent) {
       if (e.key === "Escape") {
         setOpenDropdown(null);
-        setSearchOpen(false);
       }
     }
     document.addEventListener("mousedown", onClickOutside);
@@ -227,51 +224,7 @@ export default function NavbarClient({
         </nav>
 
         <div className="hidden items-center gap-4 lg:flex">
-          <div className="relative">
-            <button
-              type="button"
-              aria-label="Search"
-              onClick={() => setSearchOpen((v) => !v)}
-              className={transparent ? "text-white" : "text-foreground"}
-            >
-              <Search className="h-4.5 w-4.5" />
-            </button>
-            {searchOpen && (
-              <form
-                onSubmit={(e) => e.preventDefault()}
-                className="absolute right-0 top-full z-10 mt-3 w-64 rounded-2xl bg-white p-2 shadow-cardHover"
-              >
-                <input
-                  type="search"
-                  placeholder="Search destinations, journeys..."
-                  autoFocus
-                  className="w-full rounded-xl border border-secondary/30 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/40"
-                />
-              </form>
-            )}
-          </div>
-          <select
-            name="language"
-            aria-label="Language"
-            className={`border-none bg-transparent text-sm focus:outline-none ${
-              transparent ? "text-white" : "text-foreground"
-            }`}
-          >
-            <option>EN</option>
-            <option>FR</option>
-            <option>SW</option>
-          </select>
-          <select
-            name="currency"
-            aria-label="Currency"
-            className={`border-none bg-transparent text-sm focus:outline-none ${
-              transparent ? "text-white" : "text-foreground"
-            }`}
-          >
-            <option>USD</option>
-            <option>EUR</option>
-            <option>KES</option>
-          </select>
+          <SearchBox variant="desktop" transparent={transparent} />
           <Link href="/booking" className="btn-secondary text-sm">
             Plan Your Journey
           </Link>
@@ -288,6 +241,9 @@ export default function NavbarClient({
 
       {menuOpen && (
         <nav className="flex max-h-[calc(100vh-5rem)] flex-col gap-1 overflow-y-auto border-t border-secondary/30 bg-background px-6 py-6 lg:hidden">
+          <div className="mb-3">
+            <SearchBox variant="mobile" />
+          </div>
           {NAV_ITEMS.map((item) => {
             const flatLinks: DropdownLink[] = item.groups
               ? item.groups.flatMap((g) => g.links)

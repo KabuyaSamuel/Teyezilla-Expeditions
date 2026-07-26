@@ -14,6 +14,7 @@ export interface Inquiry {
   customerPhone: string;
   source: InquirySource;
   tourTitle?: string;
+  journeyTitle?: string;
   message: string;
   assignedStaffId?: string;
   status: InquiryStatus;
@@ -43,6 +44,7 @@ function mapRow(row: Record<string, any>): Inquiry {
     customerPhone: row.customer_phone ?? "",
     source: row.source,
     tourTitle: row.tour?.title,
+    journeyTitle: row.journey?.title,
     message: row.message ?? "",
     // No formal FK to `staff` yet, so this can't be embedded via Postgrest —
     // resolve the display name by cross-referencing getStaffMembers() at the call site.
@@ -64,7 +66,7 @@ export async function getInquiries(): Promise<Inquiry[]> {
   const [{ data, error }, tripPlannerRequests] = await Promise.all([
     supabase
       .from("inquiries")
-      .select("*, tour:tours(title)")
+      .select("*, tour:tours(title), journey:journeys(title)")
       .order("created_at", { ascending: false }),
     getTripPlannerRequests(),
   ]);
@@ -86,7 +88,7 @@ export async function getInquiryById(id: string): Promise<Inquiry | undefined> {
 
   const { data, error } = await supabase
     .from("inquiries")
-    .select("*, tour:tours(title)")
+    .select("*, tour:tours(title), journey:journeys(title)")
     .eq("id", id)
     .maybeSingle();
 

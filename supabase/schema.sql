@@ -78,15 +78,29 @@ create table customers (
 );
 
 -- ============ BOOKINGS ============
+-- Booking flow is inquiry-based: visitors enquire, staff quote and confirm by
+-- email/WhatsApp, payment happens offline. payment_status is a manual
+-- record-keeping field only — online payment is permanently out of scope.
+-- See supabase/migrations/20260726120000_inquiry_based_bookings.sql for the
+-- full migration (status vocab remap, RLS) and rationale.
 create table bookings (
   id uuid primary key default gen_random_uuid(),
   booking_reference text unique not null,
   customer_id uuid references customers(id),
   tour_id uuid references tours(id),
-  travel_date date not null,
+  journey_id uuid references journeys(id),
+  travel_date date, -- nullable: flexible-dates enquiries
+  flexible_dates boolean default false,
   traveler_count integer not null,
-  payment_status text default 'pending' check (payment_status in ('pending', 'partial', 'paid', 'refunded')),
-  booking_status text default 'pending' check (booking_status in ('pending', 'confirmed', 'cancelled', 'completed')),
+  adults int,
+  children int default 0,
+  children_ages text,
+  budget_range text,
+  special_requests text,
+  referral_source text,
+  country_of_residence text,
+  payment_status text default 'unpaid' check (payment_status in ('unpaid', 'deposit_received', 'paid')),
+  booking_status text default 'inquiry' check (booking_status in ('inquiry', 'quoted', 'confirmed', 'completed', 'cancelled')),
   total_amount numeric(10,2),
   deposit_amount numeric(10,2),
   currency text default 'USD',
@@ -172,6 +186,7 @@ create table inquiries (
   customer_email text,
   customer_phone text,
   tour_id uuid references tours(id),
+  journey_id uuid references journeys(id),
   message text,
   assigned_staff_id uuid,
   status text default 'new' check (status in ('new', 'in_progress', 'quoted', 'converted', 'closed')),

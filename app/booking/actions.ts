@@ -165,6 +165,7 @@ export async function submitBookingEnquiry(
     customer_email: input.email,
     customer_phone: input.phone,
     tour_id: product.kind === "tour" ? product.id : null,
+    journey_id: product.kind === "journey" ? product.id : null,
     message: summaryLines.join("\n"),
     status: "new",
   });

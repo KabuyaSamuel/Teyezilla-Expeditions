@@ -66,7 +66,9 @@ export default async function AdminInquiriesPage({
                 {inq.repliedAt && <Badge tone="success">Replied</Badge>}
               </div>
             </div>
-            {inq.tourTitle && <p className="mt-2 text-xs text-foreground/50">Re: {inq.tourTitle}</p>}
+            {(inq.tourTitle || inq.journeyTitle) && (
+              <p className="mt-2 text-xs text-foreground/50">Re: {inq.tourTitle || inq.journeyTitle}</p>
+            )}
             <p className="mt-2 line-clamp-2 whitespace-pre-line text-sm text-foreground/80">{inq.message}</p>
 
             {inq.tripPlanner && (

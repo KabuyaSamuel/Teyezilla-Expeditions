@@ -38,7 +38,9 @@ export default async function InquiryDetailPage({
             <Badge tone={inquiryStatusTone(inquiry.status)}>{inquiry.status.replace("_", " ")}</Badge>
             <span className="text-xs text-foreground/50">{inquiry.createdAt}</span>
           </div>
-          {inquiry.tourTitle && <p className="mt-2 text-xs text-foreground/50">Re: {inquiry.tourTitle}</p>}
+          {(inquiry.tourTitle || inquiry.journeyTitle) && (
+            <p className="mt-2 text-xs text-foreground/50">Re: {inquiry.tourTitle || inquiry.journeyTitle}</p>
+          )}
 
           <h2 className="mt-6 font-heading text-sm font-semibold uppercase tracking-wide text-foreground/50">
             Message

@@ -91,9 +91,14 @@ option you used above:
 Copy `.env.example` to `.env.local` and fill in:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY` (only needed for future admin-side privileged writes)
+- `SUPABASE_SERVICE_ROLE_KEY` (used by the public enquiry forms to upsert customer
+  records server-side; enquiries still land without it, just unlinked from customers)
+- `RESEND_API_KEY`, `ADMIN_NOTIFICATION_EMAIL`, `EMAIL_FROM` (transactional email via
+  Resend — enquiry notifications and customer confirmations; sends are skipped
+  gracefully when unset)
 
-Both are on your project's Settings > API page. Restart `npm run dev` after adding them.
+The Supabase keys are on your project's Settings > API page. Restart `npm run dev`
+after adding them.
 
 ### Troubleshooting: pages show no data even though the tables are seeded
 
@@ -169,14 +174,16 @@ piece of Phase 4 work.
 - **Images**: components reference `/images/...` or `picsum.photos` placeholder paths.
   Add real photography to `public/images/` using matching filenames, or point the data
   layer at a CDN/Supabase Storage URLs instead.
-- **Payments, WhatsApp Business API, Maps, Analytics, Email** (Phase 4): booking and
-  trip planner forms exist but don't submit anywhere yet. See `.env.example` for the
-  credentials each integration will need.
+- **WhatsApp Business API, Maps, Analytics** (Phase 4): see `.env.example` for the
+  credentials each integration will need. The booking enquiry, contact, and trip
+  planner forms all submit to Supabase and send email via Resend; online payment is
+  permanently out of scope (the business quotes by email/WhatsApp and takes payment
+  offline).
 - **AI Trip Planner logic**: the public form captures inputs; itinerary generation
-  isn't wired to an AI provider yet. The admin module for reviewing/editing/quoting
-  requests reads real submitted requests once seeded.
-- **Guide/driver/vehicle assignment**: the Inventory & Availability module reads real
-  capacity/booking counts from `tour_availability`, but assignment fields aren't in the
+  isn't wired to an AI provider yet. Requests appear in Inquiry Management, where
+  staff can edit the itinerary and convert a request to a booking.
+- **Guide/driver/vehicle assignment**: the `tour_availability` table holds real
+  capacity/booking counts, but assignment fields aren't in the
   schema yet — extend that table (or add a linked assignments table) when ready to
   track this for real.
 
@@ -199,8 +206,9 @@ any normal dev machine by default.
 
 ## Next steps
 
-Continue **Phase 4: Integrations** — migrate the remaining mock modules to Supabase,
-then Stripe/M-Pesa/PayPal, WhatsApp Business API, Maps/GA4/GTM, and email — followed by
+Continue **Phase 4: Integrations** — the booking flow is now inquiry-based (no online
+payment gateway; enquiries are quoted by staff and paid offline), with transactional
+email via Resend. Remaining: WhatsApp Business API, Maps/GA4/GTM — followed by
 Phase 5 (polish).
 
 

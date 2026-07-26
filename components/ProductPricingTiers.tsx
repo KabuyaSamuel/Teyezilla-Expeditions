@@ -41,7 +41,7 @@ export default function ProductPricingTiers({
               </ul>
             )}
             <Link href={bookingHref} className="btn-primary mt-6 text-center text-sm">
-              {tier.ctaLabel || `Book ${tier.tierName}`}
+              {tier.ctaLabel || `Enquire About ${tier.tierName}`}
             </Link>
           </div>
         ))}

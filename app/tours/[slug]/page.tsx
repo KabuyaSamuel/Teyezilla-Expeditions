@@ -198,7 +198,7 @@ export default async function TourPage({ params }: Props) {
               href={bookingHref}
               className="btn-primary mt-4 block text-center"
             >
-              Book Now
+              Enquire Now
             </a>
             <a
               href={whatsappHref}

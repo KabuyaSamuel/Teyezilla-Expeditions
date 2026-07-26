@@ -18,7 +18,7 @@ export default async function AdminNotificationsPage() {
     <div>
       <PageHeader
         title="Notifications"
-        description="Booking alerts, payment confirmations, and follow-up reminders."
+        description="Booking alerts and follow-up reminders."
         action={
           hasUnread ? (
             <form action={markAllNotificationsRead}>

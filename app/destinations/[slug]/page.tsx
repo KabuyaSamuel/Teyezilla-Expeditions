@@ -153,8 +153,8 @@ export default async function DestinationPage({ params }: Props) {
         </div>
 
         <div className="mt-10">
-          <Link href={`/booking?destination=${destination.slug}`} className="btn-primary">
-            Start Booking Your {destination.countryName} Trip
+          <Link href="/booking" className="btn-primary">
+            Enquire About Your {destination.countryName} Trip
           </Link>
         </div>
       </div>

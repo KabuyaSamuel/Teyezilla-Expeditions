@@ -1,0 +1,221 @@
+"use client";
+
+import { useActionState, useState } from "react";
+import { submitBookingEnquiry } from "@/app/booking/actions";
+import { BUDGET_RANGES, REFERRAL_SOURCES, type EnquiryFormState } from "@/lib/enquiry-shared";
+
+export interface ProductOption {
+  slug: string;
+  title: string;
+  kind: "tour" | "journey";
+}
+
+const inputClass =
+  "w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+const areaClass =
+  "w-full rounded-2xl border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="mt-1 px-2 text-xs text-red-600">{message}</p>;
+}
+
+export default function BookingEnquiryForm({
+  preselected,
+  options,
+}: {
+  // When arriving via ?tour= / ?journey= the product is fixed; otherwise the
+  // visitor picks from the published tours + journeys list.
+  preselected?: ProductOption;
+  options: ProductOption[];
+}) {
+  const [state, formAction, pending] = useActionState<EnquiryFormState, FormData>(
+    submitBookingEnquiry,
+    {}
+  );
+  const [children, setChildren] = useState(0);
+  const [flexible, setFlexible] = useState(false);
+  const [selection, setSelection] = useState(
+    preselected ? `${preselected.kind}:${preselected.slug}` : ""
+  );
+
+  const errors = state.fieldErrors ?? {};
+  const [selKind, selSlug] = selection.split(":");
+
+  return (
+    <form action={formAction} className="mt-8 space-y-5" noValidate>
+      <input type="hidden" name="tourSlug" value={selKind === "tour" ? selSlug : ""} />
+      <input type="hidden" name="journeySlug" value={selKind === "journey" ? selSlug : ""} />
+
+      {!preselected && (
+        <div>
+          <label htmlFor="product" className="mb-1 block px-2 text-sm font-medium text-foreground">
+            Which tour or journey are you interested in? <span className="text-red-600">*</span>
+          </label>
+          <select
+            id="product"
+            value={selection}
+            onChange={(e) => setSelection(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Choose a tour or journey…</option>
+            <optgroup label="Tours">
+              {options.filter((o) => o.kind === "tour").map((o) => (
+                <option key={`tour:${o.slug}`} value={`tour:${o.slug}`}>{o.title}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Journeys">
+              {options.filter((o) => o.kind === "journey").map((o) => (
+                <option key={`journey:${o.slug}`} value={`journey:${o.slug}`}>{o.title}</option>
+              ))}
+            </optgroup>
+          </select>
+          <FieldError message={errors.tourSlug} />
+        </div>
+      )}
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label htmlFor="fullName" className="mb-1 block px-2 text-sm font-medium text-foreground">
+            Full name <span className="text-red-600">*</span>
+          </label>
+          <input id="fullName" name="fullName" type="text" autoComplete="name" className={inputClass} />
+          <FieldError message={errors.fullName} />
+        </div>
+        <div>
+          <label htmlFor="email" className="mb-1 block px-2 text-sm font-medium text-foreground">
+            Email <span className="text-red-600">*</span>
+          </label>
+          <input id="email" name="email" type="email" autoComplete="email" className={inputClass} />
+          <FieldError message={errors.email} />
+        </div>
+        <div>
+          <label htmlFor="phone" className="mb-1 block px-2 text-sm font-medium text-foreground">
+            Phone (WhatsApp preferred) <span className="text-red-600">*</span>
+          </label>
+          <input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="+254 …" className={inputClass} />
+          <FieldError message={errors.phone} />
+        </div>
+        <div>
+          <label htmlFor="country" className="mb-1 block px-2 text-sm font-medium text-foreground">
+            Country of residence <span className="text-red-600">*</span>
+          </label>
+          <input id="country" name="country" type="text" autoComplete="country-name" className={inputClass} />
+          <FieldError message={errors.country} />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="travelDate" className="mb-1 block px-2 text-sm font-medium text-foreground">
+          Preferred travel date
+        </label>
+        <input
+          id="travelDate"
+          name="travelDate"
+          type="date"
+          disabled={flexible}
+          className={`${inputClass} disabled:opacity-50`}
+        />
+        <label className="mt-2 flex items-center gap-2 px-2 text-sm text-foreground/80">
+          <input
+            type="checkbox"
+            name="flexibleDates"
+            checked={flexible}
+            onChange={(e) => setFlexible(e.target.checked)}
+            className="h-4 w-4 accent-primary"
+          />
+          My dates are flexible
+        </label>
+        <FieldError message={errors.travelDate} />
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label htmlFor="adults" className="mb-1 block px-2 text-sm font-medium text-foreground">
+            Adults <span className="text-red-600">*</span>
+          </label>
+          <input id="adults" name="adults" type="number" min={1} defaultValue={2} className={inputClass} />
+          <FieldError message={errors.adults} />
+        </div>
+        <div>
+          <label htmlFor="children" className="mb-1 block px-2 text-sm font-medium text-foreground">
+            Children
+          </label>
+          <input
+            id="children"
+            name="children"
+            type="number"
+            min={0}
+            value={children}
+            onChange={(e) => setChildren(Math.max(0, Number(e.target.value) || 0))}
+            className={inputClass}
+          />
+        </div>
+      </div>
+
+      {children > 0 && (
+        <div>
+          <label htmlFor="childrenAges" className="mb-1 block px-2 text-sm font-medium text-foreground">
+            Children&apos;s ages
+          </label>
+          <input
+            id="childrenAges"
+            name="childrenAges"
+            type="text"
+            placeholder="e.g. 5 and 9 — ages matter for safari lodges and pricing"
+            className={inputClass}
+          />
+        </div>
+      )}
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label htmlFor="budgetRange" className="mb-1 block px-2 text-sm font-medium text-foreground">
+            Budget per person (optional)
+          </label>
+          <select id="budgetRange" name="budgetRange" className={inputClass} defaultValue="">
+            <option value="">Select a range…</option>
+            {BUDGET_RANGES.map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="referralSource" className="mb-1 block px-2 text-sm font-medium text-foreground">
+            How did you hear about us? (optional)
+          </label>
+          <select id="referralSource" name="referralSource" className={inputClass} defaultValue="">
+            <option value="">Select…</option>
+            {REFERRAL_SOURCES.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="specialRequests" className="mb-1 block px-2 text-sm font-medium text-foreground">
+          Special requests / anything else
+        </label>
+        <textarea
+          id="specialRequests"
+          name="specialRequests"
+          rows={4}
+          placeholder="Honeymoon, dietary needs, mobility, a celebration — anything that helps us tailor your trip."
+          className={areaClass}
+        />
+      </div>
+
+      {state.formError && (
+        <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{state.formError}</p>
+      )}
+
+      <button type="submit" disabled={pending} className="btn-primary w-full disabled:opacity-60">
+        {pending ? "Sending your enquiry…" : "Send Enquiry"}
+      </button>
+      <p className="text-center text-xs text-foreground/50">
+        No payment is taken online — our travel team replies with a personal quote within 24 hours.
+      </p>
+    </form>
+  );
+}

@@ -4,14 +4,11 @@
 export function paymentStatusTone(status: string) {
   switch (status) {
     case "paid":
-    case "succeeded":
       return "success" as const;
-    case "partial":
-    case "pending":
+    case "deposit_received":
       return "pending" as const;
-    case "refunded":
-    case "failed":
-      return "error" as const;
+    case "unpaid":
+      return "neutral" as const;
     default:
       return "neutral" as const;
   }
@@ -22,7 +19,9 @@ export function bookingStatusTone(status: string) {
     case "confirmed":
     case "completed":
       return "success" as const;
-    case "pending":
+    case "inquiry":
+      return "info" as const;
+    case "quoted":
       return "pending" as const;
     case "cancelled":
       return "error" as const;

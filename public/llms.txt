@@ -18,8 +18,9 @@ Safaris, beach holidays, cultural tours, city tours, food tours, desert expediti
 tailor-made trips built with an AI trip planner.
 
 ## Booking
-Tours can be booked online with a deposit or full payment (Stripe, M-Pesa, PayPal,
-bank transfer) or by contacting the team directly on WhatsApp.
+Booking is inquiry-based: visitors send an enquiry through the website (or WhatsApp),
+a travel consultant replies with a personal quote within 24 hours, and payment is
+arranged offline (bank transfer, invoice, or in person). No payment is taken online.
 
 ## Contact
 Website: https://www.teyezillaexpeditions.com

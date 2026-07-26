@@ -38,8 +38,8 @@ export default async function CustomerProfilePage({
             {customerBookings.map((b) => (
               <div key={b.id} className="flex items-center justify-between rounded-xl bg-secondary/10 px-4 py-3 text-sm">
                 <div>
-                  <p className="font-medium text-foreground">{b.tourTitle}</p>
-                  <p className="text-xs text-foreground/60">{b.bookingReference} · {b.travelDate}</p>
+                  <p className="font-medium text-foreground">{b.productTitle}</p>
+                  <p className="text-xs text-foreground/60">{b.bookingReference} · {b.travelDate ?? "Flexible"}</p>
                 </div>
                 <Badge tone={bookingStatusTone(b.bookingStatus)}>{b.bookingStatus}</Badge>
               </div>

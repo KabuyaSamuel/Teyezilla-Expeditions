@@ -143,12 +143,12 @@ insert into customers (id, full_name, email, phone, nationality, emergency_conta
 
 -- ============ BOOKINGS ============
 insert into bookings (booking_reference, customer_id, tour_id, travel_date, traveler_count, total_amount, deposit_amount, currency, payment_status, booking_status, created_at) values
-('TZ-10231', '11111111-1111-1111-1111-111111111111', (select id from tours where slug = 'maasai-mara-safari'), '2026-08-14', 2, 1900, 500, 'USD', 'partial', 'confirmed', '2026-06-02'),
+('TZ-10231', '11111111-1111-1111-1111-111111111111', (select id from tours where slug = 'maasai-mara-safari'), '2026-08-14', 2, 1900, 500, 'USD', 'deposit_received', 'confirmed', '2026-06-02'),
 ('TZ-10232', '22222222-2222-2222-2222-222222222222', (select id from tours where slug = 'serengeti-safari'), '2026-09-02', 1, 1200, 1200, 'USD', 'paid', 'confirmed', '2026-06-15'),
-('TZ-10233', '33333333-3333-3333-3333-333333333333', (select id from tours where slug = 'marrakech-sahara-desert'), '2026-10-05', 6, 3660, 900, 'USD', 'partial', 'pending', '2026-07-01'),
-('TZ-10234', '44444444-4444-4444-4444-444444444444', (select id from tours where slug = 'pyramids-of-giza-tour'), '2026-07-28', 2, 1040, 0, 'USD', 'pending', 'pending', '2026-07-10'),
+('TZ-10233', '33333333-3333-3333-3333-333333333333', (select id from tours where slug = 'marrakech-sahara-desert'), '2026-10-05', 6, 3660, 900, 'USD', 'deposit_received', 'quoted', '2026-07-01'),
+('TZ-10234', '44444444-4444-4444-4444-444444444444', (select id from tours where slug = 'pyramids-of-giza-tour'), '2026-07-28', 2, 1040, 0, 'USD', 'unpaid', 'inquiry', '2026-07-10'),
 ('TZ-10235', '55555555-5555-5555-5555-555555555555', (select id from tours where slug = 'zanzibar-beach-escape'), '2026-06-20', 2, 1560, 1560, 'USD', 'paid', 'completed', '2026-05-01'),
-('TZ-10236', '11111111-1111-1111-1111-111111111111', (select id from tours where slug = 'nairobi-street-food-tour'), '2026-08-15', 2, 130, 0, 'USD', 'pending', 'cancelled', '2026-06-03');
+('TZ-10236', '11111111-1111-1111-1111-111111111111', (select id from tours where slug = 'nairobi-street-food-tour'), '2026-08-15', 2, 130, 0, 'USD', 'unpaid', 'cancelled', '2026-06-03');
 
 -- ============ PAYMENTS ============
 insert into payments (booking_id, provider, provider_reference, amount, currency, status, created_at) values

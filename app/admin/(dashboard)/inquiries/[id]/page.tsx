@@ -3,6 +3,7 @@ import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import InquiryControls from "@/components/admin/InquiryControls";
 import InquiryReplyForm from "@/components/admin/InquiryReplyForm";
+import TripPlannerInquiryPanel from "@/components/admin/TripPlannerInquiryPanel";
 import { getInquiryById } from "@/lib/admin/data/inquiries";
 import { getStaffMembers } from "@/lib/admin/data/staff";
 import { inquiryStatusTone } from "@/lib/admin/status-tone";
@@ -11,7 +12,7 @@ const SOURCE_LABELS: Record<string, string> = {
   website: "Website",
   whatsapp: "WhatsApp",
   contact_form: "Contact Form",
-  ai_trip_planner: "AI Trip Planner",
+  ai_trip_planner: "Trip Planner",
 };
 
 export default async function InquiryDetailPage({
@@ -42,7 +43,26 @@ export default async function InquiryDetailPage({
           <h2 className="mt-6 font-heading text-sm font-semibold uppercase tracking-wide text-foreground/50">
             Message
           </h2>
-          <p className="mt-2 rounded-2xl bg-secondary/10 p-4 text-sm text-foreground/80">{inquiry.message}</p>
+          <p className="mt-2 whitespace-pre-line rounded-2xl bg-secondary/10 p-4 text-sm text-foreground/80">{inquiry.message}</p>
+
+          {inquiry.tripPlanner && (
+            <div className="mt-6">
+              <TripPlannerInquiryPanel
+                inquiryId={inquiry.id}
+                request={{
+                  id: inquiry.tripPlanner.id,
+                  destination: inquiry.tripPlanner.destination,
+                  budgetUsd: inquiry.tripPlanner.budgetUsd,
+                  days: inquiry.tripPlanner.days,
+                  travelers: inquiry.tripPlanner.travelers,
+                  travelStyle: inquiry.tripPlanner.travelStyle,
+                  luxuryLevel: inquiry.tripPlanner.luxuryLevel,
+                  aiSuggestedItinerary: inquiry.tripPlanner.aiSuggestedItinerary,
+                  status: inquiry.tripPlanner.status,
+                }}
+              />
+            </div>
+          )}
 
           <h2 className="mt-8 font-heading text-sm font-semibold uppercase tracking-wide text-foreground/50">
             Reply

@@ -93,8 +93,8 @@ export default async function AdminSettingsPage() {
         <section className="card p-6">
           <h2 className="font-heading text-lg font-semibold text-foreground">Email Templates</h2>
           <p className="mt-1 text-xs text-foreground/50">
-            Booking confirmation, payment receipt, and follow-up templates connect here
-            once Brevo/Mailchimp is wired up in Phase 4.
+            Enquiry confirmations, quotes, and admin notifications are sent via Resend —
+            templates live in <code>lib/email-templates.ts</code>.
           </p>
         </section>
 

@@ -3,27 +3,29 @@ import StatCard from "@/components/admin/StatCard";
 import Badge from "@/components/admin/Badge";
 import Link from "next/link";
 import { getBookings } from "@/lib/admin/data/bookings";
-import { getPayments } from "@/lib/admin/data/payments";
 import { getInquiries } from "@/lib/admin/data/inquiries";
 import { getDestinations } from "@/lib/destinations";
 import { bookingStatusTone } from "@/lib/admin/status-tone";
 
 export default async function AdminDashboardPage() {
-  const [destinations, bookings, payments, inquiries] = await Promise.all([
+  const [destinations, bookings, inquiries] = await Promise.all([
     getDestinations(),
     getBookings(),
-    getPayments(),
     getInquiries(),
   ]);
   const totalBookings = bookings.length;
-  const revenueTotal = payments
-    .filter((p) => p.status === "succeeded")
-    .reduce((sum, p) => sum + p.amount, 0);
+  // Revenue is staff-entered: bookings marked paid, using the quoted total.
+  const revenueTotal = bookings
+    .filter((b) => b.paymentStatus === "paid")
+    .reduce((sum, b) => sum + b.totalAmount, 0);
+  const newEnquiries =
+    bookings.filter((b) => b.bookingStatus === "inquiry").length +
+    inquiries.filter((i) => i.status === "new").length;
 
   const now = new Date("2026-07-18");
   const upcomingTours = bookings
-    .filter((b) => new Date(b.travelDate) >= now && b.bookingStatus !== "cancelled")
-    .sort((a, b) => new Date(a.travelDate).getTime() - new Date(b.travelDate).getTime());
+    .filter((b) => b.travelDate && new Date(b.travelDate) >= now && b.bookingStatus !== "cancelled")
+    .sort((a, b) => new Date(a.travelDate!).getTime() - new Date(b.travelDate!).getTime());
 
   const recentInquiries = [...inquiries]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -47,10 +49,10 @@ export default async function AdminDashboardPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="New Enquiries" value={String(newEnquiries)} accent sublabel="awaiting first response" />
         <StatCard label="Total Bookings" value={String(totalBookings)} sublabel="all time" />
-        <StatCard label="Revenue (recorded)" value={`$${revenueTotal.toLocaleString()}`} accent sublabel="succeeded payments" />
-        <StatCard label="Upcoming Tours" value={String(upcomingTours.length)} sublabel="confirmed or pending" />
-        <StatCard label="New Inquiries" value={String(inquiries.filter((i) => i.status === "new").length)} sublabel="awaiting first response" />
+        <StatCard label="Revenue (recorded)" value={`$${revenueTotal.toLocaleString()}`} sublabel="bookings marked paid" />
+        <StatCard label="Upcoming Tours" value={String(upcomingTours.length)} sublabel="with a set travel date" />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
@@ -61,7 +63,7 @@ export default async function AdminDashboardPage() {
             {upcomingTours.map((b) => (
               <div key={b.id} className="flex items-center justify-between rounded-xl bg-secondary/10 px-4 py-3">
                 <div>
-                  <p className="text-sm font-medium text-foreground">{b.tourTitle}</p>
+                  <p className="text-sm font-medium text-foreground">{b.productTitle}</p>
                   <p className="text-xs text-foreground/60">{b.bookingReference} · {b.customerName} · {b.travelerCount} traveler(s)</p>
                 </div>
                 <div className="text-right">
@@ -108,9 +110,9 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">
-        Visitor stats require Google Analytics 4 (wired up in Phase 4). This dashboard
-        currently reflects bookings, payments, and inquiries from the mock data layer —
-        swap `lib/admin/data/*` for live Supabase queries when the database is connected.
+        Visitor stats require Google Analytics 4 (wired up in a later phase). Bookings,
+        revenue, and inquiries above reflect live Supabase data; revenue is the total of
+        bookings staff have marked as paid.
       </div>
     </div>
   );

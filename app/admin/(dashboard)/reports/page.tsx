@@ -1,21 +1,26 @@
 import PageHeader from "@/components/admin/PageHeader";
 import StatCard from "@/components/admin/StatCard";
 import { getBookings } from "@/lib/admin/data/bookings";
-import { getPayments } from "@/lib/admin/data/payments";
 import { getDestinations } from "@/lib/destinations";
 import { getTours } from "@/lib/tours";
 
 export default async function AdminReportsPage() {
-  const [destinations, tours, bookings, payments] = await Promise.all([
+  const [destinations, tours, bookings] = await Promise.all([
     getDestinations(),
     getTours(),
     getBookings(),
-    getPayments(),
   ]);
-  const revenue = payments.filter((p) => p.status === "succeeded").reduce((s, p) => s + p.amount, 0);
-  const conversion = Math.round(
-    (bookings.filter((b) => b.bookingStatus !== "cancelled").length / bookings.length) * 100
-  );
+  // Revenue is staff-entered: bookings marked paid, using the quoted total.
+  const revenue = bookings
+    .filter((b) => b.paymentStatus === "paid")
+    .reduce((s, b) => s + b.totalAmount, 0);
+  const conversion = bookings.length
+    ? Math.round(
+        (bookings.filter((b) => ["confirmed", "completed"].includes(b.bookingStatus)).length /
+          bookings.length) *
+          100
+      )
+    : 0;
 
   const salesByDestination = destinations
     .map((d) => {
@@ -35,9 +40,9 @@ export default async function AdminReportsPage() {
       <PageHeader title="Reports & Analytics" description="Revenue, bookings, and conversion across the platform." />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total Revenue" value={`$${revenue.toLocaleString()}`} accent />
-        <StatCard label="Conversion Rate" value={`${conversion}%`} sublabel="bookings not cancelled" />
-        <StatCard label="Most Viewed Tour" value="Maasai Mara Safari" sublabel="requires GA4 (Phase 4)" />
+        <StatCard label="Total Revenue" value={`$${revenue.toLocaleString()}`} accent sublabel="bookings marked paid" />
+        <StatCard label="Conversion Rate" value={`${conversion}%`} sublabel="enquiries confirmed or completed" />
+        <StatCard label="Most Viewed Tour" value="Maasai Mara Safari" sublabel="requires GA4 (later phase)" />
       </div>
 
       <div className="mt-6 card p-6">
@@ -62,8 +67,8 @@ export default async function AdminReportsPage() {
 
       <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">
         Customer demographics and most-viewed tours require Google Analytics 4, wired
-        up in Phase 4. Revenue and sales-by-destination above are computed from the
-        mock booking/payment data and will reflect real numbers once Supabase is connected.
+        up in a later phase. Revenue and sales-by-destination above are computed from
+        bookings staff have quoted and marked as paid.
       </div>
     </div>
   );

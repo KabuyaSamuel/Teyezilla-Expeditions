@@ -10,7 +10,7 @@ export default async function AdminBookingsPage() {
     <div>
       <PageHeader
         title="Booking Management"
-        description="All bookings, payment status, and fulfillment status."
+        description="Enquiries through to completed journeys — statuses are set manually as staff quote and confirm."
       />
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -18,7 +18,7 @@ export default async function AdminBookingsPage() {
             <tr>
               <th className="px-5 py-3">Reference</th>
               <th className="px-5 py-3">Customer</th>
-              <th className="px-5 py-3">Tour</th>
+              <th className="px-5 py-3">Tour / Journey</th>
               <th className="px-5 py-3">Travel Date</th>
               <th className="px-5 py-3">Travelers</th>
               <th className="px-5 py-3">Payment</th>
@@ -31,10 +31,10 @@ export default async function AdminBookingsPage() {
               <tr key={b.id} className="border-b border-secondary/10 last:border-0">
                 <td className="px-5 py-3 font-medium text-foreground">{b.bookingReference}</td>
                 <td className="px-5 py-3 text-foreground/70">{b.customerName}</td>
-                <td className="px-5 py-3 text-foreground/70">{b.tourTitle}</td>
-                <td className="px-5 py-3 text-foreground/70">{b.travelDate}</td>
+                <td className="px-5 py-3 text-foreground/70">{b.productTitle}</td>
+                <td className="px-5 py-3 text-foreground/70">{b.travelDate ?? "Flexible"}</td>
                 <td className="px-5 py-3 text-foreground/70">{b.travelerCount}</td>
-                <td className="px-5 py-3"><Badge tone={paymentStatusTone(b.paymentStatus)}>{b.paymentStatus}</Badge></td>
+                <td className="px-5 py-3"><Badge tone={paymentStatusTone(b.paymentStatus)}>{b.paymentStatus.replace("_", " ")}</Badge></td>
                 <td className="px-5 py-3"><Badge tone={bookingStatusTone(b.bookingStatus)}>{b.bookingStatus}</Badge></td>
                 <td className="px-5 py-3">
                   <Link href={`/admin/bookings/${b.id}`} className="text-primary hover:underline">

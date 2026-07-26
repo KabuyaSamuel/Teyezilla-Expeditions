@@ -2,43 +2,78 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getBookingById } from "@/lib/admin/data/bookings";
+import { sendCustomerConfirmation } from "@/lib/email";
+import { customerQuoteEmail } from "@/lib/email-templates";
 
-export async function cancelBooking(id: string): Promise<void> {
-  const supabase = await getSupabaseServerClient();
-  if (!supabase) throw new Error("Supabase not configured.");
-
-  const { error } = await supabase.from("bookings").update({ booking_status: "cancelled" }).eq("id", id);
-  if (error) throw new Error(error.message);
-
+function revalidateBooking(id: string) {
   revalidatePath(`/admin/bookings/${id}`);
   revalidatePath("/admin/bookings");
 }
 
-// Records the refund as a business fact (payment_status + a payments row).
-// No payment gateway is wired up yet (Stripe/M-Pesa/PayPal keys are still
-// commented out in .env.local — Phase 4), so this doesn't call out to a
-// provider to actually move money; it's the ledger update once that's
-// been done manually or once gateway refunds land.
-export async function processRefund(id: string, bookingReference: string, amount: number, currency: string): Promise<void> {
+export async function updateBookingStatus(id: string, status: string): Promise<void> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
-  const { error: bookingError } = await supabase
+  const { error } = await supabase.from("bookings").update({ booking_status: status }).eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidateBooking(id);
+}
+
+// payment_status is a manual record-keeping field — payment itself happens
+// offline (bank transfer, invoice, in person). There is no gateway behind this.
+export async function updatePaymentStatus(id: string, status: string): Promise<void> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) throw new Error("Supabase not configured.");
+
+  const { error } = await supabase.from("bookings").update({ payment_status: status }).eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidateBooking(id);
+}
+
+export async function cancelBooking(id: string): Promise<void> {
+  return updateBookingStatus(id, "cancelled");
+}
+
+// Saves the quoted amount to total_amount, moves the booking to "quoted", and
+// emails the customer (fail-soft — the status change lands even if the email
+// doesn't).
+export async function sendQuote(id: string, quotedAmount: number, message: string): Promise<{ emailSent: boolean }> {
+  if (!Number.isFinite(quotedAmount) || quotedAmount <= 0) {
+    throw new Error("Enter a quoted amount greater than zero.");
+  }
+
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) throw new Error("Supabase not configured.");
+
+  const booking = await getBookingById(id);
+  if (!booking) throw new Error("Booking not found.");
+
+  const { error } = await supabase
     .from("bookings")
-    .update({ payment_status: "refunded" })
+    .update({ total_amount: quotedAmount, booking_status: "quoted" })
     .eq("id", id);
-  if (bookingError) throw new Error(bookingError.message);
+  if (error) throw new Error(error.message);
 
-  const { error: paymentError } = await supabase.from("payments").insert({
-    booking_id: id,
-    provider: "bank_transfer",
-    provider_reference: `manual-refund-${bookingReference}`,
-    amount,
-    currency,
-    status: "refunded",
-  });
-  if (paymentError) throw new Error(paymentError.message);
+  let emailSent = false;
+  if (booking.customerEmail) {
+    const result = await sendCustomerConfirmation({
+      to: booking.customerEmail,
+      subject: `Your quote for ${booking.productTitle} — ${booking.bookingReference}`,
+      html: customerQuoteEmail({
+        customerName: booking.customerName,
+        bookingReference: booking.bookingReference,
+        enquiryTitle: booking.productTitle,
+        quotedAmount,
+        currency: booking.currency,
+        message,
+      }),
+    });
+    emailSent = result.sent;
+  }
 
-  revalidatePath(`/admin/bookings/${id}`);
-  revalidatePath("/admin/bookings");
+  revalidateBooking(id);
+  return { emailSent };
 }

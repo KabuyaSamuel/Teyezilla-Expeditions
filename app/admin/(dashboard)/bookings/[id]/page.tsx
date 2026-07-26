@@ -4,7 +4,6 @@ import Badge from "@/components/admin/Badge";
 import BookingActions from "@/components/admin/BookingActions";
 import { getBookingById } from "@/lib/admin/data/bookings";
 import { getCustomerById } from "@/lib/admin/data/customers";
-import { getPayments } from "@/lib/admin/data/payments";
 import { bookingStatusTone, paymentStatusTone } from "@/lib/admin/status-tone";
 
 export default async function BookingDetailPage({
@@ -16,17 +15,20 @@ export default async function BookingDetailPage({
   const booking = await getBookingById(id);
   if (!booking) notFound();
 
-  const [customer, payments] = await Promise.all([
-    getCustomerById(booking.customerId),
-    getPayments(),
-  ]);
-  const relatedPayments = payments.filter((p) => p.bookingReference === booking.bookingReference);
+  const customer = booking.customerId ? await getCustomerById(booking.customerId) : undefined;
+  const travelDateLabel = booking.travelDate
+    ? `${booking.travelDate}${booking.flexibleDates ? " (flexible)" : ""}`
+    : "Flexible";
+  const travelersLabel =
+    booking.adults != null
+      ? `${booking.adults} adult(s)${booking.children > 0 ? `, ${booking.children} child(ren)` : ""}`
+      : String(booking.travelerCount);
 
   return (
     <div>
       <PageHeader
         title={booking.bookingReference}
-        description={`${booking.tourTitle} · ${booking.travelDate}`}
+        description={`${booking.productTitle} · ${travelDateLabel}`}
         action={
           <div className="flex gap-2">
             <button className="btn-outline text-sm">Generate Voucher</button>
@@ -37,26 +39,31 @@ export default async function BookingDetailPage({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="card p-6 lg:col-span-2">
-          <h2 className="font-heading text-lg font-semibold text-foreground">Booking Details</h2>
+          <h2 className="font-heading text-lg font-semibold text-foreground">Enquiry Details</h2>
           <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
             <div><dt className="text-foreground/50">Customer</dt><dd className="font-medium text-foreground">{booking.customerName}</dd></div>
-            <div><dt className="text-foreground/50">Travelers</dt><dd className="font-medium text-foreground">{booking.travelerCount}</dd></div>
-            <div><dt className="text-foreground/50">Total Amount</dt><dd className="font-medium text-foreground">{booking.currency} {booking.totalAmount}</dd></div>
-            <div><dt className="text-foreground/50">Deposit Paid</dt><dd className="font-medium text-foreground">{booking.currency} {booking.depositAmount}</dd></div>
-            <div><dt className="text-foreground/50">Payment Status</dt><dd><Badge tone={paymentStatusTone(booking.paymentStatus)}>{booking.paymentStatus}</Badge></dd></div>
+            <div><dt className="text-foreground/50">{booking.journeyTitle ? "Journey" : "Tour"}</dt><dd className="font-medium text-foreground">{booking.productTitle}</dd></div>
+            <div><dt className="text-foreground/50">Travel Date</dt><dd className="font-medium text-foreground">{travelDateLabel}</dd></div>
+            <div><dt className="text-foreground/50">Travelers</dt><dd className="font-medium text-foreground">{travelersLabel}</dd></div>
+            {booking.children > 0 && (
+              <div><dt className="text-foreground/50">Children's Ages</dt><dd className="font-medium text-foreground">{booking.childrenAges || "Not given"}</dd></div>
+            )}
+            <div><dt className="text-foreground/50">Country of Residence</dt><dd className="font-medium text-foreground">{booking.countryOfResidence || "—"}</dd></div>
+            <div><dt className="text-foreground/50">Budget Range (per person)</dt><dd className="font-medium text-foreground">{booking.budgetRange || "Not specified"}</dd></div>
+            <div><dt className="text-foreground/50">Heard About Us Via</dt><dd className="font-medium text-foreground">{booking.referralSource || "—"}</dd></div>
+            <div><dt className="text-foreground/50">Quoted / Total Amount</dt><dd className="font-medium text-foreground">{booking.totalAmount > 0 ? `${booking.currency} ${booking.totalAmount.toLocaleString()}` : "Not quoted yet"}</dd></div>
+            <div><dt className="text-foreground/50">Payment (manual record)</dt><dd><Badge tone={paymentStatusTone(booking.paymentStatus)}>{booking.paymentStatus.replace("_", " ")}</Badge></dd></div>
             <div><dt className="text-foreground/50">Booking Status</dt><dd><Badge tone={bookingStatusTone(booking.bookingStatus)}>{booking.bookingStatus}</Badge></dd></div>
           </dl>
 
-          <h2 className="mt-8 font-heading text-lg font-semibold text-foreground">Payment History</h2>
-          <div className="mt-3 space-y-2">
-            {relatedPayments.length === 0 && <p className="text-sm text-foreground/50">No payments recorded yet.</p>}
-            {relatedPayments.map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded-xl bg-secondary/10 px-4 py-3 text-sm">
-                <span className="capitalize">{p.provider.replace("_", " ")} · {p.providerReference}</span>
-                <span className="font-medium">{p.currency} {p.amount}</span>
-              </div>
-            ))}
-          </div>
+          {booking.specialRequests && (
+            <>
+              <h2 className="mt-8 font-heading text-lg font-semibold text-foreground">Special Requests</h2>
+              <p className="mt-3 whitespace-pre-line rounded-2xl bg-secondary/10 p-4 text-sm text-foreground/80">
+                {booking.specialRequests}
+              </p>
+            </>
+          )}
 
           <div className="mt-8">
             <BookingActions
@@ -64,7 +71,6 @@ export default async function BookingDetailPage({
               bookingReference={booking.bookingReference}
               bookingStatus={booking.bookingStatus}
               paymentStatus={booking.paymentStatus}
-              totalAmount={booking.totalAmount}
               currency={booking.currency}
             />
           </div>

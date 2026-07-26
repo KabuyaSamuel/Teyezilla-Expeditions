@@ -3,6 +3,14 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getTours, getTourBySlug } from "@/lib/tours";
 import { getDestinationById } from "@/lib/destinations";
+import ProductItinerary from "@/components/ProductItinerary";
+import ProductHighlights from "@/components/ProductHighlights";
+import ProductFactsGrid from "@/components/ProductFactsGrid";
+import ProductIncludesExcludes from "@/components/ProductIncludesExcludes";
+import ProductGoodToKnow from "@/components/ProductGoodToKnow";
+import ProductTeyezillaMoment from "@/components/ProductTeyezillaMoment";
+import ProductPricingTiers from "@/components/ProductPricingTiers";
+import ProductAddons from "@/components/ProductAddons";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -41,6 +49,7 @@ export default async function TourPage({ params }: Props) {
   const whatsappHref = `https://wa.me/254700000000?text=${encodeURIComponent(
     `Hi! I'm interested in the "${tour.title}" tour. Could you share more details?`
   )}`;
+  const bookingHref = `/booking?tour=${tour.slug}`;
 
   const touristTripJsonLd = {
     "@context": "https://schema.org",
@@ -74,6 +83,22 @@ export default async function TourPage({ params }: Props) {
       },
     ],
   };
+
+  const facts = [
+    { label: "Duration", value: `${tour.durationDays} day${tour.durationDays !== 1 ? "s" : ""}` },
+    { label: "Location", value: destination?.countryName ?? "" },
+    {
+      label: "Experience",
+      value: tour.productType === "private_travel" ? "Private" : tour.productType === "safari" ? "Safari" : "Private Experience",
+    },
+    { label: "Group Size", value: tour.minGuests && tour.maxGuests ? `${tour.minGuests}–${tour.maxGuests} Guests` : "" },
+    { label: "Language", value: tour.languages.join(", ") },
+    { label: "Fitness", value: tour.fitnessLevel },
+    { label: "Best For", value: tour.bestFor.join(", ") },
+    { label: "Availability", value: tour.availabilityNote },
+    { label: "Transportation", value: tour.transportation },
+    { label: "Guide", value: tour.guideInfo },
+  ];
 
   return (
     <div>
@@ -110,11 +135,40 @@ export default async function TourPage({ params }: Props) {
         </p>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>
-            <p className="mt-3 text-foreground/70">{tour.shortDescription}</p>
+          <div className="space-y-10 lg:col-span-2">
+            <div>
+              <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>
+              <p className="mt-3 text-foreground/70">{tour.shortDescription}</p>
+            </div>
 
-            <div className="mt-10 card p-6">
+            <ProductItinerary days={tour.itinerary} singleDay={tour.durationDays <= 1} />
+            <ProductHighlights highlights={tour.highlights} />
+
+            {tour.activities.length > 0 && (
+              <div>
+                <h2 className="font-heading text-2xl font-bold text-foreground">Experiences & Activities</h2>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {tour.activities.map((a) => (
+                    <span key={a.id} className="rounded-full bg-secondary/15 px-4 py-1.5 text-sm text-foreground">
+                      {a.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <ProductFactsGrid facts={facts} />
+            <ProductIncludesExcludes inclusions={tour.inclusions} exclusions={tour.exclusions} />
+            <ProductGoodToKnow
+              bringList={tour.bringList}
+              importantInfo={tour.importantInfo}
+              cancellationPolicy={tour.cancellationPolicy}
+            />
+            <ProductTeyezillaMoment text={tour.teyezillaMoment} />
+            <ProductPricingTiers tiers={tour.pricingTiers} bookingHref={bookingHref} />
+            <ProductAddons addons={tour.addons} />
+
+            <div className="card p-6">
               <h2 className="font-heading text-xl font-semibold text-foreground">FAQs</h2>
               <div className="mt-4 space-y-4">
                 <div>
@@ -135,13 +189,13 @@ export default async function TourPage({ params }: Props) {
             </div>
           </div>
 
-          <aside className="card h-fit p-6">
+          <aside className="card sticky top-24 h-fit p-6">
             <p className="font-heading text-2xl font-bold text-accent">
               {tour.currency} {tour.priceFrom}
             </p>
             <p className="text-sm text-foreground/60">per person</p>
             <a
-              href={`/booking?tour=${tour.slug}`}
+              href={bookingHref}
               className="btn-primary mt-4 block text-center"
             >
               Book Now

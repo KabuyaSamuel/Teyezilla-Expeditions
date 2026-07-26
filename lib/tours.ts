@@ -1,5 +1,31 @@
 import type { Tour } from "@/types";
+import type { Activity } from "@/lib/activities";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
+import {
+  mapPricingTierRow,
+  mapHighlightRow,
+  mapAddonRow,
+  mapProductScalars,
+  type ItineraryDay,
+  type PricingTier,
+  type ProductHighlight,
+  type ProductAddon,
+  type ProductScalars,
+} from "@/lib/productShared";
+
+export type { ItineraryDay, PricingTier, ProductHighlight, ProductAddon };
+
+export interface TourDetail extends Tour, ProductScalars {
+  inclusions: string[];
+  exclusions: string[];
+  itinerary: ItineraryDay[];
+  meetingPoint: string;
+  pickupLocations: string[];
+  pricingTiers: PricingTier[];
+  highlights: ProductHighlight[];
+  addons: ProductAddon[];
+  activities: Activity[];
+}
 
 function mapRow(row: Record<string, unknown>): Tour {
   return {
@@ -44,21 +70,51 @@ export async function getFeaturedTours(): Promise<Tour[]> {
   return all.filter((t) => t.featured && t.status === "published");
 }
 
-export async function getTourBySlug(slug: string): Promise<Tour | undefined> {
+const DETAIL_SELECT = `
+  *,
+  tour_pricing_tiers(*),
+  tour_highlights(*),
+  tour_addons(*),
+  tour_activities(activities(id, name, slug, description, icon))
+`;
+
+export async function getTourBySlug(slug: string): Promise<TourDetail | undefined> {
   const supabase = getSupabasePublicClient();
   if (!supabase) {
     console.warn("[tours] Supabase not configured, returning no tour.");
     return undefined;
   }
 
-  const { data, error } = await supabase.from("tours").select("*").eq("slug", slug).maybeSingle();
+  const { data, error } = await supabase.from("tours").select(DETAIL_SELECT).eq("slug", slug).maybeSingle();
 
   if (error || !data) {
     if (error) console.warn("[tours] Supabase query failed:", error.message);
     return undefined;
   }
 
-  return mapRow(data);
+  const row = data as any;
+  return {
+    ...mapRow(row),
+    inclusions: row.inclusions ?? [],
+    exclusions: row.exclusions ?? [],
+    itinerary: row.itinerary ?? [],
+    meetingPoint: row.meeting_point ?? "",
+    pickupLocations: row.pickup_locations ?? [],
+    ...mapProductScalars(row),
+    pricingTiers: (row.tour_pricing_tiers ?? [])
+      .map(mapPricingTierRow)
+      .sort((a: PricingTier, b: PricingTier) => a.displayOrder - b.displayOrder),
+    highlights: (row.tour_highlights ?? [])
+      .map(mapHighlightRow)
+      .sort((a: ProductHighlight, b: ProductHighlight) => a.displayOrder - b.displayOrder),
+    addons: (row.tour_addons ?? [])
+      .map(mapAddonRow)
+      .sort((a: ProductAddon, b: ProductAddon) => a.displayOrder - b.displayOrder),
+    activities: (row.tour_activities ?? [])
+      .map((a: any) => a.activities)
+      .filter(Boolean)
+      .map((a: any) => ({ id: a.id, name: a.name, slug: a.slug, description: a.description ?? "", icon: a.icon ?? "" })),
+  };
 }
 
 export async function getToursByDestination(destinationId: string): Promise<Tour[]> {

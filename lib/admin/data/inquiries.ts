@@ -1,4 +1,8 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  getTripPlannerRequests,
+  type TripPlannerRequest,
+} from "@/lib/admin/data/trip-planner-requests";
 
 export type InquirySource = "website" | "whatsapp" | "contact_form" | "ai_trip_planner";
 export type InquiryStatus = "new" | "in_progress" | "quoted" | "converted" | "closed";
@@ -16,6 +20,19 @@ export interface Inquiry {
   staffReply?: string;
   repliedAt?: string;
   createdAt: string;
+  // Structured trip parameters for source = 'ai_trip_planner', joined from
+  // trip_planner_requests (matched by customer email, most recent first).
+  tripPlanner?: TripPlannerRequest;
+}
+
+// There is no FK between inquiries and trip_planner_requests, so trip-planner
+// inquiries are matched to their request by customer email (newest request wins).
+function attachTripPlanner(inquiry: Inquiry, requests: TripPlannerRequest[]): Inquiry {
+  if (inquiry.source !== "ai_trip_planner") return inquiry;
+  const match = requests.find(
+    (r) => r.customerEmail.toLowerCase() === inquiry.customerEmail?.toLowerCase()
+  );
+  return match ? { ...inquiry, tripPlanner: match } : inquiry;
 }
 
 function mapRow(row: Record<string, any>): Inquiry {
@@ -44,17 +61,20 @@ export async function getInquiries(): Promise<Inquiry[]> {
     return [];
   }
 
-  const { data, error } = await supabase
-    .from("inquiries")
-    .select("*, tour:tours(title)")
-    .order("created_at", { ascending: false });
+  const [{ data, error }, tripPlannerRequests] = await Promise.all([
+    supabase
+      .from("inquiries")
+      .select("*, tour:tours(title)")
+      .order("created_at", { ascending: false }),
+    getTripPlannerRequests(),
+  ]);
 
   if (error || !data) {
     console.warn("[inquiries] Supabase query failed:", error?.message);
     return [];
   }
 
-  return data.map(mapRow);
+  return data.map((row) => attachTripPlanner(mapRow(row), tripPlannerRequests));
 }
 
 export async function getInquiryById(id: string): Promise<Inquiry | undefined> {
@@ -75,5 +95,7 @@ export async function getInquiryById(id: string): Promise<Inquiry | undefined> {
     return undefined;
   }
 
-  return mapRow(data);
+  const inquiry = mapRow(data);
+  if (inquiry.source !== "ai_trip_planner") return inquiry;
+  return attachTripPlanner(inquiry, await getTripPlannerRequests());
 }

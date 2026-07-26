@@ -21,20 +21,16 @@ export type AdminModuleKey =
   | "destinations"
   | "bookings"
   | "customers"
-  | "payments"
   | "inquiries"
-  | "trip-planner"
   | "blog"
   | "reviews"
   | "media"
-  | "coupons"
   | "reports"
   | "staff"
   | "settings"
   | "travel-resources"
   | "affiliates"
-  | "notifications"
-  | "inventory";
+  | "notifications";
 
 export interface AdminModuleDef {
   key: AdminModuleKey;
@@ -51,22 +47,18 @@ export const ADMIN_MODULES: AdminModuleDef[] = [
   { key: "collections", label: "Collections", href: "/admin/collections", icon: "🧩", description: "Curated tour and journey collections" },
   { key: "activities", label: "Activities Library", href: "/admin/activities", icon: "🎯", description: "Reusable named activities for tours and journeys" },
   { key: "destinations", label: "Destination Management", href: "/admin/destinations", icon: "🌍", description: "Countries, cities, attractions" },
-  { key: "bookings", label: "Booking Management", href: "/admin/bookings", icon: "📅", description: "Bookings, vouchers, cancellations" },
+  { key: "bookings", label: "Booking Management", href: "/admin/bookings", icon: "📅", description: "Enquiries, quotes, confirmations, cancellations" },
   { key: "customers", label: "Customer Management (CRM)", href: "/admin/customers", icon: "👥", description: "Customer profiles and history" },
-  { key: "payments", label: "Payment Management", href: "/admin/payments", icon: "💳", description: "Payment records and refunds" },
-  { key: "inquiries", label: "Inquiry Management", href: "/admin/inquiries", icon: "💬", description: "Website, WhatsApp, and form inquiries" },
-  { key: "trip-planner", label: "AI Trip Planner", href: "/admin/trip-planner", icon: "🤖", description: "Submitted itinerary requests" },
+  { key: "inquiries", label: "Inquiry Management", href: "/admin/inquiries", icon: "💬", description: "Website, WhatsApp, contact form, and trip planner inquiries" },
   { key: "blog", label: "Blog Management", href: "/admin/blog", icon: "📝", description: "Posts, categories, SEO" },
   { key: "reviews", label: "Reviews", href: "/admin/reviews", icon: "⭐", description: "Approve or hide testimonials" },
   { key: "media", label: "Media Library", href: "/admin/media", icon: "🖼️", description: "Images, videos, PDFs, brochures" },
-  { key: "coupons", label: "Coupons & Promotions", href: "/admin/coupons", icon: "🏷️", description: "Discount and referral codes" },
   { key: "reports", label: "Reports & Analytics", href: "/admin/reports", icon: "📈", description: "Revenue and booking analytics" },
   { key: "staff", label: "Staff Management", href: "/admin/staff", icon: "🧑‍💼", description: "Roles and permissions" },
   { key: "settings", label: "Website Settings", href: "/admin/settings", icon: "⚙️", description: "Company info, currency, SEO defaults" },
   { key: "travel-resources", label: "Travel Resources", href: "/admin/travel-resources", icon: "🧳", description: "Visa, packing, health guidance" },
   { key: "affiliates", label: "Affiliate Management", href: "/admin/affiliates", icon: "🔗", description: "Viator, GetYourGuide, Booking.com" },
   { key: "notifications", label: "Notifications", href: "/admin/notifications", icon: "🔔", description: "Alerts and reminders" },
-  { key: "inventory", label: "Inventory & Availability", href: "/admin/inventory", icon: "🗂️", description: "Capacity and assignment" },
 ];
 
 // Which modules each role can see. Admin sees everything; other roles get a
@@ -83,32 +75,26 @@ export const ROLE_MODULE_ACCESS: Record<StaffRole, AdminModuleKey[]> = {
     "destinations",
     "bookings",
     "customers",
-    "payments",
     "inquiries",
-    "trip-planner",
     "blog",
     "reviews",
     "media",
-    "coupons",
     "reports",
     "staff",
     "settings",
     "travel-resources",
     "affiliates",
     "notifications",
-    "inventory",
   ],
   sales_agent: [
     "dashboard",
     "bookings",
     "customers",
     "inquiries",
-    "trip-planner",
-    "coupons",
     "notifications",
   ],
-  tour_guide: ["dashboard", "bookings", "inventory", "travel-resources", "notifications"],
-  driver: ["dashboard", "bookings", "inventory", "notifications"],
+  tour_guide: ["dashboard", "bookings", "travel-resources", "notifications"],
+  driver: ["dashboard", "bookings", "notifications"],
 };
 
 export function canAccessModule(role: StaffRole, moduleKey: AdminModuleKey): boolean {

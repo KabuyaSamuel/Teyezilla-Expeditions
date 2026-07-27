@@ -1,6 +1,7 @@
 import { MapPin, Briefcase, Users, Star } from "lucide-react";
 import { getDestinations } from "@/lib/destinations";
 import { getTours } from "@/lib/tours";
+import ScrollReveal from "./ScrollReveal";
 
 // The Google rating isn't derived from a real aggregated review source yet
 // (no Google Business Profile sync) — still a placeholder. Happy Travelers
@@ -20,14 +21,14 @@ export default async function StatsBar({ happyTravelersCount }: { happyTravelers
   return (
     <div className="bg-primary text-white">
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-6 py-12 md:grid-cols-4">
-        {stats.map(({ icon: Icon, value, label }) => (
-          <div key={label} className="flex items-center gap-3">
+        {stats.map(({ icon: Icon, value, label }, i) => (
+          <ScrollReveal key={label} delay={i * 100} className="flex items-center gap-3">
             <Icon className="h-8 w-8 shrink-0 text-accent" />
             <div>
               <p className="font-heading text-2xl font-bold">{value}</p>
               <p className="text-sm text-white/70">{label}</p>
             </div>
-          </div>
+          </ScrollReveal>
         ))}
       </div>
     </div>

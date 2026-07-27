@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Star, Users, Check } from "lucide-react";
 import type { Review } from "@/types";
+import ScrollReveal from "./ScrollReveal";
 
 const CHECKLIST = [
   "Local travel experts who live where they guide",
@@ -19,7 +20,7 @@ export default function WhyChoose({
 }) {
   return (
     <section className="section grid gap-12 lg:grid-cols-2 lg:items-center">
-      <div className="relative">
+      <ScrollReveal className="relative">
         <div className="relative h-[420px] w-full overflow-hidden rounded-xl2 shadow-card">
           <Image
             src="https://upload.wikimedia.org/wikipedia/commons/4/41/Kenya_safari.jpg"
@@ -50,9 +51,9 @@ export default function WhyChoose({
             </div>
           </div>
         )}
-      </div>
+      </ScrollReveal>
 
-      <div>
+      <ScrollReveal delay={150}>
         <h2 className="font-heading text-3xl font-bold text-foreground md:text-4xl">
           More Than Just a Trip,
           <span className="block font-normal italic text-primary">It&apos;s a Connection.</span>
@@ -74,7 +75,7 @@ export default function WhyChoose({
         <Link href="/about" className="btn-primary mt-8 inline-flex">
           About Teyezilla →
         </Link>
-      </div>
+      </ScrollReveal>
     </section>
   );
 }

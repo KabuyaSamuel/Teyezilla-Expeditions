@@ -9,6 +9,7 @@ import TourCard from "@/components/TourCard";
 import WhyChoose from "@/components/WhyChoose";
 import StatsBar from "@/components/StatsBar";
 import ReviewCard from "@/components/ReviewCard";
+import ScrollReveal from "@/components/ScrollReveal";
 import { getDestinations } from "@/lib/destinations";
 import { getRegionsWithDestinations, type RegionWithDestinations } from "@/lib/regions";
 import { getFeaturedTours } from "@/lib/tours";
@@ -70,53 +71,65 @@ export default async function HomePage() {
       <TripSearch />
 
       <section className="section">
-        <h2 className="font-heading text-3xl font-bold text-foreground">
-          Featured Destinations
-        </h2>
-        <p className="mt-2 text-foreground/70">
-          A balanced spread across Africa, from safari heartlands to island escapes.
-        </p>
+        <ScrollReveal>
+          <h2 className="font-heading text-3xl font-bold text-foreground">
+            Featured Destinations
+          </h2>
+          <p className="mt-2 text-foreground/70">
+            A balanced spread across Africa, from safari heartlands to island escapes.
+          </p>
+        </ScrollReveal>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {featuredDestinations.map((destination) => (
-            <DestinationCard key={destination.id} destination={destination} />
+          {featuredDestinations.map((destination, i) => (
+            <ScrollReveal key={destination.id} delay={(i % 3) * 100}>
+              <DestinationCard destination={destination} />
+            </ScrollReveal>
           ))}
         </div>
-        <div className="mt-10 text-center">
+        <ScrollReveal className="mt-10 text-center">
           <Link href="/destinations" className="btn-outline">
             View More Destinations
           </Link>
-        </div>
+        </ScrollReveal>
       </section>
 
       <section className="section bg-secondary/10">
-        <h2 className="font-heading text-3xl font-bold text-foreground">
-          Featured Experiences
-        </h2>
-        <p className="mt-2 text-foreground/70">
-          Handpicked tours our travelers book again and again.
-        </p>
+        <ScrollReveal>
+          <h2 className="font-heading text-3xl font-bold text-foreground">
+            Featured Experiences
+          </h2>
+          <p className="mt-2 text-foreground/70">
+            Handpicked tours our travelers book again and again.
+          </p>
+        </ScrollReveal>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredExperiences.map((tour) => (
-            <TourCard key={tour.id} tour={tour} />
+          {featuredExperiences.map((tour, i) => (
+            <ScrollReveal key={tour.id} delay={(i % 4) * 100}>
+              <TourCard tour={tour} />
+            </ScrollReveal>
           ))}
         </div>
-        <div className="mt-10 text-center">
+        <ScrollReveal className="mt-10 text-center">
           <Link href="/experiences" className="btn-outline">
             View More Experiences
           </Link>
-        </div>
+        </ScrollReveal>
       </section>
 
       <WhyChoose testimonial={featuredReview} happyTravelersCount={happyTravelersCount ?? "1,000"} />
       <StatsBar happyTravelersCount={happyTravelersCount ?? "1,000"} />
 
       <section className="section">
-        <h2 className="font-heading text-3xl font-bold text-foreground">
-          What Our Travelers Say
-        </h2>
+        <ScrollReveal>
+          <h2 className="font-heading text-3xl font-bold text-foreground">
+            What Our Travelers Say
+          </h2>
+        </ScrollReveal>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {reviews.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+          {reviews.map((review, i) => (
+            <ScrollReveal key={review.id} delay={(i % 3) * 100}>
+              <ReviewCard review={review} />
+            </ScrollReveal>
           ))}
         </div>
       </section>

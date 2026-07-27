@@ -20,7 +20,7 @@ import { getSiteSetting } from "@/lib/settings";
 
 export const revalidate = 3600;
 
-const FEATURED_DESTINATIONS_COUNT = 4;
+const FEATURED_DESTINATIONS_COUNT = 3;
 const FEATURED_EXPERIENCES_COUNT = 4;
 const FEATURED_JOURNEYS_COUNT = 4;
 

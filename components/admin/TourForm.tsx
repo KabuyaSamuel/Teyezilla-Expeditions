@@ -70,6 +70,7 @@ export default function TourForm({
       productType: String(formData.get("productType") ?? "experience"),
       difficulty: String(formData.get("difficulty") ?? "Easy"),
       durationDays: Number(formData.get("durationDays") ?? 0),
+      durationHours: formData.get("durationHours") ? Number(formData.get("durationHours")) : null,
       priceFrom: Number(formData.get("priceFrom") ?? 0),
       shortDescription: String(formData.get("shortDescription") ?? ""),
       inclusions: splitLines(formData.get("inclusions")),
@@ -176,6 +177,20 @@ export default function TourForm({
           <div>
             <label htmlFor="durationDays" className="text-xs font-medium text-foreground/60">Duration (days)</label>
             <input id="durationDays" name="durationDays" type="number" min={1} defaultValue={existingTour?.durationDays} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="durationHours" className="text-xs font-medium text-foreground/60">
+              Duration (hours) — for short experiences under a day
+            </label>
+            <input
+              id="durationHours"
+              name="durationHours"
+              type="number"
+              min={1}
+              defaultValue={existingTour?.durationHours ?? undefined}
+              placeholder="e.g. 4"
+              className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
           </div>
           <div>
             <label htmlFor="priceFrom" className="text-xs font-medium text-foreground/60">Price From (USD)</label>

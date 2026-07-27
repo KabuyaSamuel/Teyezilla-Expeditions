@@ -22,6 +22,7 @@ export interface TourInput extends ProductScalarsInput {
   destinationId: string;
   difficulty: string;
   durationDays: number;
+  durationHours: number | null;
   priceFrom: number;
   shortDescription: string;
   inclusions: string[];
@@ -56,6 +57,7 @@ function toRow(input: TourInput) {
     destination_id: input.destinationId,
     difficulty: input.difficulty,
     duration_days: input.durationDays,
+    duration_hours: input.durationHours,
     price_from: input.priceFrom,
     short_description: input.shortDescription,
     inclusions: input.inclusions,

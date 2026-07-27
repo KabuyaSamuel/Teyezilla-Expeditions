@@ -4,6 +4,7 @@ import Image from "next/image";
 import { getTours, getTourBySlug } from "@/lib/tours";
 import { getDestinationById } from "@/lib/destinations";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
+import { formatTourDuration } from "@/lib/duration";
 import ProductItinerary from "@/components/ProductItinerary";
 import ProductHighlights from "@/components/ProductHighlights";
 import ProductFactsGrid from "@/components/ProductFactsGrid";
@@ -74,7 +75,7 @@ export default async function TourPage({ params }: Props) {
         name: `How much does the ${tour.title} cost?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `The ${tour.title} starts from ${tour.currency} ${tour.priceFrom} per person for ${tour.durationDays} day(s).`,
+          text: `The ${tour.title} starts from ${tour.currency} ${tour.priceFrom} per person for ${formatTourDuration(tour)}.`,
         },
       },
       {
@@ -86,7 +87,7 @@ export default async function TourPage({ params }: Props) {
   };
 
   const facts = [
-    { label: "Duration", value: `${tour.durationDays} day${tour.durationDays !== 1 ? "s" : ""}` },
+    { label: "Duration", value: formatTourDuration(tour) },
     { label: "Location", value: destination?.countryName ?? "" },
     {
       label: "Experience",
@@ -130,7 +131,7 @@ export default async function TourPage({ params }: Props) {
       <div className="section">
         {/* Answer-first block for AEO/GEO */}
         <p className="max-w-3xl text-lg font-medium text-foreground">
-          The {tour.title} runs {tour.durationDays} day{tour.durationDays > 1 ? "s" : ""} and
+          The {tour.title} runs {formatTourDuration(tour)} and
           starts from {tour.currency} {tour.priceFrom} per person
           {destination ? ` in ${destination.countryName}` : ""}. Difficulty: {tour.difficulty}.
         </p>
@@ -140,9 +141,32 @@ export default async function TourPage({ params }: Props) {
             <div>
               <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>
               <p className="mt-3 text-foreground/70">{tour.shortDescription}</p>
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                <a href={bookingHref} className="btn-primary px-5 py-2.5 text-sm">
+                  Enquire Now
+                </a>
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-outline px-5 py-2.5 text-sm"
+                >
+                  Book Now: WhatsApp a Travel Expert
+                </a>
+              </div>
+
+              {tour.cancellationPolicy && (
+                <div className="mt-5 rounded-2xl border border-secondary/30 bg-secondary/10 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
+                    Cancellation & Refund Policy
+                  </p>
+                  <p className="mt-1 text-sm text-foreground/80">{tour.cancellationPolicy}</p>
+                </div>
+              )}
             </div>
 
-            <ProductItinerary days={tour.itinerary} singleDay={tour.durationDays <= 1} />
+            <ProductItinerary days={tour.itinerary} singleDay={tour.durationDays <= 1 || !!tour.durationHours} />
             <ProductHighlights highlights={tour.highlights} />
 
             {tour.activities.length > 0 && (
@@ -177,7 +201,7 @@ export default async function TourPage({ params }: Props) {
                     How much does the {tour.title} cost?
                   </h3>
                   <p className="mt-1 text-sm text-foreground/70">
-                    Starts from {tour.currency} {tour.priceFrom} per person for {tour.durationDays} day(s).
+                    Starts from {tour.currency} {tour.priceFrom} per person for {formatTourDuration(tour)}.
                   </p>
                 </div>
                 <div>
@@ -207,7 +231,7 @@ export default async function TourPage({ params }: Props) {
               rel="noopener noreferrer"
               className="btn-outline mt-3 block text-center"
             >
-              Enquire on WhatsApp
+              Book Now: WhatsApp a Travel Expert
             </a>
           </aside>
         </div>

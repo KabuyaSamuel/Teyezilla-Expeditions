@@ -26,6 +26,7 @@ export interface Tour extends SEOFields {
   heroImage: string;
   shortDescription: string;
   durationDays: number;
+  durationHours: number | null;
   priceFrom: number;
   currency: string;
   difficulty: "Easy" | "Moderate" | "Challenging";

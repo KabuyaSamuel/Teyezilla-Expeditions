@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Tour } from "@/types";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
+import { formatTourDuration } from "@/lib/duration";
 import WishlistButton from "./WishlistButton";
 
 export default function TourCard({ tour }: { tour: Tour }) {
@@ -36,14 +37,14 @@ export default function TourCard({ tour }: { tour: Tour }) {
         </Link>
         <p className="mt-2 text-sm text-foreground/70">{tour.shortDescription}</p>
         <div className="mt-3 flex items-center justify-between text-sm text-foreground/60">
-          <span>{tour.durationDays} day{tour.durationDays > 1 ? "s" : ""}</span>
+          <span>{formatTourDuration(tour)}</span>
           <span className="font-heading font-semibold text-accent">
             From {tour.currency} {tour.priceFrom}
           </span>
         </div>
         <div className="mt-4 flex gap-2">
-          <Link href={`/booking?tour=${tour.slug}`} className="btn-primary flex-1 px-3 py-2 text-sm">
-            Enquire Now
+          <Link href={`/tours/${tour.slug}`} className="btn-primary flex-1 px-3 py-2 text-sm">
+            View Tour
           </Link>
           <a
             href={whatsappHref}

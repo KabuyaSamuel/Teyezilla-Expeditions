@@ -1,12 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Journey } from "@/lib/journeys";
-import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 
 export default function JourneyCard({ journey }: { journey: Journey }) {
-  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    `Hi! I'm interested in the "${journey.title}" journey. Could you share more details?`
-  )}`;
   const destinationNames = journey.destinations.map((d) => d.countryName).join(" · ");
 
   return (
@@ -42,18 +38,10 @@ export default function JourneyCard({ journey }: { journey: Journey }) {
             From {journey.currency} {journey.priceFrom.toLocaleString()}
           </span>
         </div>
-        <div className="mt-4 flex gap-2">
-          <Link href={`/journeys/${journey.slug}`} className="btn-primary flex-1 px-3 py-2 text-sm">
-            View Journey
+        <div className="mt-4">
+          <Link href={`/journeys/${journey.slug}`} className="btn-primary block w-full px-3 py-2 text-center text-sm">
+            Explore More
           </Link>
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-outline flex-1 px-3 py-2 text-sm"
-          >
-            WhatsApp
-          </a>
         </div>
       </div>
     </div>

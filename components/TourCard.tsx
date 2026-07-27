@@ -1,15 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Tour } from "@/types";
-import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 import { formatTourDuration } from "@/lib/duration";
 import WishlistButton from "./WishlistButton";
 
 export default function TourCard({ tour }: { tour: Tour }) {
-  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    `Hi! I'm interested in the "${tour.title}" tour. Could you share more details?`
-  )}`;
-
   return (
     <div className="card group overflow-hidden">
       <Link href={`/tours/${tour.slug}`} className="block">
@@ -42,18 +37,10 @@ export default function TourCard({ tour }: { tour: Tour }) {
             From {tour.currency} {tour.priceFrom}
           </span>
         </div>
-        <div className="mt-4 flex gap-2">
-          <Link href={`/tours/${tour.slug}`} className="btn-primary flex-1 px-3 py-2 text-sm">
-            View Tour
+        <div className="mt-4">
+          <Link href={`/tours/${tour.slug}`} className="btn-primary block w-full px-3 py-2 text-center text-sm">
+            Explore More
           </Link>
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-outline flex-1 px-3 py-2 text-sm"
-          >
-            WhatsApp
-          </a>
         </div>
       </div>
     </div>

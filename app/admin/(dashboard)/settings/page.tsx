@@ -1,9 +1,44 @@
 import PageHeader from "@/components/admin/PageHeader";
 import { getSiteSetting } from "@/lib/settings";
-import { updateSiteSetting } from "@/lib/admin/actions/settings";
+import { updateSiteSetting, updateSiteSettings } from "@/lib/admin/actions/settings";
+
+const SETTINGS_KEYS = [
+  "companyName",
+  "tagline",
+  "contactEmail",
+  "whatsappNumber",
+  "instagramUrl",
+  "facebookUrl",
+  "tiktokUrl",
+  "youtubeUrl",
+  "defaultCurrency",
+  "defaultLanguage",
+  "defaultMetaTitle",
+  "defaultMetaDescription",
+] as const;
+
+const DEFAULTS: Record<(typeof SETTINGS_KEYS)[number], string> = {
+  companyName: "Teyezilla Expeditions",
+  tagline: "Extraordinary Journeys Across Africa",
+  contactEmail: "hello@teyezillaexpeditions.com",
+  whatsappNumber: "254700000000",
+  instagramUrl: "",
+  facebookUrl: "",
+  tiktokUrl: "",
+  youtubeUrl: "",
+  defaultCurrency: "USD",
+  defaultLanguage: "EN",
+  defaultMetaTitle: "Teyezilla Expeditions | Extraordinary Journeys Across Africa",
+  defaultMetaDescription: "Discover Africa with Teyezilla Expeditions.",
+};
 
 export default async function AdminSettingsPage() {
   const happyTravelersCount = (await getSiteSetting("happy_travelers_count")) ?? "";
+
+  const settingsValues = await Promise.all(SETTINGS_KEYS.map((key) => getSiteSetting(key)));
+  const settings = Object.fromEntries(
+    SETTINGS_KEYS.map((key, i) => [key, settingsValues[i] ?? DEFAULTS[key]])
+  ) as Record<(typeof SETTINGS_KEYS)[number], string>;
 
   return (
     <div className="space-y-6">
@@ -31,46 +66,46 @@ export default async function AdminSettingsPage() {
         </form>
       </section>
 
-      <form className="space-y-6">
+      <form action={updateSiteSettings} className="space-y-6">
         <section className="card grid gap-4 p-6 sm:grid-cols-2">
           <h2 className="font-heading text-lg font-semibold text-foreground sm:col-span-2">Company Information</h2>
           <div>
             <label htmlFor="companyName" className="text-xs font-medium text-foreground/60">Company Name</label>
-            <input id="companyName" name="companyName" defaultValue="Teyezilla Expeditions" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input id="companyName" name="companyName" defaultValue={settings.companyName} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="tagline" className="text-xs font-medium text-foreground/60">Tagline</label>
-            <input id="tagline" name="tagline" defaultValue="Extraordinary Journeys Across Africa" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input id="tagline" name="tagline" defaultValue={settings.tagline} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="contactEmail" className="text-xs font-medium text-foreground/60">Contact Email</label>
-            <input id="contactEmail" name="contactEmail" defaultValue="hello@teyezillaexpeditions.com" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input id="contactEmail" name="contactEmail" defaultValue={settings.contactEmail} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="whatsappNumber" className="text-xs font-medium text-foreground/60">WhatsApp Number</label>
-            <input id="whatsappNumber" name="whatsappNumber" defaultValue="254700000000" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input id="whatsappNumber" name="whatsappNumber" defaultValue={settings.whatsappNumber} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </section>
 
         <section className="card grid gap-4 p-6 sm:grid-cols-2">
           <h2 className="font-heading text-lg font-semibold text-foreground sm:col-span-2">Social Links</h2>
-          <input id="instagramUrl" name="instagramUrl" placeholder="Instagram URL" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          <input id="facebookUrl" name="facebookUrl" placeholder="Facebook URL" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          <input id="tiktokUrl" name="tiktokUrl" placeholder="TikTok URL" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          <input id="youtubeUrl" name="youtubeUrl" placeholder="YouTube URL" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <input id="instagramUrl" name="instagramUrl" defaultValue={settings.instagramUrl} placeholder="Instagram URL" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <input id="facebookUrl" name="facebookUrl" defaultValue={settings.facebookUrl} placeholder="Facebook URL" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <input id="tiktokUrl" name="tiktokUrl" defaultValue={settings.tiktokUrl} placeholder="TikTok URL" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <input id="youtubeUrl" name="youtubeUrl" defaultValue={settings.youtubeUrl} placeholder="YouTube URL" className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </section>
 
         <section className="card grid gap-4 p-6 sm:grid-cols-2">
           <h2 className="font-heading text-lg font-semibold text-foreground sm:col-span-2">Currency & Language</h2>
           <div>
             <label htmlFor="defaultCurrency" className="text-xs font-medium text-foreground/60">Default Currency</label>
-            <select id="defaultCurrency" name="defaultCurrency" defaultValue="USD" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <select id="defaultCurrency" name="defaultCurrency" defaultValue={settings.defaultCurrency} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
               <option>USD</option><option>EUR</option><option>KES</option>
             </select>
           </div>
           <div>
             <label htmlFor="defaultLanguage" className="text-xs font-medium text-foreground/60">Default Language</label>
-            <select id="defaultLanguage" name="defaultLanguage" defaultValue="EN" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <select id="defaultLanguage" name="defaultLanguage" defaultValue={settings.defaultLanguage} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
               <option>EN</option><option>FR</option><option>SW</option>
             </select>
           </div>
@@ -81,11 +116,11 @@ export default async function AdminSettingsPage() {
           <div className="mt-4 space-y-4">
             <div>
               <label htmlFor="defaultMetaTitle" className="text-xs font-medium text-foreground/60">Default Meta Title</label>
-              <input id="defaultMetaTitle" name="defaultMetaTitle" defaultValue="Teyezilla Expeditions | Extraordinary Journeys Across Africa" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+              <input id="defaultMetaTitle" name="defaultMetaTitle" defaultValue={settings.defaultMetaTitle} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
             <div>
               <label htmlFor="defaultMetaDescription" className="text-xs font-medium text-foreground/60">Default Meta Description</label>
-              <textarea id="defaultMetaDescription" name="defaultMetaDescription" rows={2} defaultValue="Discover Africa with Teyezilla Expeditions." className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+              <textarea id="defaultMetaDescription" name="defaultMetaDescription" rows={2} defaultValue={settings.defaultMetaDescription} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
           </div>
         </section>

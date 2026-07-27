@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getDestinations } from "@/lib/destinations";
+import { getSiteSetting } from "@/lib/settings";
 
 function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -20,6 +21,14 @@ function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+function TiktokIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M16.5 3h-2.7v11.6a2.6 2.6 0 1 1-2.1-2.55V9.3a5.3 5.3 0 1 0 4.8 5.28V9.15a6.9 6.9 0 0 0 4 1.28V7.75a4.2 4.2 0 0 1-4-4.75Z" />
+    </svg>
+  );
+}
+
 function YoutubeIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -33,18 +42,22 @@ function YoutubeIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-// TODO: swap "#" for the real profile URLs once the business has them —
-// left as placeholders rather than guessed links so we don't point visitors
-// at the wrong (or a squatted) account.
-const SOCIAL_LINKS = [
-  { icon: FacebookIcon, href: "#", label: "Facebook" },
-  { icon: InstagramIcon, href: "#", label: "Instagram" },
-  { icon: YoutubeIcon, href: "#", label: "YouTube" },
-];
-
 export default async function Footer() {
-  const destinations = await getDestinations();
+  const [destinations, instagramUrl, facebookUrl, tiktokUrl, youtubeUrl] = await Promise.all([
+    getDestinations(),
+    getSiteSetting("instagramUrl"),
+    getSiteSetting("facebookUrl"),
+    getSiteSetting("tiktokUrl"),
+    getSiteSetting("youtubeUrl"),
+  ]);
   const topDestinations = destinations.slice(0, 5);
+
+  const socialLinks = [
+    { icon: FacebookIcon, href: facebookUrl, label: "Facebook" },
+    { icon: InstagramIcon, href: instagramUrl, label: "Instagram" },
+    { icon: TiktokIcon, href: tiktokUrl, label: "TikTok" },
+    { icon: YoutubeIcon, href: youtubeUrl, label: "YouTube" },
+  ].filter((link): link is typeof link & { href: string } => !!link.href);
 
   return (
     <footer className="bg-primary text-white">
@@ -64,7 +77,7 @@ export default async function Footer() {
             Extraordinary journeys across Africa, tailor-made for every traveler.
           </p>
           <div className="mt-4 flex gap-3">
-            {SOCIAL_LINKS.map(({ icon: Icon, href, label }) => (
+            {socialLinks.map(({ icon: Icon, href, label }) => (
               <a
                 key={label}
                 href={href}

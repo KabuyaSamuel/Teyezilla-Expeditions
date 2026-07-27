@@ -11,11 +11,10 @@ export default function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(201,162,39,0.2),transparent_60%)]" />
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-col items-start gap-6 px-6 pb-24 pt-40">
-        {/* Bounded, blurred brand-green panel — this (not the gradient above)
-            is what guarantees WCAG-safe contrast, since it's dark and opaque
-            enough to hold up regardless of what's playing behind it. Gold-on
-            -deep-green is a strong, legible, on-brand pairing in its own right. */}
-        <div className="animate-fadeUp rounded-3xl bg-primary/80 px-6 py-8 shadow-2xl backdrop-blur-md sm:px-10 sm:py-10">
+        {/* Bounded, blurred dark panel — this (not the gradient above) is
+            what guarantees WCAG-safe contrast, since it's dark and opaque
+            enough to hold up regardless of what's playing behind it. */}
+        <div className="animate-fadeUp rounded-3xl bg-black/60 px-6 py-8 shadow-2xl backdrop-blur-md sm:px-10 sm:py-10">
           <span className="inline-flex items-center gap-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">
             Africa, Beyond Expectation.
             <span className="h-px w-12 bg-accent" />

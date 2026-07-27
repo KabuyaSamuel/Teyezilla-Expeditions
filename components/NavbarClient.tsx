@@ -40,12 +40,13 @@ export default function NavbarClient({
   const pathname = usePathname();
   const [condensed, setCondensed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openMobileSection, setOpenMobileSection] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
 
   const isHome = pathname === "/";
-  const transparent = isHome && !condensed && !menuOpen;
+  const transparent = isHome && !condensed && !menuOpen && !hovered;
 
   const NAV_ITEMS: NavItem[] = [
     { label: "Destinations", href: "/destinations", groups: destinationGroups },
@@ -92,11 +93,13 @@ export default function NavbarClient({
 
   return (
     <header
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       className={`fixed inset-x-0 top-0 z-50 h-20 transition-colors duration-300 ${
         transparent ? "bg-transparent" : "bg-background/95 shadow-card backdrop-blur"
       }`}
     >
-      <div ref={navRef} className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
+      <div ref={navRef} className="mx-auto flex h-full max-w-7xl items-center px-6">
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/logo.png"
@@ -110,7 +113,7 @@ export default function NavbarClient({
           />
         </Link>
 
-        <nav className="hidden items-center gap-6 lg:flex">
+        <nav className="hidden items-center gap-6 lg:ml-14 lg:flex xl:ml-20">
           {NAV_ITEMS.map((item) =>
             item.groups && item.groups.length > 0 ? (
               <div
@@ -223,7 +226,7 @@ export default function NavbarClient({
           )}
         </nav>
 
-        <div className="hidden items-center gap-4 lg:flex">
+        <div className="ml-auto hidden items-center gap-4 lg:flex">
           <SearchBox variant="desktop" transparent={transparent} />
           <Link href="/booking" className="btn-secondary text-sm">
             Plan Your Journey
@@ -231,7 +234,7 @@ export default function NavbarClient({
         </div>
 
         <button
-          className={transparent ? "text-white lg:hidden" : "text-primary lg:hidden"}
+          className={`ml-auto ${transparent ? "text-white lg:hidden" : "text-primary lg:hidden"}`}
           aria-label="Toggle menu"
           onClick={() => setMenuOpen((v) => !v)}
         >

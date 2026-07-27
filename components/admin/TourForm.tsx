@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Destination } from "@/types";
 import type { Activity } from "@/lib/activities";
+import type { ExperienceType } from "@/lib/experienceTypes";
 import type { AdminTourDetail, ItineraryDay } from "@/lib/admin/data/tours";
 import type { PricingTierInput, HighlightInput, AddonInput } from "@/lib/admin/actions/productShared";
 import { createTour, updateTour, deleteTour } from "@/lib/admin/actions/tours";
@@ -10,15 +11,18 @@ import PricingTiersEditor from "./PricingTiersEditor";
 import HighlightsEditor from "./HighlightsEditor";
 import AddonsEditor from "./AddonsEditor";
 import ActivitiesPicker from "./ActivitiesPicker";
+import ExperienceTypesPicker from "./ExperienceTypesPicker";
 
 export default function TourForm({
   existingTour,
   destinations,
   activities,
+  experienceTypes,
 }: {
   existingTour?: AdminTourDetail;
   destinations: Destination[];
   activities: Activity[];
+  experienceTypes: ExperienceType[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +37,7 @@ export default function TourForm({
   );
   const [addons, setAddons] = useState<AddonInput[]>(existingTour?.addons.map((a) => ({ ...a })) ?? []);
   const [activityIds, setActivityIds] = useState<string[]>(existingTour?.activityIds ?? []);
+  const [experienceTypeIds, setExperienceTypeIds] = useState<string[]>(existingTour?.experienceTypeIds ?? []);
 
   function addItineraryDay() {
     setItinerary((prev) => [...prev, { day: prev.length + 1, title: "", description: "" }]);
@@ -62,7 +67,6 @@ export default function TourForm({
       title: String(formData.get("tourTitle") ?? ""),
       slug: existingTour?.slug ?? "",
       destinationId: String(formData.get("destinationId") ?? ""),
-      categoryLabel: String(formData.get("categoryLabel") ?? ""),
       productType: String(formData.get("productType") ?? "experience"),
       difficulty: String(formData.get("difficulty") ?? "Easy"),
       durationDays: Number(formData.get("durationDays") ?? 0),
@@ -93,6 +97,7 @@ export default function TourForm({
       highlights,
       addons,
       activityIds,
+      experienceTypeIds,
       featured: formData.get("featured") === "on",
       status: String(formData.get("status") ?? "draft"),
     };
@@ -159,10 +164,6 @@ export default function TourForm({
               <option value="safari">Safari</option>
               <option value="private_travel">Private Travel</option>
             </select>
-          </div>
-          <div>
-            <label htmlFor="categoryLabel" className="text-xs font-medium text-foreground/60">Category</label>
-            <input id="categoryLabel" name="categoryLabel" defaultValue={existingTour?.categoryLabel} placeholder="Safari, Beach, Culture..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="difficulty" className="text-xs font-medium text-foreground/60">Difficulty</label>
@@ -270,6 +271,7 @@ export default function TourForm({
       <PricingTiersEditor tiers={pricingTiers} onChange={setPricingTiers} />
       <AddonsEditor addons={addons} onChange={setAddons} />
       <ActivitiesPicker activities={activities} selectedIds={activityIds} onChange={setActivityIds} />
+      <ExperienceTypesPicker experienceTypes={experienceTypes} selectedIds={experienceTypeIds} onChange={setExperienceTypeIds} />
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Logistics</h2>

@@ -34,6 +34,7 @@ function mapTourRow(row: Record<string, unknown>): Tour {
     destinationId: row.destination_id as string,
     title: row.title as string,
     categoryLabel: (row.category_label as string) ?? "",
+    productType: (row.product_type as Tour["productType"]) ?? "experience",
     heroImage: (row.hero_image as string) ?? "",
     shortDescription: (row.short_description as string) ?? "",
     durationDays: Number(row.duration_days ?? 0),
@@ -71,8 +72,9 @@ export async function getToursByExperienceType(slug: string): Promise<Tour[]> {
 
   const { data, error } = await supabase
     .from("tour_experience_types")
-    .select("tours(*), experience_types!inner(slug)")
-    .eq("experience_types.slug", slug);
+    .select("tours!inner(*), experience_types!inner(slug)")
+    .eq("experience_types.slug", slug)
+    .eq("tours.status", "published");
 
   if (error || !data) {
     console.warn("[experience-types] Supabase query failed:", error?.message);

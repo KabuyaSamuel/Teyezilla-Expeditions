@@ -162,3 +162,22 @@ export async function syncActivities(
   );
   if (error) throw new Error(error.message);
 }
+
+export async function syncExperienceTypes(
+  supabase: SupabaseLike,
+  table: "tour_experience_types" | "journey_experience_types",
+  parentColumn: "tour_id" | "journey_id",
+  parentId: string,
+  experienceTypeIds: string[]
+) {
+  await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (experienceTypeIds.length === 0) return;
+
+  const { error } = await supabase.from(table).insert(
+    experienceTypeIds.map((experienceTypeId) => ({
+      [parentColumn]: parentId,
+      experience_type_id: experienceTypeId,
+    }))
+  );
+  if (error) throw new Error(error.message);
+}

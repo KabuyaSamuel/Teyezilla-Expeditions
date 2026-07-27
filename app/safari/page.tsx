@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTours } from "@/lib/tours";
+import { getPublishedTours } from "@/lib/tours";
 import { getSafariThemes, getSafariGuideFaqs } from "@/lib/safari";
 import TourCard from "@/components/TourCard";
 
@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function SafariPage() {
-  const [tours, themes, faqs] = await Promise.all([getTours(), getSafariThemes(), getSafariGuideFaqs()]);
-  const safariTours = tours.filter((t) => t.categoryLabel === "Safari");
+  const [tours, themes, faqs] = await Promise.all([getPublishedTours(), getSafariThemes(), getSafariGuideFaqs()]);
+  const safariTours = tours.filter((t) => t.productType === "safari");
 
   return (
     <div>

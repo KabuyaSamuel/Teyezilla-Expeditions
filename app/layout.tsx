@@ -6,6 +6,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -61,7 +62,7 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-1 pt-20">{children}</main>
         <Footer />
-        <WhatsAppButton phoneNumber="254700000000" />
+        <WhatsAppButton phoneNumber={WHATSAPP_NUMBER} />
         <Analytics />
         <SpeedInsights />
       </body>

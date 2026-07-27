@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getJourneys, getJourneyBySlug } from "@/lib/journeys";
+import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 import ProductItinerary from "@/components/ProductItinerary";
 import ProductHighlights from "@/components/ProductHighlights";
 import ProductFactsGrid from "@/components/ProductFactsGrid";
@@ -45,7 +46,7 @@ export default async function JourneyPage({ params }: Props) {
   if (!journey) notFound();
 
   const destinationNames = journey.destinations.map((d) => d.countryName).join(" · ");
-  const whatsappHref = `https://wa.me/254700000000?text=${encodeURIComponent(
+  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     `Hi! I'm interested in the "${journey.title}" journey. Could you share more details?`
   )}`;
   const bookingHref = `/booking?journey=${journey.slug}`;

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 
 export const metadata: Metadata = {
   title: "Bespoke Journeys",
@@ -18,7 +19,7 @@ export default function BespokePage() {
       </p>
       <div className="mt-8 flex gap-4">
         <Link href="/trip-planner" className="btn-primary">Design My Journey</Link>
-        <a href="https://wa.me/254700000000" target="_blank" rel="noopener noreferrer" className="btn-outline">
+        <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" className="btn-outline">
           WhatsApp Us
         </a>
       </div>

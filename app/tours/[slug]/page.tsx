@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getTours, getTourBySlug } from "@/lib/tours";
 import { getDestinationById } from "@/lib/destinations";
+import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 import ProductItinerary from "@/components/ProductItinerary";
 import ProductHighlights from "@/components/ProductHighlights";
 import ProductFactsGrid from "@/components/ProductFactsGrid";
@@ -46,7 +47,7 @@ export default async function TourPage({ params }: Props) {
   if (!tour) notFound();
 
   const destination = await getDestinationById(tour.destinationId);
-  const whatsappHref = `https://wa.me/254700000000?text=${encodeURIComponent(
+  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     `Hi! I'm interested in the "${tour.title}" tour. Could you share more details?`
   )}`;
   const bookingHref = `/booking?tour=${tour.slug}`;

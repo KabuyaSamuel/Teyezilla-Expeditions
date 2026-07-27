@@ -21,7 +21,7 @@ const DEFAULTS: Record<(typeof SETTINGS_KEYS)[number], string> = {
   companyName: "Teyezilla Expeditions",
   tagline: "Extraordinary Journeys Across Africa",
   contactEmail: "hello@teyezillaexpeditions.com",
-  whatsappNumber: "254700000000",
+  whatsappNumber: "254726584159",
   instagramUrl: "",
   facebookUrl: "",
   tiktokUrl: "",

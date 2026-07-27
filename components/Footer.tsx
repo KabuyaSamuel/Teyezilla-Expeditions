@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getDestinations } from "@/lib/destinations";
 import { getSiteSetting } from "@/lib/settings";
+import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 
 function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -90,7 +91,7 @@ export default async function Footer() {
               </a>
             ))}
             <a
-              href="https://wa.me/254700000000"
+              href={`https://wa.me/${WHATSAPP_NUMBER}`}
               aria-label="WhatsApp"
               target="_blank"
               rel="noopener noreferrer"
@@ -137,7 +138,7 @@ export default async function Footer() {
             Contact
           </h4>
           <ul className="mt-3 space-y-2 text-sm text-white/80">
-            <li>WhatsApp: +254 700 000 000</li>
+            <li>WhatsApp: +254 726 584 159</li>
             <li>Email: hello@teyezillaexpeditions.com</li>
             <li>Nairobi, Kenya</li>
           </ul>

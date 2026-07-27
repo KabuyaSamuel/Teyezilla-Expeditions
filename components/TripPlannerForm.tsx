@@ -24,6 +24,8 @@ export default function TripPlannerForm() {
   // Keep the trip parameters in state so the success screen can pre-fill the
   // WhatsApp share message with what the visitor asked for.
   const [params, setParams] = useState({
+    name: "",
+    email: "",
     destination: DESTINATIONS[0],
     budgetUsd: "",
     days: "",
@@ -56,14 +58,32 @@ export default function TripPlannerForm() {
   }
 
   return (
-    <form action={formAction} className="mt-8 space-y-4" noValidate>
+    <form action={formAction} onReset={(e) => e.preventDefault()} className="mt-8 space-y-4" noValidate>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <input id="name" name="name" type="text" autoComplete="name" placeholder="Full name" className={inputClass} />
+          <input
+            id="name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            placeholder="Full name"
+            value={params.name}
+            onChange={(e) => setParams((p) => ({ ...p, name: e.target.value }))}
+            className={inputClass}
+          />
           <FieldError message={errors.name} />
         </div>
         <div>
-          <input id="email" name="email" type="email" autoComplete="email" placeholder="Email" className={inputClass} />
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="Email"
+            value={params.email}
+            onChange={(e) => setParams((p) => ({ ...p, email: e.target.value }))}
+            className={inputClass}
+          />
           <FieldError message={errors.email} />
         </div>
       </div>

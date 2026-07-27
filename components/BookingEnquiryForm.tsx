@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { submitBookingEnquiry } from "@/app/booking/actions";
-import { BUDGET_RANGES, REFERRAL_SOURCES, type EnquiryFormState } from "@/lib/enquiry-shared";
+import { BUDGET_RANGES, COUNTRIES, REFERRAL_SOURCES, type EnquiryFormState } from "@/lib/enquiry-shared";
 
 export interface ProductOption {
   slug: string;
@@ -38,12 +38,28 @@ export default function BookingEnquiryForm({
   const [selection, setSelection] = useState(
     preselected ? `${preselected.kind}:${preselected.slug}` : ""
   );
+  const [fields, setFields] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    country: "",
+    travelDate: "",
+    adults: 2,
+    childrenAges: "",
+    budgetRange: "",
+    referralSource: "",
+    specialRequests: "",
+  });
+
+  function setField<K extends keyof typeof fields>(key: K, value: (typeof fields)[K]) {
+    setFields((f) => ({ ...f, [key]: value }));
+  }
 
   const errors = state.fieldErrors ?? {};
   const [selKind, selSlug] = selection.split(":");
 
   return (
-    <form action={formAction} className="mt-8 space-y-5" noValidate>
+    <form action={formAction} onReset={(e) => e.preventDefault()} className="mt-8 space-y-5" noValidate>
       <input type="hidden" name="tourSlug" value={selKind === "tour" ? selSlug : ""} />
       <input type="hidden" name="journeySlug" value={selKind === "journey" ? selSlug : ""} />
 
@@ -79,28 +95,65 @@ export default function BookingEnquiryForm({
           <label htmlFor="fullName" className="mb-1 block px-2 text-sm font-medium text-foreground">
             Full name <span className="text-red-600">*</span>
           </label>
-          <input id="fullName" name="fullName" type="text" autoComplete="name" className={inputClass} />
+          <input
+            id="fullName"
+            name="fullName"
+            type="text"
+            autoComplete="name"
+            value={fields.fullName}
+            onChange={(e) => setField("fullName", e.target.value)}
+            className={inputClass}
+          />
           <FieldError message={errors.fullName} />
         </div>
         <div>
           <label htmlFor="email" className="mb-1 block px-2 text-sm font-medium text-foreground">
             Email <span className="text-red-600">*</span>
           </label>
-          <input id="email" name="email" type="email" autoComplete="email" className={inputClass} />
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={fields.email}
+            onChange={(e) => setField("email", e.target.value)}
+            className={inputClass}
+          />
           <FieldError message={errors.email} />
         </div>
         <div>
           <label htmlFor="phone" className="mb-1 block px-2 text-sm font-medium text-foreground">
             Phone (WhatsApp preferred) <span className="text-red-600">*</span>
           </label>
-          <input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="+254 …" className={inputClass} />
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            placeholder="+254 …"
+            value={fields.phone}
+            onChange={(e) => setField("phone", e.target.value)}
+            className={inputClass}
+          />
           <FieldError message={errors.phone} />
         </div>
         <div>
           <label htmlFor="country" className="mb-1 block px-2 text-sm font-medium text-foreground">
             Country of residence <span className="text-red-600">*</span>
           </label>
-          <input id="country" name="country" type="text" autoComplete="country-name" className={inputClass} />
+          <select
+            id="country"
+            name="country"
+            autoComplete="country-name"
+            value={fields.country}
+            onChange={(e) => setField("country", e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Select your country…</option>
+            {COUNTRIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
           <FieldError message={errors.country} />
         </div>
       </div>
@@ -114,6 +167,8 @@ export default function BookingEnquiryForm({
           name="travelDate"
           type="date"
           disabled={flexible}
+          value={fields.travelDate}
+          onChange={(e) => setField("travelDate", e.target.value)}
           className={`${inputClass} disabled:opacity-50`}
         />
         <label className="mt-2 flex items-center gap-2 px-2 text-sm text-foreground/80">
@@ -134,7 +189,15 @@ export default function BookingEnquiryForm({
           <label htmlFor="adults" className="mb-1 block px-2 text-sm font-medium text-foreground">
             Adults <span className="text-red-600">*</span>
           </label>
-          <input id="adults" name="adults" type="number" min={1} defaultValue={2} className={inputClass} />
+          <input
+            id="adults"
+            name="adults"
+            type="number"
+            min={1}
+            value={fields.adults}
+            onChange={(e) => setField("adults", Math.max(1, Number(e.target.value) || 1))}
+            className={inputClass}
+          />
           <FieldError message={errors.adults} />
         </div>
         <div>
@@ -163,6 +226,8 @@ export default function BookingEnquiryForm({
             name="childrenAges"
             type="text"
             placeholder="e.g. 5 and 9 — ages matter for safari lodges and pricing"
+            value={fields.childrenAges}
+            onChange={(e) => setField("childrenAges", e.target.value)}
             className={inputClass}
           />
         </div>
@@ -173,7 +238,13 @@ export default function BookingEnquiryForm({
           <label htmlFor="budgetRange" className="mb-1 block px-2 text-sm font-medium text-foreground">
             Budget per person (optional)
           </label>
-          <select id="budgetRange" name="budgetRange" className={inputClass} defaultValue="">
+          <select
+            id="budgetRange"
+            name="budgetRange"
+            className={inputClass}
+            value={fields.budgetRange}
+            onChange={(e) => setField("budgetRange", e.target.value)}
+          >
             <option value="">Select a range…</option>
             {BUDGET_RANGES.map((b) => (
               <option key={b} value={b}>{b}</option>
@@ -184,7 +255,13 @@ export default function BookingEnquiryForm({
           <label htmlFor="referralSource" className="mb-1 block px-2 text-sm font-medium text-foreground">
             How did you hear about us? (optional)
           </label>
-          <select id="referralSource" name="referralSource" className={inputClass} defaultValue="">
+          <select
+            id="referralSource"
+            name="referralSource"
+            className={inputClass}
+            value={fields.referralSource}
+            onChange={(e) => setField("referralSource", e.target.value)}
+          >
             <option value="">Select…</option>
             {REFERRAL_SOURCES.map((r) => (
               <option key={r} value={r}>{r}</option>
@@ -202,6 +279,8 @@ export default function BookingEnquiryForm({
           name="specialRequests"
           rows={4}
           placeholder="Honeymoon, dietary needs, mobility, a celebration — anything that helps us tailor your trip."
+          value={fields.specialRequests}
+          onChange={(e) => setField("specialRequests", e.target.value)}
           className={areaClass}
         />
       </div>

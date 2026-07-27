@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { submitContactMessage } from "@/app/contact/actions";
 import { whatsappLink, type EnquiryFormState } from "@/lib/enquiry-shared";
 
@@ -17,6 +17,7 @@ export default function ContactForm() {
     submitContactMessage,
     {}
   );
+  const [fields, setFields] = useState({ name: "", email: "", message: "" });
   const errors = state.fieldErrors ?? {};
 
   if (state.success) {
@@ -39,13 +40,31 @@ export default function ContactForm() {
   }
 
   return (
-    <form action={formAction} className="mt-8 space-y-4" noValidate>
+    <form action={formAction} onReset={(e) => e.preventDefault()} className="mt-8 space-y-4" noValidate>
       <div>
-        <input id="name" name="name" type="text" autoComplete="name" placeholder="Full name" className={inputClass} />
+        <input
+          id="name"
+          name="name"
+          type="text"
+          autoComplete="name"
+          placeholder="Full name"
+          value={fields.name}
+          onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))}
+          className={inputClass}
+        />
         <FieldError message={errors.name} />
       </div>
       <div>
-        <input id="email" name="email" type="email" autoComplete="email" placeholder="Email" className={inputClass} />
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          placeholder="Email"
+          value={fields.email}
+          onChange={(e) => setFields((f) => ({ ...f, email: e.target.value }))}
+          className={inputClass}
+        />
         <FieldError message={errors.email} />
       </div>
       <div>
@@ -54,6 +73,8 @@ export default function ContactForm() {
           name="message"
           placeholder="Message"
           rows={5}
+          value={fields.message}
+          onChange={(e) => setFields((f) => ({ ...f, message: e.target.value }))}
           className="w-full rounded-2xl border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
         <FieldError message={errors.message} />

@@ -113,7 +113,7 @@ export default function NavbarClient({
           />
         </Link>
 
-        <nav className="hidden items-center gap-6 lg:ml-14 lg:flex xl:ml-20">
+        <nav className="hidden items-center gap-6 lg:ml-24 lg:flex xl:ml-32">
           {NAV_ITEMS.map((item) =>
             item.groups && item.groups.length > 0 ? (
               <div

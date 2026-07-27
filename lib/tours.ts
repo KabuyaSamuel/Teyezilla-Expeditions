@@ -79,6 +79,11 @@ export async function getFeaturedTours(): Promise<Tour[]> {
   return all.filter((t) => t.featured && t.status === "published");
 }
 
+export async function getFeaturedSafaris(): Promise<Tour[]> {
+  const all = await getTours();
+  return all.filter((t) => t.featured && t.status === "published" && t.productType === "safari");
+}
+
 const DETAIL_SELECT = `
   *,
   tour_pricing_tiers(*),

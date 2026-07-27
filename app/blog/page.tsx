@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublishedBlogPosts } from "@/lib/blog";
+import BlogCard from "@/components/BlogCard";
 
 export const metadata: Metadata = {
   title: "The Teyezilla Journal",
@@ -58,10 +59,7 @@ export default async function BlogPage({ searchParams }: Props) {
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredPosts.map((post) => (
-          <Link key={post.slug} href={`/blog/${post.slug}`} className="card p-6">
-            <h2 className="font-heading text-lg font-semibold text-foreground">{post.title}</h2>
-            <p className="mt-2 text-sm text-foreground/70">{post.excerpt}</p>
-          </Link>
+          <BlogCard key={post.slug} post={post} />
         ))}
         {filteredPosts.length === 0 && (
           <p className="text-sm text-foreground/50">No stories published in this category yet.</p>

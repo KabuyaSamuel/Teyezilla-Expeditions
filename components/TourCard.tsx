@@ -12,7 +12,7 @@ export default function TourCard({ tour }: { tour: Tour }) {
   return (
     <div className="card group overflow-hidden">
       <Link href={`/tours/${tour.slug}`} className="block">
-        <div className="relative h-52 w-full overflow-hidden">
+        <div className="relative aspect-video w-full overflow-hidden">
           <Image
             src={tour.heroImage}
             alt={tour.title}
@@ -20,9 +20,11 @@ export default function TourCard({ tour }: { tour: Tour }) {
             sizes="(max-width: 768px) 100vw, 33vw"
             className="object-cover transition-transform duration-500 ease-smooth group-hover:scale-110"
           />
-          <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-medium text-white">
-            {tour.categoryLabel}
-          </span>
+          {tour.categoryLabel && (
+            <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-medium text-white">
+              {tour.categoryLabel}
+            </span>
+          )}
           <WishlistButton id={tour.id} label={tour.title} />
         </div>
       </Link>

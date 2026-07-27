@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getJourneys, getJourneyTypes } from "@/lib/journeys";
+import JourneyCard from "@/components/JourneyCard";
 
 export const metadata: Metadata = {
   title: "Journeys",
@@ -41,13 +41,7 @@ export default async function JourneysPage() {
       ) : (
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {journeys.map((journey) => (
-            <Link key={journey.id} href={`/journeys/${journey.slug}`} className="card p-5">
-              <h3 className="font-heading text-lg font-semibold text-foreground">{journey.title}</h3>
-              <p className="mt-2 text-sm text-foreground/70">{journey.shortDescription}</p>
-              <p className="mt-3 text-xs text-foreground/50">
-                {journey.destinations.map((d) => d.countryName).join(" · ")}
-              </p>
-            </Link>
+            <JourneyCard key={journey.id} journey={journey} />
           ))}
         </div>
       )}

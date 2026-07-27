@@ -114,6 +114,13 @@ export async function getJourneys(): Promise<Journey[]> {
   return data.map(mapRow);
 }
 
+// RLS already restricts anon reads to status = 'published', so this only
+// needs to filter on the featured flag.
+export async function getFeaturedJourneys(): Promise<Journey[]> {
+  const all = await getJourneys();
+  return all.filter((j) => j.featured);
+}
+
 const DETAIL_SELECT = `
   *,
   journey_destinations(destinations(country_name, slug)),

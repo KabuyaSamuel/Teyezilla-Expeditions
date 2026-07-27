@@ -23,6 +23,7 @@ export async function submitTripPlannerRequest(
     travelers: formData.get("travelers"),
     travelStyle: formData.get("travelStyle"),
     luxuryLevel: formData.get("luxuryLevel") ?? "",
+    extras: formData.getAll("extras"),
   });
   if (!parsed.success) {
     return { fieldErrors: zodFieldErrors(parsed.error) };
@@ -43,6 +44,7 @@ export async function submitTripPlannerRequest(
     travelers: input.travelers,
     travel_style: input.travelStyle,
     luxury_level: input.luxuryLevel || null,
+    extras: input.extras.length > 0 ? input.extras : null,
     status: "new",
   });
   if (requestError) {
@@ -54,6 +56,7 @@ export async function submitTripPlannerRequest(
     `Trip planner request: ${input.destination}, ${input.days} day(s), ${input.travelers} traveler(s)`,
     input.budgetUsd ? `Budget: $${input.budgetUsd} USD` : "",
     `Style: ${input.travelStyle}${input.luxuryLevel ? ` · ${input.luxuryLevel}` : ""}`,
+    input.extras.length > 0 ? `Extras requested: ${input.extras.join(", ")}` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -76,6 +79,7 @@ export async function submitTripPlannerRequest(
     { label: "Travelers", value: String(input.travelers) },
     { label: "Travel style", value: input.travelStyle },
     { label: "Luxury level", value: input.luxuryLevel },
+    { label: "Extras requested", value: input.extras.join(", ") },
   ];
 
   await sendAdminNotification({

@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Phone } from "lucide-react";
 import SearchBox from "./SearchBox";
+import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 
 interface DropdownLink {
   label: string;
@@ -228,6 +229,15 @@ export default function NavbarClient({
 
         <div className="ml-auto hidden items-center gap-4 lg:flex">
           <SearchBox variant="desktop" transparent={transparent} />
+          <a
+            href={`tel:+${WHATSAPP_NUMBER}`}
+            aria-label="Call us"
+            className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+              transparent ? "text-white hover:text-accent" : "text-foreground hover:text-primary"
+            }`}
+          >
+            <Phone className="h-5 w-5" />
+          </a>
           <Link href="/booking" className="btn-secondary text-sm">
             Plan Your Journey
           </Link>
@@ -244,8 +254,15 @@ export default function NavbarClient({
 
       {menuOpen && (
         <nav className="flex max-h-[calc(100vh-5rem)] flex-col gap-1 overflow-y-auto border-t border-secondary/30 bg-background px-6 py-6 lg:hidden">
-          <div className="mb-3">
+          <div className="mb-3 flex items-center gap-2">
             <SearchBox variant="mobile" />
+            <a
+              href={`tel:+${WHATSAPP_NUMBER}`}
+              aria-label="Call us"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/15 text-foreground"
+            >
+              <Phone className="h-5 w-5" />
+            </a>
           </div>
           {NAV_ITEMS.map((item) => {
             const flatLinks: DropdownLink[] = item.groups

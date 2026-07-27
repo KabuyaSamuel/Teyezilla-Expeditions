@@ -28,6 +28,7 @@ export type AdminModuleKey =
   | "reports"
   | "staff"
   | "settings"
+  | "statuses"
   | "travel-resources"
   | "affiliates"
   | "notifications";
@@ -56,6 +57,7 @@ export const ADMIN_MODULES: AdminModuleDef[] = [
   { key: "reports", label: "Reports & Analytics", href: "/admin/reports", icon: "📈", description: "Revenue and booking analytics" },
   { key: "staff", label: "Staff Management", href: "/admin/staff", icon: "🧑‍💼", description: "Roles and permissions" },
   { key: "settings", label: "Website Settings", href: "/admin/settings", icon: "⚙️", description: "Company info, currency, SEO defaults" },
+  { key: "statuses", label: "Status Options", href: "/admin/statuses", icon: "🏷️", description: "Manage booking and payment status choices" },
   { key: "travel-resources", label: "Travel Resources", href: "/admin/travel-resources", icon: "🧳", description: "Visa, packing, health guidance" },
   { key: "affiliates", label: "Affiliate Management", href: "/admin/affiliates", icon: "🔗", description: "Viator, GetYourGuide, Booking.com" },
   { key: "notifications", label: "Notifications", href: "/admin/notifications", icon: "🔔", description: "Alerts and reminders" },
@@ -82,6 +84,7 @@ export const ROLE_MODULE_ACCESS: Record<StaffRole, AdminModuleKey[]> = {
     "reports",
     "staff",
     "settings",
+    "statuses",
     "travel-resources",
     "affiliates",
     "notifications",

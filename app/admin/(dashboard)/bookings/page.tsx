@@ -2,10 +2,15 @@ import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import { getBookings } from "@/lib/admin/data/bookings";
+import { getStatusOptions } from "@/lib/admin/data/status-options";
 import { bookingStatusTone, paymentStatusTone } from "@/lib/admin/status-tone";
 
 export default async function AdminBookingsPage() {
-  const bookings = await getBookings();
+  const [bookings, bookingStatusOptions, paymentStatusOptions] = await Promise.all([
+    getBookings(),
+    getStatusOptions("booking_status"),
+    getStatusOptions("payment_status"),
+  ]);
   return (
     <div>
       <PageHeader
@@ -27,22 +32,28 @@ export default async function AdminBookingsPage() {
             </tr>
           </thead>
           <tbody>
-            {bookings.map((b) => (
-              <tr key={b.id} className="border-b border-secondary/10 last:border-0">
-                <td className="px-5 py-3 font-medium text-foreground">{b.bookingReference}</td>
-                <td className="px-5 py-3 text-foreground/70">{b.customerName}</td>
-                <td className="px-5 py-3 text-foreground/70">{b.productTitle}</td>
-                <td className="px-5 py-3 text-foreground/70">{b.travelDate ?? "Flexible"}</td>
-                <td className="px-5 py-3 text-foreground/70">{b.travelerCount}</td>
-                <td className="px-5 py-3"><Badge tone={paymentStatusTone(b.paymentStatus)}>{b.paymentStatus.replace("_", " ")}</Badge></td>
-                <td className="px-5 py-3"><Badge tone={bookingStatusTone(b.bookingStatus)}>{b.bookingStatus}</Badge></td>
-                <td className="px-5 py-3">
-                  <Link href={`/admin/bookings/${b.id}`} className="text-primary hover:underline">
-                    View
-                  </Link>
-                </td>
-              </tr>
-            ))}
+            {bookings.map((b) => {
+              const bookingTone =
+                bookingStatusOptions.find((o) => o.key === b.bookingStatus)?.tone ?? bookingStatusTone(b.bookingStatus);
+              const paymentTone =
+                paymentStatusOptions.find((o) => o.key === b.paymentStatus)?.tone ?? paymentStatusTone(b.paymentStatus);
+              return (
+                <tr key={b.id} className="border-b border-secondary/10 last:border-0">
+                  <td className="px-5 py-3 font-medium text-foreground">{b.bookingReference}</td>
+                  <td className="px-5 py-3 text-foreground/70">{b.customerName}</td>
+                  <td className="px-5 py-3 text-foreground/70">{b.productTitle}</td>
+                  <td className="px-5 py-3 text-foreground/70">{b.travelDate ?? "Flexible"}</td>
+                  <td className="px-5 py-3 text-foreground/70">{b.travelerCount}</td>
+                  <td className="px-5 py-3"><Badge tone={paymentTone}>{b.paymentStatus.replace("_", " ")}</Badge></td>
+                  <td className="px-5 py-3"><Badge tone={bookingTone}>{b.bookingStatus}</Badge></td>
+                  <td className="px-5 py-3">
+                    <Link href={`/admin/bookings/${b.id}`} className="text-primary hover:underline">
+                      View
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

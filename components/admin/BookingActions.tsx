@@ -7,20 +7,7 @@ import {
   updateBookingStatus,
   updatePaymentStatus,
 } from "@/lib/admin/actions/bookings";
-
-const BOOKING_STATUSES = ["inquiry", "quoted", "confirmed", "completed", "cancelled"] as const;
-const PAYMENT_STATUSES = ["unpaid", "deposit_received", "paid"] as const;
-
-const STATUS_LABELS: Record<string, string> = {
-  inquiry: "Inquiry",
-  quoted: "Quoted",
-  confirmed: "Confirmed",
-  completed: "Completed",
-  cancelled: "Cancelled",
-  unpaid: "Unpaid",
-  deposit_received: "Deposit received",
-  paid: "Paid",
-};
+import type { StatusOption } from "@/lib/admin/data/status-options";
 
 export default function BookingActions({
   id,
@@ -28,12 +15,16 @@ export default function BookingActions({
   bookingStatus,
   paymentStatus,
   currency,
+  bookingStatusOptions,
+  paymentStatusOptions,
 }: {
   id: string;
   bookingReference: string;
   bookingStatus: string;
   paymentStatus: string;
   currency: string;
+  bookingStatusOptions: StatusOption[];
+  paymentStatusOptions: StatusOption[];
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,8 +75,11 @@ export default function BookingActions({
             onChange={(e) => run(() => updateBookingStatus(id, e.target.value))}
             className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            {BOOKING_STATUSES.map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+            {!bookingStatusOptions.some((o) => o.key === bookingStatus) && (
+              <option value={bookingStatus}>{bookingStatus} (removed option)</option>
+            )}
+            {bookingStatusOptions.map((o) => (
+              <option key={o.id} value={o.key}>{o.label}</option>
             ))}
           </select>
         </label>
@@ -98,8 +92,11 @@ export default function BookingActions({
             onChange={(e) => run(() => updatePaymentStatus(id, e.target.value))}
             className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            {PAYMENT_STATUSES.map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+            {!paymentStatusOptions.some((o) => o.key === paymentStatus) && (
+              <option value={paymentStatus}>{paymentStatus} (removed option)</option>
+            )}
+            {paymentStatusOptions.map((o) => (
+              <option key={o.id} value={o.key}>{o.label}</option>
             ))}
           </select>
         </label>

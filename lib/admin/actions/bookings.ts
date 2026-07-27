@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getBookingById } from "@/lib/admin/data/bookings";
+import { getStatusOptions } from "@/lib/admin/data/status-options";
 import { sendCustomerConfirmation } from "@/lib/email";
 import { customerQuoteEmail } from "@/lib/email-templates";
 
@@ -11,7 +12,19 @@ function revalidateBooking(id: string) {
   revalidatePath("/admin/bookings");
 }
 
+// booking_status / payment_status no longer have a DB check constraint —
+// the status_options table (CMS-managed) is the source of truth now, so we
+// validate against it here instead.
+async function assertValidStatus(category: "booking_status" | "payment_status", status: string) {
+  const options = await getStatusOptions(category);
+  if (!options.some((o) => o.key === status)) {
+    throw new Error(`"${status}" isn't a recognized status. It may have been removed — refresh and try again.`);
+  }
+}
+
 export async function updateBookingStatus(id: string, status: string): Promise<void> {
+  await assertValidStatus("booking_status", status);
+
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
@@ -24,6 +37,8 @@ export async function updateBookingStatus(id: string, status: string): Promise<v
 // payment_status is a manual record-keeping field — payment itself happens
 // offline (bank transfer, invoice, in person). There is no gateway behind this.
 export async function updatePaymentStatus(id: string, status: string): Promise<void> {
+  await assertValidStatus("payment_status", status);
+
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 

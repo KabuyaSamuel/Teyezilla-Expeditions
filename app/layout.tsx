@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -61,6 +62,7 @@ export default function RootLayout({
         <main className="flex-1 pt-20">{children}</main>
         <Footer />
         <WhatsAppButton phoneNumber="254700000000" />
+        <Analytics />
         <SpeedInsights />
       </body>
     </html>

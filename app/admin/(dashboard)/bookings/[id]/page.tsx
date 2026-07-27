@@ -4,6 +4,7 @@ import Badge from "@/components/admin/Badge";
 import BookingActions from "@/components/admin/BookingActions";
 import { getBookingById } from "@/lib/admin/data/bookings";
 import { getCustomerById } from "@/lib/admin/data/customers";
+import { getStatusOptions } from "@/lib/admin/data/status-options";
 import { bookingStatusTone, paymentStatusTone } from "@/lib/admin/status-tone";
 
 export default async function BookingDetailPage({
@@ -16,6 +17,14 @@ export default async function BookingDetailPage({
   if (!booking) notFound();
 
   const customer = booking.customerId ? await getCustomerById(booking.customerId) : undefined;
+  const [bookingStatusOptions, paymentStatusOptions] = await Promise.all([
+    getStatusOptions("booking_status"),
+    getStatusOptions("payment_status"),
+  ]);
+  const bookingTone =
+    bookingStatusOptions.find((o) => o.key === booking.bookingStatus)?.tone ?? bookingStatusTone(booking.bookingStatus);
+  const paymentTone =
+    paymentStatusOptions.find((o) => o.key === booking.paymentStatus)?.tone ?? paymentStatusTone(booking.paymentStatus);
   const travelDateLabel = booking.travelDate
     ? `${booking.travelDate}${booking.flexibleDates ? " (flexible)" : ""}`
     : "Flexible";
@@ -52,8 +61,8 @@ export default async function BookingDetailPage({
             <div><dt className="text-foreground/50">Budget Range (per person)</dt><dd className="font-medium text-foreground">{booking.budgetRange || "Not specified"}</dd></div>
             <div><dt className="text-foreground/50">Heard About Us Via</dt><dd className="font-medium text-foreground">{booking.referralSource || "—"}</dd></div>
             <div><dt className="text-foreground/50">Quoted / Total Amount</dt><dd className="font-medium text-foreground">{booking.totalAmount > 0 ? `${booking.currency} ${booking.totalAmount.toLocaleString()}` : "Not quoted yet"}</dd></div>
-            <div><dt className="text-foreground/50">Payment (manual record)</dt><dd><Badge tone={paymentStatusTone(booking.paymentStatus)}>{booking.paymentStatus.replace("_", " ")}</Badge></dd></div>
-            <div><dt className="text-foreground/50">Booking Status</dt><dd><Badge tone={bookingStatusTone(booking.bookingStatus)}>{booking.bookingStatus}</Badge></dd></div>
+            <div><dt className="text-foreground/50">Payment (manual record)</dt><dd><Badge tone={paymentTone}>{booking.paymentStatus.replace("_", " ")}</Badge></dd></div>
+            <div><dt className="text-foreground/50">Booking Status</dt><dd><Badge tone={bookingTone}>{booking.bookingStatus}</Badge></dd></div>
           </dl>
 
           {booking.specialRequests && (
@@ -72,6 +81,8 @@ export default async function BookingDetailPage({
               bookingStatus={booking.bookingStatus}
               paymentStatus={booking.paymentStatus}
               currency={booking.currency}
+              bookingStatusOptions={bookingStatusOptions}
+              paymentStatusOptions={paymentStatusOptions}
             />
           </div>
         </div>

@@ -7,7 +7,7 @@ export default function DestinationCard({ destination }: { destination: Destinat
   return (
     <Link
       href={`/destinations/${destination.slug}`}
-      className="card group block overflow-hidden"
+      className="card group flex h-full flex-col overflow-hidden"
     >
       <div className="relative h-56 w-full overflow-hidden">
         <Image

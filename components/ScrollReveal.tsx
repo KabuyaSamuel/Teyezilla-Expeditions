@@ -43,7 +43,7 @@ export default function ScrollReveal({
   return (
     <Comp
       ref={ref}
-      className={`transition-all duration-700 ease-smooth ${
+      className={`h-full transition-all duration-700 ease-smooth ${
         visible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
       } ${className}`}
       style={{ transitionDelay: visible ? `${delay}ms` : "0ms" }}

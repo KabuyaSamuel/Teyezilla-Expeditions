@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
       },
       {
+        // picsum.photos redirects here for the actual image bytes.
+        protocol: "https",
+        hostname: "fastly.picsum.photos",
+      },
+      {
         protocol: "https",
         hostname: "upload.wikimedia.org",
       },

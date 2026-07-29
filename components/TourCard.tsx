@@ -6,7 +6,7 @@ import WishlistButton from "./WishlistButton";
 
 export default function TourCard({ tour }: { tour: Tour }) {
   return (
-    <div className="card group overflow-hidden">
+    <div className="card group flex h-full flex-col overflow-hidden">
       <Link href={`/tours/${tour.slug}`} className="block">
         <div className="relative aspect-video w-full overflow-hidden">
           <Image
@@ -24,7 +24,7 @@ export default function TourCard({ tour }: { tour: Tour }) {
           <WishlistButton id={tour.id} label={tour.title} />
         </div>
       </Link>
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         <Link href={`/tours/${tour.slug}`}>
           <h3 className="font-heading text-lg font-semibold text-foreground hover:text-primary">
             {tour.title}
@@ -37,7 +37,7 @@ export default function TourCard({ tour }: { tour: Tour }) {
             From {tour.currency} {tour.priceFrom}
           </span>
         </div>
-        <div className="mt-4">
+        <div className="mt-auto pt-4">
           <Link href={`/tours/${tour.slug}`} className="btn-primary block w-full px-3 py-2 text-center text-sm">
             Explore More
           </Link>

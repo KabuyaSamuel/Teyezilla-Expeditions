@@ -6,7 +6,7 @@ export default function JourneyCard({ journey }: { journey: Journey }) {
   const destinationNames = journey.destinations.map((d) => d.countryName).join(" · ");
 
   return (
-    <div className="card group overflow-hidden">
+    <div className="card group flex h-full flex-col overflow-hidden">
       <Link href={`/journeys/${journey.slug}`} className="block">
         <div className="relative aspect-video w-full overflow-hidden bg-secondary/10">
           {journey.heroImage && (
@@ -25,7 +25,7 @@ export default function JourneyCard({ journey }: { journey: Journey }) {
           )}
         </div>
       </Link>
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         <Link href={`/journeys/${journey.slug}`}>
           <h3 className="font-heading text-lg font-semibold text-foreground hover:text-primary">
             {journey.title}
@@ -38,7 +38,7 @@ export default function JourneyCard({ journey }: { journey: Journey }) {
             From {journey.currency} {journey.priceFrom.toLocaleString()}
           </span>
         </div>
-        <div className="mt-4">
+        <div className="mt-auto pt-4">
           <Link href={`/journeys/${journey.slug}`} className="btn-primary block w-full px-3 py-2 text-center text-sm">
             Explore More
           </Link>

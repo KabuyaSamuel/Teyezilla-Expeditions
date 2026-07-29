@@ -25,6 +25,7 @@ export interface TourDetail extends Tour, ProductScalars {
   highlights: ProductHighlight[];
   addons: ProductAddon[];
   activities: Activity[];
+  featuredInJourneys: { slug: string; title: string }[];
 }
 
 function mapRow(row: Record<string, unknown>): Tour {
@@ -90,7 +91,8 @@ const DETAIL_SELECT = `
   tour_pricing_tiers(*),
   tour_highlights(*),
   tour_addons(*),
-  tour_activities(activities(id, name, slug, description, icon))
+  tour_activities(activities(id, name, slug, description, icon)),
+  journey_tours(journeys(slug, title))
 `;
 
 export async function getTourBySlug(slug: string): Promise<TourDetail | undefined> {
@@ -129,6 +131,10 @@ export async function getTourBySlug(slug: string): Promise<TourDetail | undefine
       .map((a: any) => a.activities)
       .filter(Boolean)
       .map((a: any) => ({ id: a.id, name: a.name, slug: a.slug, description: a.description ?? "", icon: a.icon ?? "" })),
+    featuredInJourneys: (row.journey_tours ?? [])
+      .map((jt: any) => jt.journeys)
+      .filter(Boolean)
+      .map((j: any) => ({ slug: j.slug, title: j.title })),
   };
 }
 

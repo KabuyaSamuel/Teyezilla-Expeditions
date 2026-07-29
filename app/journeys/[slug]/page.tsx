@@ -11,6 +11,7 @@ import ProductGoodToKnow from "@/components/ProductGoodToKnow";
 import ProductTeyezillaMoment from "@/components/ProductTeyezillaMoment";
 import ProductPricingTiers from "@/components/ProductPricingTiers";
 import ProductAddons from "@/components/ProductAddons";
+import TourCard from "@/components/TourCard";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -141,6 +142,20 @@ export default async function JourneyPage({ params }: Props) {
 
             <ProductItinerary days={journey.itinerary} singleDay={false} />
             <ProductHighlights highlights={journey.highlights} />
+
+            {journey.includedTours.length > 0 && (
+              <div>
+                <h2 className="font-heading text-2xl font-bold text-foreground">This Journey Includes</h2>
+                <p className="mt-2 text-foreground/70">
+                  Real, bookable experiences this journey is built from — explore each one on its own.
+                </p>
+                <div className="mt-6 grid gap-6 sm:grid-cols-2">
+                  {journey.includedTours.map((tour) => (
+                    <TourCard key={tour.id} tour={tour} />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {journey.activities.length > 0 && (
               <div>

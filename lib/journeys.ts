@@ -1,4 +1,5 @@
 import type { Activity } from "@/lib/activities";
+import type { Tour } from "@/types";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 import {
   mapPricingTierRow,
@@ -51,6 +52,30 @@ export interface JourneyDetail extends Journey, ProductScalars {
   highlights: ProductHighlight[];
   addons: ProductAddon[];
   activities: Activity[];
+  includedTours: Tour[];
+}
+
+function mapTourRow(row: Record<string, unknown>): Tour {
+  return {
+    id: row.id as string,
+    slug: row.slug as string,
+    destinationId: row.destination_id as string,
+    title: row.title as string,
+    categoryLabel: (row.category_label as string) ?? "",
+    productType: (row.product_type as string) ?? "experience",
+    heroImage: (row.hero_image as string) ?? "",
+    shortDescription: (row.short_description as string) ?? "",
+    durationDays: Number(row.duration_days ?? 0),
+    durationHours: row.duration_hours != null ? Number(row.duration_hours) : null,
+    priceFrom: Number(row.price_from ?? 0),
+    currency: (row.currency as string) ?? "USD",
+    difficulty: (row.difficulty as Tour["difficulty"]) ?? "Easy",
+    featured: Boolean(row.featured),
+    status: (row.status as Tour["status"]) ?? "draft",
+    metaTitle: (row.meta_title as string) ?? "",
+    metaDescription: (row.meta_description as string) ?? "",
+    ogImage: (row.og_image as string) ?? "",
+  };
 }
 
 function mapRow(row: Record<string, any>): Journey {
@@ -128,7 +153,8 @@ const DETAIL_SELECT = `
   journey_pricing_tiers(*),
   journey_highlights(*),
   journey_addons(*),
-  journey_activities(activities(id, name, slug, description, icon))
+  journey_activities(activities(id, name, slug, description, icon)),
+  journey_tours(display_order, tours(*))
 `;
 
 export async function getJourneyBySlug(slug: string): Promise<JourneyDetail | undefined> {
@@ -173,5 +199,10 @@ export async function getJourneyBySlug(slug: string): Promise<JourneyDetail | un
       .map((a: any) => a.activities)
       .filter(Boolean)
       .map((a: any) => ({ id: a.id, name: a.name, slug: a.slug, description: a.description ?? "", icon: a.icon ?? "" })),
+    includedTours: [...(row.journey_tours ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((jt: any) => jt.tours)
+      .filter(Boolean)
+      .map(mapTourRow),
   };
 }

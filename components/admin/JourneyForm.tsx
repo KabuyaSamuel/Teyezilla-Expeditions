@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Destination } from "@/types";
+import type { Destination, Tour } from "@/types";
 import type { JourneyType } from "@/lib/journeys";
 import type { ExperienceType } from "@/lib/experienceTypes";
 import type { SafariTheme } from "@/lib/safari";
@@ -13,6 +13,7 @@ import PricingTiersEditor from "./PricingTiersEditor";
 import HighlightsEditor from "./HighlightsEditor";
 import AddonsEditor from "./AddonsEditor";
 import ActivitiesPicker from "./ActivitiesPicker";
+import TourPicker from "./TourPicker";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as any).digest).startsWith("NEXT_REDIRECT");
@@ -25,6 +26,7 @@ export default function JourneyForm({
   experienceTypes,
   safariThemes,
   activities,
+  tours,
 }: {
   existingJourney?: AdminJourneyDetail;
   destinations: Destination[];
@@ -32,6 +34,7 @@ export default function JourneyForm({
   experienceTypes: ExperienceType[];
   safariThemes: SafariTheme[];
   activities: Activity[];
+  tours: Tour[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +54,7 @@ export default function JourneyForm({
   );
   const [addons, setAddons] = useState<AddonInput[]>(existingJourney?.addons.map((a) => ({ ...a })) ?? []);
   const [activityIds, setActivityIds] = useState<string[]>(existingJourney?.activityIds ?? []);
+  const [tourIds, setTourIds] = useState<string[]>(existingJourney?.tourIds ?? []);
 
   function toggleId(list: string[], setList: (v: string[]) => void, id: string) {
     setList(list.includes(id) ? list.filter((v) => v !== id) : [...list, id]);
@@ -129,6 +133,7 @@ export default function JourneyForm({
       highlights,
       addons,
       activityIds,
+      tourIds,
       featured: formData.get("featured") === "on",
       status: String(formData.get("status") ?? "draft"),
     };
@@ -369,6 +374,7 @@ export default function JourneyForm({
       <PricingTiersEditor tiers={pricingTiers} onChange={setPricingTiers} />
       <AddonsEditor addons={addons} onChange={setAddons} />
       <ActivitiesPicker activities={activities} selectedIds={activityIds} onChange={setActivityIds} />
+      <TourPicker tours={tours} selectedIds={tourIds} onChange={setTourIds} />
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Logistics</h2>

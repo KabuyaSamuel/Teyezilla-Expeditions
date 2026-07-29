@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { getTours, getTourBySlug } from "@/lib/tours";
 import { getDestinationById } from "@/lib/destinations";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
@@ -192,6 +193,26 @@ export default async function TourPage({ params }: Props) {
             <ProductTeyezillaMoment text={tour.teyezillaMoment} />
             <ProductPricingTiers tiers={tour.pricingTiers} bookingHref={bookingHref} />
             <ProductAddons addons={tour.addons} />
+
+            {tour.featuredInJourneys.length > 0 && (
+              <div className="card p-6">
+                <h2 className="font-heading text-xl font-semibold text-foreground">Featured In These Journeys</h2>
+                <p className="mt-1 text-sm text-foreground/70">
+                  This experience is included as part of the following journeys.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {tour.featuredInJourneys.map((j) => (
+                    <Link
+                      key={j.slug}
+                      href={`/journeys/${j.slug}`}
+                      className="rounded-full bg-secondary/15 px-4 py-1.5 text-sm font-medium text-foreground hover:bg-secondary/25"
+                    >
+                      {j.title} →
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="card p-6">
               <h2 className="font-heading text-xl font-semibold text-foreground">FAQs</h2>

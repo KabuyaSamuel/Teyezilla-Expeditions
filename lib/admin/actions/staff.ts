@@ -13,7 +13,7 @@ export interface StaffInput {
 }
 
 function randomTempPassword(): string {
-  // 16 random bytes as base64url — meets Supabase's password requirements
+  // 16 random bytes as base64url; meets Supabase's password requirements
   // and is only ever shown once, to the admin creating the account.
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return Buffer.from(bytes).toString("base64url");
@@ -29,7 +29,7 @@ async function requireAdmin() {
 
 // Creates a real, login-capable Supabase Auth account (not just a `staff`
 // row) via the Auth Admin API, which requires the service role key and
-// bypasses RLS entirely — so the admin-only check above is the only gate
+// bypasses RLS entirely, so the admin-only check above is the only gate
 // here, not the database. Returns the temp password so the caller (the
 // admin's browser) can display it once; it's never stored or logged.
 export async function createStaffMember(input: StaffInput): Promise<{ tempPassword: string }> {

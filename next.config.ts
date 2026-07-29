@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      // Default is 1MB — too small for real media uploads.
+      // Default is 1MB, too small for real media uploads.
       bodySizeLimit: "10mb",
     },
   },

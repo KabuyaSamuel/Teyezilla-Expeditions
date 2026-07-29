@@ -19,11 +19,11 @@ export default function ExperienceTypesPicker({
     <section className="card p-6">
       <h2 className="font-heading text-lg font-semibold text-foreground">Experience Categories</h2>
       <p className="mt-1 text-xs text-foreground/50">
-        Controls where this tour appears on the public site — e.g. the Safari or Culture category pages, and category search. Select at least one.
+        Controls where this tour appears on the public site, e.g. the Safari or Culture category pages, and category search. Select at least one.
       </p>
       {experienceTypes.length === 0 ? (
         <p className="mt-3 text-sm text-foreground/50">
-          No experience categories exist yet — add some directly in the <code>experience_types</code> table.
+          No experience categories exist yet. Add some directly in the <code>experience_types</code> table.
         </p>
       ) : (
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

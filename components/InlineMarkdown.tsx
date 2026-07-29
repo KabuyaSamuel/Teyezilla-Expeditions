@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-// Lightweight inline styling within a block's text — **bold**, *italic*,
+// Lightweight inline styling within a block's text: **bold**, *italic*,
 // ~~strikethrough~~, `code`, and [link](url). Deliberately not a full
-// markdown engine (no nesting, no block-level syntax) — those are handled
+// markdown engine (no nesting, no block-level syntax); those are handled
 // as separate block types by BlogContentBlocks.
 const INLINE_PATTERN = /`([^`]+)`|\*\*([^*]+)\*\*|~~([^~]+)~~|\*([^*]+)\*|\[([^\]]+)\]\(([^)]+)\)/g;
 

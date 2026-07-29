@@ -51,7 +51,7 @@ export async function submitContactMessage(
 
   await sendCustomerConfirmation({
     to: input.email,
-    subject: "We've received your message — Teyezilla Expeditions",
+    subject: "We've received your message: Teyezilla Expeditions",
     html: customerContactConfirmationEmail({ customerName: input.name }),
   });
 

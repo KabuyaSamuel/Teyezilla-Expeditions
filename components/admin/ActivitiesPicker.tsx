@@ -23,7 +23,7 @@ export default function ActivitiesPicker({
       </p>
       {activities.length === 0 ? (
         <p className="mt-3 text-sm text-foreground/50">
-          No activities in the library yet — add some in{" "}
+          No activities in the library yet. Add some in{" "}
           <a href="/admin/activities" className="text-primary hover:underline">
             Activities Library
           </a>

@@ -97,7 +97,7 @@ export default function BlogPostForm({
             defaultValue={existingPost?.destinationId ?? ""}
             className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="">None — general article</option>
+            <option value="">None, general article</option>
             {destinations.map((d) => (
               <option key={d.id} value={d.id}>{d.countryName}</option>
             ))}

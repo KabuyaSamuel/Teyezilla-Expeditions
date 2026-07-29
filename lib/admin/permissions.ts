@@ -65,7 +65,7 @@ export const ADMIN_MODULES: AdminModuleDef[] = [
 
 // Which modules each role can see. Admin sees everything; other roles get a
 // scoped subset relevant to their job. Adjust freely as the business needs
-// evolve — this table is the single source of truth for sidebar + route guards.
+// evolve; this table is the single source of truth for sidebar + route guards.
 export const ROLE_MODULE_ACCESS: Record<StaffRole, AdminModuleKey[]> = {
   admin: ADMIN_MODULES.map((m) => m.key),
   manager: [

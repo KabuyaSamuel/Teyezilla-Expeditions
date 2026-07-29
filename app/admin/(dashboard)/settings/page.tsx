@@ -128,7 +128,7 @@ export default async function AdminSettingsPage() {
         <section className="card p-6">
           <h2 className="font-heading text-lg font-semibold text-foreground">Email Templates</h2>
           <p className="mt-1 text-xs text-foreground/50">
-            Enquiry confirmations, quotes, and admin notifications are sent via Resend —
+            Enquiry confirmations, quotes, and admin notifications are sent via Resend;
             templates live in <code>lib/email-templates.ts</code>.
           </p>
         </section>

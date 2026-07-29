@@ -36,7 +36,7 @@ export default async function AdminAffiliatesPage() {
                     {a.status.replace("_", " ")}
                   </Badge>
                 </td>
-                <td className="px-5 py-3 text-foreground/70">{a.commissionRate ? `${a.commissionRate}%` : "—"}</td>
+                <td className="px-5 py-3 text-foreground/70">{a.commissionRate ? `${a.commissionRate}%` : "-"}</td>
                 <td className="px-5 py-3 text-foreground/70">{a.notes}</td>
                 <td className="px-5 py-3">
                   <Link href={`/admin/affiliates/${a.id}`} className="text-primary hover:underline">
@@ -49,7 +49,7 @@ export default async function AdminAffiliatesPage() {
         </table>
       </div>
       <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">
-        Live booking sync and commission tracking with these partners is future work once deals are signed —
+        Live booking sync and commission tracking with these partners is future work once deals are signed;
         this manages the partner records themselves.
       </div>
     </div>

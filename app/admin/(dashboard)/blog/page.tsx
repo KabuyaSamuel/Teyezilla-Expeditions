@@ -35,7 +35,7 @@ export default async function AdminBlogPage() {
                 <td className="px-5 py-3 text-foreground/70">{post.category}</td>
                 <td className="px-5 py-3"><Badge tone={contentStatusTone(post.status)}>{post.status}</Badge></td>
                 <td className="px-5 py-3 text-foreground/70">
-                  {post.publishedAt ?? (post.scheduledFor ? `Scheduled: ${post.scheduledFor}` : "—")}
+                  {post.publishedAt ?? (post.scheduledFor ? `Scheduled: ${post.scheduledFor}` : "-")}
                 </td>
                 <td className="px-5 py-3">
                   <Link href={`/admin/blog/${post.slug}`} className="text-primary hover:underline">

@@ -13,7 +13,7 @@ export default function CancellationPolicyPage() {
       <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">Support</span>
       <h1 className="mt-3 font-heading text-4xl font-bold text-foreground">Cancellation Policy</h1>
       <p className="mt-4 text-foreground/70">
-        Cancellation and refund terms vary by tour and journey — they depend on factors like
+        Cancellation and refund terms vary by tour and journey; they depend on factors like
         supplier deposits, park permits, and accommodation booking terms, so we set them per
         package rather than a single blanket policy.
       </p>

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const STEPS = [
   {
     title: "1. Send an enquiry",
-    body: "Share a few details about the trip you're interested in — dates, travelers, and budget. No payment is taken online at this stage.",
+    body: "Share a few details about the trip you're interested in: dates, travelers, and budget. No payment is taken online at this stage.",
   },
   {
     title: "2. Get a personal quote",
@@ -32,7 +32,7 @@ export default function BookingInformationPage() {
       <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">Support</span>
       <h1 className="mt-3 font-heading text-4xl font-bold text-foreground">Booking Information</h1>
       <p className="mt-4 text-foreground/70">
-        Every Teyezilla trip starts as an enquiry, not an instant checkout — this is how the process works.
+        Every Teyezilla trip starts as an enquiry, not an instant checkout. This is how the process works.
       </p>
 
       <div className="mt-10 space-y-6">

@@ -50,7 +50,7 @@ export async function updateCustomer(id: string, input: CustomerInput): Promise<
 
 // customers is referenced by bookings.customer_id with no ON DELETE clause
 // (defaults to RESTRICT), so this will fail with a clear FK-violation error
-// for any customer who has bookings — by design, not a bug to work around.
+// for any customer who has bookings; by design, not a bug to work around.
 export async function deleteCustomer(id: string): Promise<void> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");

@@ -160,7 +160,7 @@ export default async function JourneyPage({ params }: Props) {
               <div>
                 <h2 className="font-heading text-2xl font-bold text-foreground">This Journey Includes</h2>
                 <p className="mt-2 text-foreground/70">
-                  Real, bookable experiences this journey is built from — explore each one on its own.
+                  Real, bookable experiences this journey is built from. Explore each one on its own.
                 </p>
                 <div className="mt-6 grid gap-6 sm:grid-cols-2">
                   {journey.includedTours.map((tour) => (

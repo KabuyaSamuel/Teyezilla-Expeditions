@@ -15,7 +15,7 @@ export default async function AdminBookingsPage() {
     <div>
       <PageHeader
         title="Booking Management"
-        description="Enquiries through to completed journeys — statuses are set manually as staff quote and confirm."
+        description="Enquiries through to completed journeys. Statuses are set manually as staff quote and confirm."
       />
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">

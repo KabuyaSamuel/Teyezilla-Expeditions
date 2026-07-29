@@ -3,7 +3,7 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 // Affiliate Management (Phase 3 spec: "scaffold the schema now; UI can come later").
 // Partner records (name/status/commission rate/notes) are fully editable;
 // the live booking-sync/commission-tracking integration itself is still
-// future work, per that spec — that's a different feature, not this CRUD.
+// future work, per that spec; that's a different feature, not this CRUD.
 
 export interface AffiliatePartner {
   id: string;

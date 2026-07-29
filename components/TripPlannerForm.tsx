@@ -48,7 +48,7 @@ export default function TripPlannerForm() {
     return (
       <div className="mt-8 rounded-2xl bg-primary/5 p-8 text-center">
         <p className="font-heading text-xl font-semibold text-primary">
-          Trip request received — thank you!
+          Trip request received, thank you!
         </p>
         <p className="mt-2 text-sm text-foreground/70">
           Our travel team will send a suggested itinerary and quote within 24 hours.

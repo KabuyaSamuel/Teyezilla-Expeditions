@@ -5,7 +5,7 @@ import type { StaffRole } from "./permissions";
 // only recognized as admin staff if BOTH: (1) they have a valid Supabase
 // Auth session, AND (2) their auth user id has a matching row in `staff`
 // with a role. This means creating a Supabase Auth user alone doesn't grant
-// admin access — someone (you, via the Dashboard or an admin-only mutation)
+// admin access; someone (you, via the Dashboard or an admin-only mutation)
 // also has to add them to `staff` with auth_user_id set. See
 // supabase/seed.sql for the staff-linking steps.
 

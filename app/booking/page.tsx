@@ -8,7 +8,7 @@ import { whatsappLink } from "@/lib/enquiry-shared";
 export const metadata: Metadata = {
   title: "Enquire About Your Trip",
   description:
-    "Tell us about your dream African journey — our travel team replies with a personal quote within 24 hours. No payment is taken online.",
+    "Tell us about your dream African journey, and our travel team replies with a personal quote within 24 hours. No payment is taken online.",
 };
 
 interface SummaryProduct {
@@ -76,7 +76,7 @@ export default async function BookingPage({
       </h1>
       <p className="mt-3 text-foreground/70">
         Share a few details and our travel team will reply within 24 hours with a personal
-        quote. No payment is taken online — everything is arranged directly with your consultant.
+        quote. No payment is taken online; everything is arranged directly with your consultant.
       </p>
 
       {product && (

@@ -75,7 +75,7 @@ export async function setReviewApproval(id: string, isApproved: boolean): Promis
   revalidatePath("/");
 }
 
-// Only one review can be featured at a time — unfeature the rest first so
+// Only one review can be featured at a time; unfeature the rest first so
 // the homepage always has exactly one (or zero) highlighted testimonial.
 export async function setFeaturedReview(id: string): Promise<void> {
   const supabase = await getSupabaseServerClient();

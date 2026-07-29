@@ -73,12 +73,12 @@ export default async function AdminInquiriesPage({
 
             {inq.tripPlanner && (
               <div className="mt-3 grid grid-cols-2 gap-3 rounded-2xl bg-secondary/10 p-3 text-xs text-foreground/70 sm:grid-cols-3 lg:grid-cols-6">
-                <div><p className="text-foreground/40">Destination</p><p className="font-medium text-foreground">{inq.tripPlanner.destination || "—"}</p></div>
-                <div><p className="text-foreground/40">Budget</p><p className="font-medium text-foreground">{inq.tripPlanner.budgetUsd ? `$${inq.tripPlanner.budgetUsd.toLocaleString()}` : "—"}</p></div>
-                <div><p className="text-foreground/40">Days</p><p className="font-medium text-foreground">{inq.tripPlanner.days || "—"}</p></div>
-                <div><p className="text-foreground/40">Travelers</p><p className="font-medium text-foreground">{inq.tripPlanner.travelers || "—"}</p></div>
-                <div><p className="text-foreground/40">Style</p><p className="font-medium text-foreground">{inq.tripPlanner.travelStyle || "—"}</p></div>
-                <div><p className="text-foreground/40">Luxury Level</p><p className="font-medium text-foreground">{inq.tripPlanner.luxuryLevel || "—"}</p></div>
+                <div><p className="text-foreground/40">Destination</p><p className="font-medium text-foreground">{inq.tripPlanner.destination || "-"}</p></div>
+                <div><p className="text-foreground/40">Budget</p><p className="font-medium text-foreground">{inq.tripPlanner.budgetUsd ? `$${inq.tripPlanner.budgetUsd.toLocaleString()}` : "-"}</p></div>
+                <div><p className="text-foreground/40">Days</p><p className="font-medium text-foreground">{inq.tripPlanner.days || "-"}</p></div>
+                <div><p className="text-foreground/40">Travelers</p><p className="font-medium text-foreground">{inq.tripPlanner.travelers || "-"}</p></div>
+                <div><p className="text-foreground/40">Style</p><p className="font-medium text-foreground">{inq.tripPlanner.travelStyle || "-"}</p></div>
+                <div><p className="text-foreground/40">Luxury Level</p><p className="font-medium text-foreground">{inq.tripPlanner.luxuryLevel || "-"}</p></div>
               </div>
             )}
 

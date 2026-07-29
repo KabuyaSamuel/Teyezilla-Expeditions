@@ -65,7 +65,7 @@ export async function getDestinationBySlug(slug: string): Promise<Destination | 
   return mapRow(data);
 }
 
-// Tours reference their destination by id (a UUID), not by slug — use this
+// Tours reference their destination by id (a UUID), not by slug; use this
 // for that lookup rather than getDestinationBySlug.
 export async function getDestinationById(id: string): Promise<Destination | undefined> {
   const supabase = getSupabasePublicClient();

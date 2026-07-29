@@ -137,7 +137,7 @@ export default function BlogContentEditor({
         ))}
 
         {blocks.length === 0 && (
-          <p className="text-sm text-foreground/50">No content blocks yet — add the first one below.</p>
+          <p className="text-sm text-foreground/50">No content blocks yet. Add the first one below.</p>
         )}
       </div>
 

@@ -112,7 +112,7 @@ export default function TourForm({
       // On success the action redirects to /admin/tours; if we get here
       // without a redirect having thrown, something unexpected happened.
     } catch (err) {
-      // Next.js redirect() throws a special error to trigger navigation —
+      // Next.js redirect() throws a special error to trigger navigation;
       // let that propagate instead of treating it as a failure.
       if (err && typeof err === "object" && "digest" in err && String(err.digest).startsWith("NEXT_REDIRECT")) {
         throw err;
@@ -180,7 +180,7 @@ export default function TourForm({
           </div>
           <div>
             <label htmlFor="durationHours" className="text-xs font-medium text-foreground/60">
-              Duration (hours) — for short experiences under a day
+              Duration (hours), for short experiences under a day
             </label>
             <input
               id="durationHours"
@@ -199,7 +199,7 @@ export default function TourForm({
         </div>
         <div className="mt-4">
           <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Short Description</label>
-          <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~120–150 characters — keeps card layouts uniform across the site.</p>
+          <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~120–150 characters (keeps card layouts uniform across the site).</p>
           <textarea id="shortDescription" name="shortDescription" defaultValue={existingTour?.shortDescription} rows={3} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       </section>
@@ -360,12 +360,12 @@ export default function TourForm({
         <div className="mt-4 grid gap-4">
           <div>
             <label htmlFor="metaTitle" className="text-xs font-medium text-foreground/60">Meta Title</label>
-            <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~50–60 characters — longer titles get truncated in Google search results.</p>
+            <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~50–60 characters (longer titles get truncated in Google search results).</p>
             <input id="metaTitle" name="metaTitle" defaultValue={existingTour?.metaTitle} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="metaDescription" className="text-xs font-medium text-foreground/60">Meta Description</label>
-            <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~150–160 characters — Google's snippet cuts off beyond this.</p>
+            <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~150–160 characters (Google's snippet cuts off beyond this).</p>
             <textarea id="metaDescription" name="metaDescription" defaultValue={existingTour?.metaDescription} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>

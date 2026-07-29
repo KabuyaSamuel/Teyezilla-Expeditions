@@ -1,5 +1,5 @@
 // A simple block-based content model for blog posts, inspired by Notion's
-// block types but deliberately scoped down — no drag-and-drop, no nested
+// block types but deliberately scoped down: no drag-and-drop, no nested
 // blocks, no equations/mentions. Each block is one row in the admin editor
 // with a type picker; inline styling (bold/italic/etc.) is typed directly
 // as lightweight markdown within a block's text and parsed at render time.
@@ -38,10 +38,10 @@ export interface ContentBlock {
   id: string;
   type: BlockType;
   text: string;
-  summary?: string; // toggle only — the always-visible clickable header
+  summary?: string; // toggle only, the always-visible clickable header
   checked?: boolean; // todo only
   emoji?: string; // callout only
-  language?: string; // code only — a plain label, no syntax highlighting engine
+  language?: string; // code only, a plain label, no syntax highlighting engine
 }
 
 export function newBlock(type: BlockType = "paragraph"): ContentBlock {

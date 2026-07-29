@@ -77,7 +77,7 @@ export default function AboutPage() {
             believes that every destination has a story waiting to be discovered.
           </p>
           <p className="mt-4 text-foreground/70">
-            That vision became Teyezilla Expeditions — a brand built on passion, authenticity,
+            That vision became Teyezilla Expeditions: a brand built on passion, authenticity,
             adventure, and exceptional hospitality.
           </p>
         </div>
@@ -126,7 +126,7 @@ export default function AboutPage() {
             </p>
             <p className="mt-4 text-foreground/70">
               We want every traveler who journeys with Teyezilla Expeditions to leave with more
-              than photographs — they should leave with stories, memories, and a deeper connection
+              than photographs; they should leave with stories, memories, and a deeper connection
               to Africa.
             </p>
           </div>

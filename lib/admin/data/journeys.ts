@@ -64,7 +64,7 @@ const LIST_SELECT = `
 `;
 
 // Uses the authenticated staff session (not the public client) because
-// journeys' public-read RLS only exposes status='published' rows — the
+// journeys' public-read RLS only exposes status='published' rows; the
 // admin list needs drafts too, which the "Staff can manage journeys"
 // policy grants via its unconditional using(true).
 export async function getAdminJourneys(): Promise<AdminJourneyListItem[]> {
@@ -98,7 +98,7 @@ export async function getAdminJourneys(): Promise<AdminJourneyListItem[]> {
       currency: row.currency ?? "USD",
       featured: Boolean(row.featured),
       status: row.status ?? "draft",
-      primaryDestinationName: primary?.destinations?.country_name ?? "—",
+      primaryDestinationName: primary?.destinations?.country_name ?? "-",
     };
   });
 }

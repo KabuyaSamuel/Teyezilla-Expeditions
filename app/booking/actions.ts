@@ -79,7 +79,7 @@ export async function submitBookingEnquiry(
 
   const product = await lookupProduct(input.tourSlug, input.journeySlug);
   if (!product) {
-    return { fieldErrors: { tourSlug: "We couldn't find that tour or journey — please pick one from the list." } };
+    return { fieldErrors: { tourSlug: "We couldn't find that tour or journey. Please pick one from the list." } };
   }
 
   // 1. Upsert customer by email (create if new; refresh name/phone if existing).
@@ -152,7 +152,7 @@ export async function submitBookingEnquiry(
     `Enquiry for ${product.kind}: ${product.title}`,
     `Reference: ${bookingReference}`,
     `Travel date: ${input.travelDate || "Flexible"}${input.flexibleDates ? " (dates flexible)" : ""}`,
-    `Travelers: ${input.adults} adult(s)${input.children > 0 ? `, ${input.children} child(ren) — ages: ${input.childrenAges || "not given"}` : ""}`,
+    `Travelers: ${input.adults} adult(s)${input.children > 0 ? `, ${input.children} child(ren), ages: ${input.childrenAges || "not given"}` : ""}`,
     `Country of residence: ${input.country}`,
     input.budgetRange ? `Budget per person: ${input.budgetRange}` : "",
     input.referralSource ? `Heard about us via: ${input.referralSource}` : "",
@@ -171,7 +171,7 @@ export async function submitBookingEnquiry(
   });
   if (inquiryError) console.warn("[booking] inquiry insert failed:", inquiryError.message);
 
-  // 4. Emails (fail-soft — never block the submission).
+  // 4. Emails (fail-soft, never block the submission).
   const emailFields: EmailField[] = [
     { label: "Reference", value: bookingReference },
     { label: `${product.kind === "tour" ? "Tour" : "Journey"}`, value: product.title },
@@ -189,7 +189,7 @@ export async function submitBookingEnquiry(
   ];
 
   await sendAdminNotification({
-    subject: `New booking enquiry ${bookingReference} — ${product.title}`,
+    subject: `New booking enquiry ${bookingReference}: ${product.title}`,
     html: adminEnquiryEmail({
       heading: `New booking enquiry from ${input.fullName}`,
       fields: emailFields,
@@ -199,7 +199,7 @@ export async function submitBookingEnquiry(
 
   await sendCustomerConfirmation({
     to: input.email,
-    subject: `We've received your enquiry — ${bookingReference}`,
+    subject: `We've received your enquiry: ${bookingReference}`,
     html: customerEnquiryConfirmationEmail({
       customerName: input.fullName,
       bookingReference,

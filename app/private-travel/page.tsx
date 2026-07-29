@@ -4,7 +4,7 @@ import TourCard from "@/components/TourCard";
 
 export const metadata: Metadata = {
   title: "Private Travel",
-  description: "Africa, exclusively yours — private journeys designed around your time, interests and travel style with Teyezilla Expeditions.",
+  description: "Africa, exclusively yours: private journeys designed around your time, interests and travel style with Teyezilla Expeditions.",
 };
 
 export const revalidate = 3600;
@@ -20,7 +20,7 @@ export default async function PrivateTravelPage() {
         Africa, Exclusively Yours
       </h1>
       <p className="mt-6 max-w-2xl text-lg text-foreground/70">
-        Private journeys designed around your time, interests, and travel style — just your group,
+        Private journeys designed around your time, interests, and travel style: just your group,
         a dedicated guide, and Africa on your terms.
       </p>
 
@@ -30,7 +30,7 @@ export default async function PrivateTravelPage() {
         ))}
         {privateTours.length === 0 && (
           <p className="text-sm text-foreground/50">
-            No private travel packages published yet — reach out and our team will design one for you.
+            No private travel packages published yet. Reach out and our team will design one for you.
           </p>
         )}
       </div>

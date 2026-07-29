@@ -70,7 +70,7 @@ export default function InquiryReplyForm({
       </div>
       {source === "whatsapp" && !customerPhone && (
         <p className="text-xs text-foreground/50">
-          No phone number on file for this inquiry — falling back to email.
+          No phone number on file for this inquiry. Falling back to email.
         </p>
       )}
     </form>

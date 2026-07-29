@@ -5,7 +5,7 @@ import { whatsappLink } from "@/lib/enquiry-shared";
 
 export const metadata: Metadata = {
   title: "Enquiry Received",
-  description: "Your enquiry has been received — our travel team will reply within 24 hours.",
+  description: "Your enquiry has been received. Our travel team will reply within 24 hours.",
 };
 
 interface EnquirySummary {
@@ -19,7 +19,7 @@ interface EnquirySummary {
 
 // Anonymous visitors can't read the bookings table (insert-only RLS), so the
 // summary is looked up with the service-role client. Without it we still show
-// the reference and next steps — the enquiry itself has already landed.
+// the reference and next steps; the enquiry itself has already landed.
 async function getEnquiry(reference: string): Promise<EnquirySummary | null> {
   const supabase = getSupabaseServiceClient();
   if (!supabase) return null;
@@ -55,7 +55,7 @@ export default async function BookingConfirmationPage({
         ✓
       </div>
       <h1 className="mt-6 font-heading text-4xl font-bold text-foreground">
-        Thank you — your enquiry is in!
+        Thank you, your enquiry is in!
       </h1>
       <p className="mt-3 text-foreground/70">
         Our travel team will get back to you within 24 hours with a personal quote.
@@ -79,7 +79,7 @@ export default async function BookingConfirmationPage({
             <div className="flex justify-between gap-4">
               <dt className="text-foreground/50">Travelers</dt>
               <dd className="font-medium text-foreground">
-                {enquiry.adults ?? "—"} adult(s){enquiry.children ? `, ${enquiry.children} child(ren)` : ""}
+                {enquiry.adults ?? "-"} adult(s){enquiry.children ? `, ${enquiry.children} child(ren)` : ""}
               </dd>
             </div>
             {enquiry.budgetRange && (
@@ -96,14 +96,14 @@ export default async function BookingConfirmationPage({
         <h2 className="font-heading text-lg font-semibold text-foreground">What happens next</h2>
         <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-foreground/70">
           <li>A travel consultant reviews your enquiry and preferred dates.</li>
-          <li>We reply by email or WhatsApp with a tailored quote — usually within 24 hours.</li>
+          <li>We reply by email or WhatsApp with a tailored quote, usually within 24 hours.</li>
           <li>Once you&apos;re happy, we confirm your journey and arrange payment offline.</li>
         </ol>
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         <a
-          href={whatsappLink(`Hi! I just sent enquiry ${reference} — I'd love to chat about it.`)}
+          href={whatsappLink(`Hi! I just sent enquiry ${reference}. I'd love to chat about it.`)}
           target="_blank"
           rel="noopener noreferrer"
           className="btn-primary"

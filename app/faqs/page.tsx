@@ -32,7 +32,7 @@ export default async function FaqsPage() {
         ))}
         {faqs.length === 0 && (
           <p className="text-sm text-foreground/50">
-            No FAQs published yet — reach out to our team with any questions.
+            No FAQs published yet. Reach out to our team with any questions.
           </p>
         )}
       </div>

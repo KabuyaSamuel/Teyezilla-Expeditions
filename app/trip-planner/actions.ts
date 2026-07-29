@@ -83,13 +83,13 @@ export async function submitTripPlannerRequest(
   ];
 
   await sendAdminNotification({
-    subject: `New trip planner request from ${input.name} — ${input.destination}`,
+    subject: `New trip planner request from ${input.name}: ${input.destination}`,
     html: adminEnquiryEmail({ heading: `New trip planner request from ${input.name}`, fields }),
   });
 
   await sendCustomerConfirmation({
     to: input.email,
-    subject: "We've received your trip request — Teyezilla Expeditions",
+    subject: "We've received your trip request: Teyezilla Expeditions",
     html: customerTripPlannerConfirmationEmail({ customerName: input.name, fields: fields.slice(2) }),
   });
 

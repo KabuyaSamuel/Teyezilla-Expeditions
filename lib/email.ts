@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 // Transactional email via Resend. Both senders fail soft: a missing API key
-// or a failed send logs a warning and returns { sent: false } — the inquiry
+// or a failed send logs a warning and returns { sent: false }; the inquiry
 // landing in the database is the critical path, email is only the
 // notification layer on top, so a mail outage must never error a form
 // submission.
@@ -20,7 +20,7 @@ interface SendArgs {
 async function send({ to, subject, html, text }: SendArgs): Promise<EmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.warn("[email] RESEND_API_KEY not set — skipping send:", subject);
+    console.warn("[email] RESEND_API_KEY not set, skipping send:", subject);
     return { sent: false };
   }
 
@@ -71,7 +71,7 @@ export async function sendAdminNotification({
 }): Promise<EmailResult> {
   const to = process.env.ADMIN_NOTIFICATION_EMAIL;
   if (!to) {
-    console.warn("[email] ADMIN_NOTIFICATION_EMAIL not set — skipping admin notification:", subject);
+    console.warn("[email] ADMIN_NOTIFICATION_EMAIL not set, skipping admin notification:", subject);
     return { sent: false };
   }
   return send({ to, subject, html, text });

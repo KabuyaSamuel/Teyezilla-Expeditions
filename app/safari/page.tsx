@@ -5,7 +5,7 @@ import TourCard from "@/components/TourCard";
 
 export const metadata: Metadata = {
   title: "Safari",
-  description: "The art of the African safari, perfectly crafted — Wildlife & safari tours with Teyezilla Expeditions.",
+  description: "The art of the African safari, perfectly crafted: Wildlife & safari tours with Teyezilla Expeditions.",
 };
 
 export const revalidate = 3600;
@@ -22,7 +22,7 @@ export default async function SafariPage() {
           The Art of the African Safari
         </h1>
         <p className="mt-6 text-lg text-foreground/70">
-          Go deeper into the wild with Teyezilla — from the Great Migration to gorilla trekking,
+          Go deeper into the wild with Teyezilla, from the Great Migration to gorilla trekking,
           every safari is planned by guides who know these landscapes firsthand.
         </p>
       </div>

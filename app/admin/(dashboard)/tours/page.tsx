@@ -39,11 +39,11 @@ export default async function AdminToursPage() {
               return (
                 <tr key={tour.id} className="border-b border-secondary/10 last:border-0">
                   <td className="px-5 py-3 font-medium text-foreground">{tour.title}</td>
-                  <td className="px-5 py-3 text-foreground/70">{destination?.countryName ?? "—"}</td>
+                  <td className="px-5 py-3 text-foreground/70">{destination?.countryName ?? "-"}</td>
                   <td className="px-5 py-3 text-foreground/70">{tour.categoryLabel}</td>
                   <td className="px-5 py-3 text-foreground/70">{tour.durationDays}d</td>
                   <td className="px-5 py-3 text-foreground/70">{tour.currency} {tour.priceFrom}</td>
-                  <td className="px-5 py-3">{tour.featured ? "★" : "—"}</td>
+                  <td className="px-5 py-3">{tour.featured ? "★" : "-"}</td>
                   <td className="px-5 py-3">
                     <Badge tone={contentStatusTone(tour.status)}>{tour.status}</Badge>
                   </td>

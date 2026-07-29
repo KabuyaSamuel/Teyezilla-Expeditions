@@ -117,7 +117,7 @@ export async function deleteStatusOption(id: string): Promise<void> {
 
   if (count && count > 0) {
     throw new Error(
-      `"${option.label}" is still used by ${count} booking${count === 1 ? "" : "s"} — reassign them first.`
+      `"${option.label}" is still used by ${count} booking${count === 1 ? "" : "s"}. Reassign them first.`
     );
   }
 

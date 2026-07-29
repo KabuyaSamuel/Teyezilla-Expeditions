@@ -1,5 +1,5 @@
 // Shared write-side sync helpers for the product-enrichment tables. Not a
-// "use server" file itself — imported by lib/admin/actions/tours.ts and
+// "use server" file itself; imported by lib/admin/actions/tours.ts and
 // lib/admin/actions/journeys.ts, which are. Generic over table name / parent
 // FK column since tour_X and journey_X tables are otherwise column-identical.
 

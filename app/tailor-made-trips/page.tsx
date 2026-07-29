@@ -4,7 +4,7 @@ import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 
 export const metadata: Metadata = {
   title: "Bespoke Journeys",
-  description: "Your journey, your way — design a custom African itinerary with Teyezilla Expeditions' AI trip planner or our travel team.",
+  description: "Your journey, your way: design a custom African itinerary with Teyezilla Expeditions' AI trip planner or our travel team.",
 };
 
 export default function BespokePage() {

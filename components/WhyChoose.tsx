@@ -59,7 +59,7 @@ export default function WhyChoose({
           <span className="block font-normal italic text-primary">It&apos;s a Connection.</span>
         </h2>
         <p className="mt-4 text-foreground/70">
-          We don&apos;t just show you places — we connect you to the people, the culture, and the
+          We don&apos;t just show you places; we connect you to the people, the culture, and the
           wild beauty of Africa.
         </p>
 

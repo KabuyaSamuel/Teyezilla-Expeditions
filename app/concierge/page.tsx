@@ -25,7 +25,7 @@ export default function ConciergePage() {
         A More Personal Way to Travel
       </h1>
       <p className="mt-6 text-lg text-foreground/70">
-        For travelers who want their journey planned around them — not the other way around —
+        For travelers who want their journey planned around them (not the other way around),
         Teyezilla Concierge is our dedicated, personalized planning service. You work directly
         with our team to design a trip around exactly what you want to see, do, and experience.
       </p>
@@ -42,8 +42,8 @@ export default function ConciergePage() {
       <div className="mt-10 card p-8">
         <h2 className="font-heading text-xl font-semibold text-foreground">How It Works</h2>
         <p className="mt-3 text-sm text-foreground/70">
-          Tell us about the trip you have in mind — destinations, dates, group size, and the kind
-          of experience you&apos;re after — and our team will put together a tailored proposal.
+          Tell us about the trip you have in mind: destinations, dates, group size, and the kind
+          of experience you&apos;re after, and our team will put together a tailored proposal.
           There&apos;s no separate booking system for Concierge; it runs through the same team
           that handles every Teyezilla journey, just with a more hands-on, one-to-one planning
           process.

@@ -5,13 +5,13 @@ export default function Hero() {
   return (
     <section className="relative -mt-20 flex min-h-[720px] items-center overflow-hidden text-white">
       <HeroCarousel />
-      {/* General depth/atmosphere — not relied on alone for text contrast,
+      {/* General depth/atmosphere, not relied on alone for text contrast,
           since it can't guarantee enough darkness against every video frame. */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/5" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(201,162,39,0.2),transparent_60%)]" />
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-col items-start gap-4 px-6 pb-20 pt-36 sm:gap-5 sm:pb-24 sm:pt-40">
-        {/* Each line gets its own tight dark backdrop (not one big card) —
+        {/* Each line gets its own tight dark backdrop (not one big card),
             box-decoration-break:clone keeps that backdrop snug per visual
             line even when text wraps, like a film subtitle, instead of one
             rectangle stretching across empty space. */}
@@ -32,7 +32,7 @@ export default function Hero() {
         <p className="animate-fadeUp max-w-xl text-base leading-relaxed text-white/90 [animation-delay:300ms] sm:text-lg">
           <span className="bg-black/50 px-2 py-0.5 [box-decoration-break:clone] [-webkit-box-decoration-break:clone] sm:px-3 sm:py-1">
             Discover Africa through extraordinary safaris, immersive experiences, and
-            thoughtfully crafted journeys — created by locals who know the places they call home.
+            thoughtfully crafted journeys, created by locals who know the places they call home.
           </span>
         </p>
 

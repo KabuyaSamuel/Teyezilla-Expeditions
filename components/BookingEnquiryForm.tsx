@@ -225,7 +225,7 @@ export default function BookingEnquiryForm({
             id="childrenAges"
             name="childrenAges"
             type="text"
-            placeholder="e.g. 5 and 9 — ages matter for safari lodges and pricing"
+            placeholder="e.g. 5 and 9 (ages matter for safari lodges and pricing)"
             value={fields.childrenAges}
             onChange={(e) => setField("childrenAges", e.target.value)}
             className={inputClass}
@@ -278,7 +278,7 @@ export default function BookingEnquiryForm({
           id="specialRequests"
           name="specialRequests"
           rows={4}
-          placeholder="Honeymoon, dietary needs, mobility, a celebration — anything that helps us tailor your trip."
+          placeholder="Honeymoon, dietary needs, mobility, a celebration: anything that helps us tailor your trip."
           value={fields.specialRequests}
           onChange={(e) => setField("specialRequests", e.target.value)}
           className={areaClass}
@@ -293,7 +293,7 @@ export default function BookingEnquiryForm({
         {pending ? "Sending your enquiry…" : "Send Enquiry"}
       </button>
       <p className="text-center text-xs text-foreground/50">
-        No payment is taken online — our travel team replies with a personal quote within 24 hours.
+        No payment is taken online. Our travel team replies with a personal quote within 24 hours.
       </p>
     </form>
   );

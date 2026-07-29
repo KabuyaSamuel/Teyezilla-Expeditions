@@ -62,7 +62,7 @@ export default function StaffForm({ existingStaff }: { existingStaff?: StaffMemb
     return (
       <div className="card space-y-4 p-6">
         <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">
-          Account created. Share this temporary password with them securely — it won&apos;t be shown again.
+          Account created. Share this temporary password with them securely; it won&apos;t be shown again.
           They should change it after logging in.
         </div>
         <p className="rounded-xl bg-secondary/10 p-4 font-mono text-lg">{tempPassword}</p>

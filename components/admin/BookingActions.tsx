@@ -56,7 +56,7 @@ export default function BookingActions({
       setNotice(
         emailSent
           ? "Quote saved and emailed to the customer."
-          : "Quote saved. The email could not be sent — follow up by email or WhatsApp."
+          : "Quote saved. The email could not be sent. Follow up by email or WhatsApp."
       );
     });
   }

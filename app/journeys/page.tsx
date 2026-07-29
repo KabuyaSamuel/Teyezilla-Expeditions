@@ -23,7 +23,7 @@ export default async function JourneysPage({ searchParams }: Props) {
     <div className="section">
       <h1 className="font-heading text-4xl font-bold text-foreground">Journeys</h1>
       <p className="mt-3 max-w-2xl text-foreground/70">
-        Thoughtfully designed, multi-day itineraries — from signature single-country trips to
+        Thoughtfully designed, multi-day itineraries, from signature single-country trips to
         multi-country expeditions across Africa.
       </p>
 

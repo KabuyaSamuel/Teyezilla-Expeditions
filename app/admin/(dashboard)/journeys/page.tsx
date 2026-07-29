@@ -39,7 +39,7 @@ export default async function AdminJourneysPage() {
                 <td className="px-5 py-3 text-foreground/70">{journey.primaryDestinationName}</td>
                 <td className="px-5 py-3 text-foreground/70">{journey.durationDays}d</td>
                 <td className="px-5 py-3 text-foreground/70">{journey.currency} {journey.priceFrom}</td>
-                <td className="px-5 py-3">{journey.featured ? "★" : "—"}</td>
+                <td className="px-5 py-3">{journey.featured ? "★" : "-"}</td>
                 <td className="px-5 py-3">
                   <Badge tone={contentStatusTone(journey.status)}>{journey.status}</Badge>
                 </td>

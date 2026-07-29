@@ -69,7 +69,7 @@ export async function getTours(): Promise<Tour[]> {
 }
 
 // getTours() is also the admin tours list's data source, which needs to see
-// drafts — so the published filter lives here as an opt-in wrapper for
+// drafts, so the published filter lives here as an opt-in wrapper for
 // public-facing pages instead of inside getTours() itself.
 export async function getPublishedTours(): Promise<Tour[]> {
   const all = await getTours();

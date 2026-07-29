@@ -30,7 +30,7 @@ export const REFERRAL_SOURCES = [
 ] as const;
 
 // Full list of UN-recognized country / territory names, for the "Country of
-// residence" select — kept here so both the form and the zod schema can
+// residence" select; kept here so both the form and the zod schema can
 // validate against the same source of truth.
 export const COUNTRIES = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina",

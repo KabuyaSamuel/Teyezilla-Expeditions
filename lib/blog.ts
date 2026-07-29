@@ -9,6 +9,7 @@ function mapRow(row: Record<string, unknown>): BlogPost {
     excerpt: (row.excerpt as string) ?? "",
     answer: (row.answer as string) ?? "",
     body: (row.body as string) ?? "",
+    bodyBlocks: Array.isArray(row.body_blocks) ? (row.body_blocks as BlogPost["bodyBlocks"]) : [],
     heroImage: (row.hero_image as string) ?? "",
     authorName: (row.author_name as string) ?? "",
     authorBio: (row.author_bio as string) ?? "",

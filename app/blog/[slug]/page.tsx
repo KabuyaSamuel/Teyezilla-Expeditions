@@ -5,6 +5,7 @@ import { getPublishedBlogPosts, getPublishedBlogPostBySlug, getRelatedBlogPosts 
 import { getRelatedTours } from "@/lib/tours";
 import { getJourneysByDestination } from "@/lib/journeys";
 import RelatedContent from "@/components/RelatedContent";
+import BlogContentBlocks from "@/components/BlogContentBlocks";
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return "";
@@ -76,7 +77,11 @@ export default async function BlogPostPage({ params }: Props) {
           {post.answer}
         </p>
 
-        <p className="mt-6 text-foreground/80">{post.body}</p>
+        {post.bodyBlocks.length > 0 ? (
+          <BlogContentBlocks blocks={post.bodyBlocks} />
+        ) : (
+          post.body && <p className="mt-6 text-foreground/80">{post.body}</p>
+        )}
 
         <div className="mt-10 rounded-2xl bg-primary/5 p-6 text-center">
           <p className="font-heading text-lg font-semibold text-foreground">Ready to plan your own journey?</p>

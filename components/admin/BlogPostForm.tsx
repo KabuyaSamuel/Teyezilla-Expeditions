@@ -3,7 +3,9 @@
 import { useState } from "react";
 import type { Destination } from "@/types";
 import type { AdminBlogPost } from "@/lib/admin/data/blog";
+import type { ContentBlock } from "@/lib/blogBlocks";
 import { createBlogPost, updateBlogPost, deleteBlogPost } from "@/lib/admin/actions/blog";
+import BlogContentEditor from "./BlogContentEditor";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -18,6 +20,7 @@ export default function BlogPostForm({
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [blocks, setBlocks] = useState<ContentBlock[]>(existingPost?.bodyBlocks ?? []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,7 +39,7 @@ export default function BlogPostForm({
       destinationId: String(formData.get("destinationId") ?? ""),
       excerpt: String(formData.get("excerpt") ?? ""),
       answer: String(formData.get("answer") ?? ""),
-      body: String(formData.get("body") ?? ""),
+      bodyBlocks: blocks,
       authorName: String(formData.get("authorName") ?? "Teyezilla Travel Team"),
       metaTitle: String(formData.get("metaTitle") ?? ""),
       metaDescription: String(formData.get("metaDescription") ?? ""),
@@ -121,12 +124,10 @@ export default function BlogPostForm({
             <label htmlFor="answer" className="text-xs font-medium text-foreground/60">Answer-first block (AEO/GEO highlight box)</label>
             <textarea id="answer" name="answer" rows={2} defaultValue={existingPost?.answer} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
-          <div>
-            <label htmlFor="body" className="text-xs font-medium text-foreground/60">Body</label>
-            <textarea id="body" name="body" rows={8} defaultValue={existingPost?.body} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          </div>
         </div>
       </section>
+
+      <BlogContentEditor blocks={blocks} onChange={setBlocks} />
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">SEO</h2>

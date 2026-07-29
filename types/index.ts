@@ -1,3 +1,5 @@
+import type { ContentBlock } from "@/lib/blogBlocks";
+
 export interface SEOFields {
   metaTitle: string;
   metaDescription: string;
@@ -55,4 +57,5 @@ export interface BlogPost extends SEOFields {
   publishedAt: string;
   category: string;
   destinationId: string | null;
+  bodyBlocks: ContentBlock[];
 }

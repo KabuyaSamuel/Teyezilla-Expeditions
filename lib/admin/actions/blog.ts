@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { ContentBlock } from "@/lib/blogBlocks";
 
 export interface BlogPostInput {
   title: string;
@@ -12,7 +13,7 @@ export interface BlogPostInput {
   destinationId: string;
   excerpt: string;
   answer: string;
-  body: string;
+  bodyBlocks: ContentBlock[];
   authorName: string;
   metaTitle: string;
   metaDescription: string;
@@ -44,7 +45,7 @@ function toRow(input: BlogPostInput) {
     destination_id: input.destinationId || null,
     excerpt: input.excerpt,
     answer: input.answer,
-    body: input.body,
+    body_blocks: input.bodyBlocks,
     author_name: input.authorName,
     meta_title: input.metaTitle,
     meta_description: input.metaDescription,

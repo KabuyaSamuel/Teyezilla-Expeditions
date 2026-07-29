@@ -32,7 +32,7 @@ export interface Journey {
   priceFrom: number;
   currency: string;
   featured: boolean;
-  destinations: { countryName: string; slug: string }[];
+  destinations: { id: string; countryName: string; slug: string }[];
   journeyTypes: string[];
 }
 
@@ -90,9 +90,12 @@ function mapRow(row: Record<string, any>): Journey {
     currency: row.currency ?? "USD",
     featured: Boolean(row.featured),
     destinations: (row.journey_destinations ?? [])
-      .map((jd: any) => jd.destinations)
-      .filter(Boolean)
-      .map((d: any) => ({ countryName: d.country_name, slug: d.slug })),
+      .filter((jd: any) => jd.destinations)
+      .map((jd: any) => ({
+        id: jd.destination_id,
+        countryName: jd.destinations.country_name,
+        slug: jd.destinations.slug,
+      })),
     journeyTypes: (row.journey_journey_types ?? [])
       .map((jjt: any) => jjt.journey_types?.name)
       .filter(Boolean),
@@ -101,7 +104,7 @@ function mapRow(row: Record<string, any>): Journey {
 
 const SELECT = `
   id, slug, title, hero_image, short_description, duration_days, price_from, currency, featured,
-  journey_destinations(destinations(country_name, slug)),
+  journey_destinations(destination_id, destinations(country_name, slug)),
   journey_journey_types(journey_types(name))
 `;
 
@@ -146,9 +149,21 @@ export async function getFeaturedJourneys(): Promise<Journey[]> {
   return all.filter((j) => j.featured);
 }
 
+// Powers "related journeys" sections on tour/destination/blog pages.
+export async function getJourneysByDestination(
+  destinationId: string,
+  excludeSlug?: string,
+  limit = 3
+): Promise<Journey[]> {
+  const all = await getJourneys();
+  return all
+    .filter((j) => j.slug !== excludeSlug && j.destinations.some((d) => d.id === destinationId))
+    .slice(0, limit);
+}
+
 const DETAIL_SELECT = `
   *,
-  journey_destinations(destinations(country_name, slug)),
+  journey_destinations(destination_id, destinations(country_name, slug)),
   journey_journey_types(journey_types(name)),
   journey_pricing_tiers(*),
   journey_highlights(*),

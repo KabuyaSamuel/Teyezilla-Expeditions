@@ -142,3 +142,13 @@ export async function getToursByDestination(destinationId: string): Promise<Tour
   const all = await getPublishedTours();
   return all.filter((t) => t.destinationId === destinationId);
 }
+
+// Powers "related tours" sections on journey/destination/blog pages.
+export async function getRelatedTours(
+  destinationId: string,
+  excludeSlug?: string,
+  limit = 3
+): Promise<Tour[]> {
+  const all = await getToursByDestination(destinationId);
+  return all.filter((t) => t.slug !== excludeSlug).slice(0, limit);
+}

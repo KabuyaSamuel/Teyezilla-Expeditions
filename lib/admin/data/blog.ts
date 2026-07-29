@@ -6,6 +6,7 @@ export interface AdminBlogPost {
   slug: string;
   category: string;
   tags: string[];
+  destinationId: string | null;
   excerpt: string;
   answer: string;
   body: string;
@@ -26,6 +27,7 @@ function mapRow(row: Record<string, any>): AdminBlogPost {
     slug: row.slug,
     category: row.category ?? "",
     tags: row.tags ?? [],
+    destinationId: row.destination_id ?? null,
     excerpt: row.excerpt ?? "",
     answer: row.answer ?? "",
     body: row.body ?? "",

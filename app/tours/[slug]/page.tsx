@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { getTours, getTourBySlug } from "@/lib/tours";
+import { getTours, getTourBySlug, getRelatedTours } from "@/lib/tours";
 import { getDestinationById } from "@/lib/destinations";
+import { getJourneysByDestination } from "@/lib/journeys";
+import { getRelatedBlogPosts } from "@/lib/blog";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 import { formatTourDuration } from "@/lib/duration";
 import ProductItinerary from "@/components/ProductItinerary";
@@ -14,6 +16,7 @@ import ProductGoodToKnow from "@/components/ProductGoodToKnow";
 import ProductTeyezillaMoment from "@/components/ProductTeyezillaMoment";
 import ProductPricingTiers from "@/components/ProductPricingTiers";
 import ProductAddons from "@/components/ProductAddons";
+import RelatedContent from "@/components/RelatedContent";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -49,6 +52,11 @@ export default async function TourPage({ params }: Props) {
   if (!tour) notFound();
 
   const destination = await getDestinationById(tour.destinationId);
+  const [relatedTours, relatedJourneys, relatedArticles] = await Promise.all([
+    getRelatedTours(tour.destinationId, tour.slug, 3),
+    getJourneysByDestination(tour.destinationId, undefined, 3),
+    getRelatedBlogPosts(tour.destinationId, undefined, 3),
+  ]);
   const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     `Hi! I'm interested in the "${tour.title}" tour. Could you share more details?`
   )}`;
@@ -257,6 +265,8 @@ export default async function TourPage({ params }: Props) {
           </aside>
         </div>
       </div>
+
+      <RelatedContent tours={relatedTours} journeys={relatedJourneys} articles={relatedArticles} />
     </div>
   );
 }

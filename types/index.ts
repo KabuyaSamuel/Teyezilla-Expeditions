@@ -54,4 +54,5 @@ export interface BlogPost extends SEOFields {
   authorBio: string;
   publishedAt: string;
   category: string;
+  destinationId: string | null;
 }

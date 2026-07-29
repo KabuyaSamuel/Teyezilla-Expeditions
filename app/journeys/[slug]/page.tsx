@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { getJourneys, getJourneyBySlug } from "@/lib/journeys";
+import { getJourneys, getJourneyBySlug, getJourneysByDestination } from "@/lib/journeys";
+import { getRelatedTours } from "@/lib/tours";
+import { getRelatedBlogPosts } from "@/lib/blog";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 import ProductItinerary from "@/components/ProductItinerary";
 import ProductHighlights from "@/components/ProductHighlights";
@@ -12,6 +14,7 @@ import ProductTeyezillaMoment from "@/components/ProductTeyezillaMoment";
 import ProductPricingTiers from "@/components/ProductPricingTiers";
 import ProductAddons from "@/components/ProductAddons";
 import TourCard from "@/components/TourCard";
+import RelatedContent from "@/components/RelatedContent";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -47,6 +50,16 @@ export default async function JourneyPage({ params }: Props) {
   if (!journey) notFound();
 
   const destinationNames = journey.destinations.map((d) => d.countryName).join(" · ");
+  const primaryDestinationId = journey.destinations[0]?.id;
+  const includedTourIds = new Set(journey.includedTours.map((t) => t.id));
+  const [relatedToursRaw, relatedJourneys, relatedArticles] = primaryDestinationId
+    ? await Promise.all([
+        getRelatedTours(primaryDestinationId, undefined, 6),
+        getJourneysByDestination(primaryDestinationId, journey.slug, 3),
+        getRelatedBlogPosts(primaryDestinationId, undefined, 3),
+      ])
+    : [[], [], []];
+  const relatedTours = relatedToursRaw.filter((t) => !includedTourIds.has(t.id)).slice(0, 3);
   const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     `Hi! I'm interested in the "${journey.title}" journey. Could you share more details?`
   )}`;
@@ -201,6 +214,8 @@ export default async function JourneyPage({ params }: Props) {
           </aside>
         </div>
       </div>
+
+      <RelatedContent tours={relatedTours} journeys={relatedJourneys} articles={relatedArticles} />
     </div>
   );
 }

@@ -14,6 +14,7 @@ function mapRow(row: Record<string, unknown>): BlogPost {
     authorBio: (row.author_bio as string) ?? "",
     publishedAt: (row.published_at as string) ?? "",
     category: (row.category as string) ?? "",
+    destinationId: (row.destination_id as string) ?? null,
     metaTitle: (row.meta_title as string) ?? "",
     metaDescription: (row.meta_description as string) ?? "",
     ogImage: (row.og_image as string) ?? "",
@@ -35,6 +36,34 @@ export async function getPublishedBlogPosts(): Promise<BlogPost[]> {
 
   if (error || !data) {
     console.warn("[blog] Supabase query failed:", error?.message);
+    return [];
+  }
+
+  return data.map(mapRow);
+}
+
+// Powers "related articles" sections on tour/journey/destination pages.
+export async function getRelatedBlogPosts(
+  destinationId: string,
+  excludeSlug?: string,
+  limit = 3
+): Promise<BlogPost[]> {
+  const supabase = getSupabasePublicClient();
+  if (!supabase) return [];
+
+  let query = supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("status", "published")
+    .eq("destination_id", destinationId)
+    .order("published_at", { ascending: false })
+    .limit(limit);
+
+  if (excludeSlug) query = query.neq("slug", excludeSlug);
+
+  const { data, error } = await query;
+  if (error || !data) {
+    if (error) console.warn("[blog] Related posts query failed:", error.message);
     return [];
   }
 

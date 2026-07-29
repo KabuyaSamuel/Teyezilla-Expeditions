@@ -9,6 +9,7 @@ export interface BlogPostInput {
   slug: string;
   category: string;
   tags: string[];
+  destinationId: string;
   excerpt: string;
   answer: string;
   body: string;
@@ -40,6 +41,7 @@ function toRow(input: BlogPostInput) {
     slug: input.slug || slugify(input.title),
     category: input.category,
     tags: input.tags,
+    destination_id: input.destinationId || null,
     excerpt: input.excerpt,
     answer: input.answer,
     body: input.body,

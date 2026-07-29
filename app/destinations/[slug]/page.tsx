@@ -4,7 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { getDestinations, getDestinationBySlug } from "@/lib/destinations";
 import { getToursByDestination } from "@/lib/tours";
+import { getJourneysByDestination } from "@/lib/journeys";
+import { getRelatedBlogPosts } from "@/lib/blog";
 import TourCard from "@/components/TourCard";
+import RelatedContent from "@/components/RelatedContent";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -39,7 +42,11 @@ export default async function DestinationPage({ params }: Props) {
   const destination = await getDestinationBySlug(slug);
   if (!destination) notFound();
 
-  const relatedTours = await getToursByDestination(destination.id);
+  const [relatedTours, relatedJourneys, relatedArticles] = await Promise.all([
+    getToursByDestination(destination.id),
+    getJourneysByDestination(destination.id, undefined, 3),
+    getRelatedBlogPosts(destination.id, undefined, 3),
+  ]);
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -158,6 +165,8 @@ export default async function DestinationPage({ params }: Props) {
           </Link>
         </div>
       </div>
+
+      <RelatedContent journeys={relatedJourneys} articles={relatedArticles} />
     </div>
   );
 }

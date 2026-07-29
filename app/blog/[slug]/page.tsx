@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublishedBlogPosts, getPublishedBlogPostBySlug } from "@/lib/blog";
+import { getPublishedBlogPosts, getPublishedBlogPostBySlug, getRelatedBlogPosts } from "@/lib/blog";
+import { getRelatedTours } from "@/lib/tours";
+import { getJourneysByDestination } from "@/lib/journeys";
+import RelatedContent from "@/components/RelatedContent";
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return "";
@@ -38,6 +41,14 @@ export default async function BlogPostPage({ params }: Props) {
   if (!post) notFound();
   const publishedLabel = formatDate(post.publishedAt);
 
+  const [relatedTours, relatedJourneys, relatedArticles] = post.destinationId
+    ? await Promise.all([
+        getRelatedTours(post.destinationId, undefined, 3),
+        getJourneysByDestination(post.destinationId, undefined, 3),
+        getRelatedBlogPosts(post.destinationId, post.slug, 3),
+      ])
+    : [[], [], []];
+
   const blogPostingJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -47,34 +58,43 @@ export default async function BlogPostPage({ params }: Props) {
   };
 
   return (
-    <article className="section max-w-3xl">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
-      />
-      <h1 className="font-heading text-4xl font-bold text-foreground">{post.title}</h1>
-      <p className="mt-2 text-sm text-foreground/60">
-        {publishedLabel}
-        {publishedLabel && post.authorName && " · "}
-        {post.authorName && `By ${post.authorName}`}
-      </p>
-
-      {/* Answer-first block for AEO/GEO */}
-      <p className="mt-6 rounded-2xl bg-secondary/15 p-5 text-lg font-medium text-foreground">
-        {post.answer}
-      </p>
-
-      <p className="mt-6 text-foreground/80">{post.body}</p>
-
-      <div className="mt-10 rounded-2xl bg-primary/5 p-6 text-center">
-        <p className="font-heading text-lg font-semibold text-foreground">Ready to plan your own journey?</p>
-        <p className="mt-1 text-sm text-foreground/70">
-          Let our travel team craft a personal itinerary around what you just read.
+    <div>
+      <article className="section max-w-3xl">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
+        />
+        <h1 className="font-heading text-4xl font-bold text-foreground">{post.title}</h1>
+        <p className="mt-2 text-sm text-foreground/60">
+          {publishedLabel}
+          {publishedLabel && post.authorName && " · "}
+          {post.authorName && `By ${post.authorName}`}
         </p>
-        <Link href="/trip-planner" className="btn-primary mt-4 inline-block">
-          Plan My Journey
-        </Link>
-      </div>
-    </article>
+
+        {/* Answer-first block for AEO/GEO */}
+        <p className="mt-6 rounded-2xl bg-secondary/15 p-5 text-lg font-medium text-foreground">
+          {post.answer}
+        </p>
+
+        <p className="mt-6 text-foreground/80">{post.body}</p>
+
+        <div className="mt-10 rounded-2xl bg-primary/5 p-6 text-center">
+          <p className="font-heading text-lg font-semibold text-foreground">Ready to plan your own journey?</p>
+          <p className="mt-1 text-sm text-foreground/70">
+            Let our travel team craft a personal itinerary around what you just read.
+          </p>
+          <Link href="/trip-planner" className="btn-primary mt-4 inline-block">
+            Plan My Journey
+          </Link>
+        </div>
+      </article>
+
+      <RelatedContent
+        title="Bring This Story to Life"
+        tours={relatedTours}
+        journeys={relatedJourneys}
+        articles={relatedArticles}
+      />
+    </div>
   );
 }

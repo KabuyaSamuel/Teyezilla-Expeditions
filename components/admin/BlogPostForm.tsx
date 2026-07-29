@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { Destination } from "@/types";
 import type { AdminBlogPost } from "@/lib/admin/data/blog";
 import { createBlogPost, updateBlogPost, deleteBlogPost } from "@/lib/admin/actions/blog";
 
@@ -8,7 +9,13 @@ function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
 }
 
-export default function BlogPostForm({ existingPost }: { existingPost?: AdminBlogPost }) {
+export default function BlogPostForm({
+  existingPost,
+  destinations,
+}: {
+  existingPost?: AdminBlogPost;
+  destinations: Destination[];
+}) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,6 +33,7 @@ export default function BlogPostForm({ existingPost }: { existingPost?: AdminBlo
       slug: existingPost?.slug ?? "",
       category: String(formData.get("category") ?? ""),
       tags: splitCommas(formData.get("tags")),
+      destinationId: String(formData.get("destinationId") ?? ""),
       excerpt: String(formData.get("excerpt") ?? ""),
       answer: String(formData.get("answer") ?? ""),
       body: String(formData.get("body") ?? ""),
@@ -74,6 +82,23 @@ export default function BlogPostForm({ existingPost }: { existingPost?: AdminBlo
         <div>
           <label htmlFor="category" className="text-xs font-medium text-foreground/60">Category</label>
           <input id="category" name="category" defaultValue={existingPost?.category} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div>
+          <label htmlFor="destinationId" className="text-xs font-medium text-foreground/60">Destination (optional)</label>
+          <p className="mt-0.5 text-[11px] text-foreground/40">
+            Powers "related tours/journeys/articles" on this post and on that country's pages. Leave blank for general articles.
+          </p>
+          <select
+            id="destinationId"
+            name="destinationId"
+            defaultValue={existingPost?.destinationId ?? ""}
+            className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">None — general article</option>
+            {destinations.map((d) => (
+              <option key={d.id} value={d.id}>{d.countryName}</option>
+            ))}
+          </select>
         </div>
         <div className="sm:col-span-2">
           <label htmlFor="tags" className="text-xs font-medium text-foreground/60">Tags (comma-separated)</label>

@@ -32,14 +32,14 @@ export default function JourneyCard({ journey }: { journey: Journey }) {
           </h3>
         </Link>
         <p className="mt-2 text-sm text-foreground/70">{journey.shortDescription}</p>
-        <div className="mt-3 flex items-center justify-between text-sm text-foreground/60">
-          <span>{journey.durationDays} day{journey.durationDays !== 1 ? "s" : ""}</span>
-          <span className="font-heading font-semibold text-accent">
-            From {journey.currency} {journey.priceFrom.toLocaleString()}
-          </span>
-        </div>
         <div className="mt-auto pt-4">
-          <Link href={`/journeys/${journey.slug}`} className="btn-primary block w-full px-3 py-2 text-center text-sm">
+          <div className="flex items-center justify-between text-sm text-foreground/60">
+            <span>{journey.durationDays} day{journey.durationDays !== 1 ? "s" : ""}</span>
+            <span className="font-heading font-semibold text-accent">
+              From {journey.currency} {journey.priceFrom.toLocaleString()}
+            </span>
+          </div>
+          <Link href={`/journeys/${journey.slug}`} className="btn-primary mt-4 block w-full px-3 py-2 text-center text-sm">
             Explore More
           </Link>
         </div>

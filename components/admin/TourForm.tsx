@@ -199,6 +199,7 @@ export default function TourForm({
         </div>
         <div className="mt-4">
           <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Short Description</label>
+          <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~120–150 characters — keeps card layouts uniform across the site.</p>
           <textarea id="shortDescription" name="shortDescription" defaultValue={existingTour?.shortDescription} rows={3} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       </section>
@@ -359,10 +360,12 @@ export default function TourForm({
         <div className="mt-4 grid gap-4">
           <div>
             <label htmlFor="metaTitle" className="text-xs font-medium text-foreground/60">Meta Title</label>
+            <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~50–60 characters — longer titles get truncated in Google search results.</p>
             <input id="metaTitle" name="metaTitle" defaultValue={existingTour?.metaTitle} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="metaDescription" className="text-xs font-medium text-foreground/60">Meta Description</label>
+            <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~150–160 characters — Google's snippet cuts off beyond this.</p>
             <textarea id="metaDescription" name="metaDescription" defaultValue={existingTour?.metaDescription} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>

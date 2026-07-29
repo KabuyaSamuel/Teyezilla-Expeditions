@@ -31,8 +31,8 @@ export default function Hero() {
 
         <p className="animate-fadeUp max-w-xl text-base leading-relaxed text-white/90 [animation-delay:300ms] sm:text-lg">
           <span className="bg-black/50 px-2 py-0.5 [box-decoration-break:clone] [-webkit-box-decoration-break:clone] sm:px-3 sm:py-1">
-            Based in Nairobi, Teyezilla Expeditions crafts safaris and journeys across Kenya,
-            Tanzania, Zanzibar, Egypt, and Morocco - extraordinary Africa, planned by locals.
+            Discover Africa through extraordinary safaris, immersive experiences, and
+            thoughtfully crafted journeys — created by locals who know the places they call home.
           </span>
         </p>
 

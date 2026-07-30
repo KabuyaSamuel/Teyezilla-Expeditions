@@ -1,13 +1,16 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import BookingActions from "@/components/admin/BookingActions";
+import InquiryReplyForm from "@/components/admin/InquiryReplyForm";
 import { getBookingById } from "@/lib/admin/data/bookings";
 import { getCustomerById } from "@/lib/admin/data/customers";
+import { getInquiryByBookingId } from "@/lib/admin/data/inquiries";
 import { getStatusOptions } from "@/lib/admin/data/status-options";
 import { getLoyaltyAccrualRate } from "@/lib/admin/actions/loyalty";
 import { getAdminSession } from "@/lib/admin/session";
-import { bookingStatusTone, paymentStatusTone } from "@/lib/admin/status-tone";
+import { bookingStatusTone, paymentStatusTone, inquiryStatusTone } from "@/lib/admin/status-tone";
 
 export default async function BookingDetailPage({
   params,
@@ -19,11 +22,12 @@ export default async function BookingDetailPage({
   if (!booking) notFound();
 
   const customer = booking.customerId ? await getCustomerById(booking.customerId) : undefined;
-  const [bookingStatusOptions, paymentStatusOptions, loyaltyAccrualRate, session] = await Promise.all([
+  const [bookingStatusOptions, paymentStatusOptions, loyaltyAccrualRate, session, linkedInquiry] = await Promise.all([
     getStatusOptions("booking_status"),
     getStatusOptions("payment_status"),
     getLoyaltyAccrualRate(),
     getAdminSession(),
+    getInquiryByBookingId(id),
   ]);
   // Loyalty redemption is a write to a customer's point balance; restrict it
   // to the roles the loyalty programme is scoped to (see permissions.ts).
@@ -78,6 +82,31 @@ export default async function BookingDetailPage({
               <p className="mt-3 whitespace-pre-line rounded-2xl bg-secondary/10 p-4 text-sm text-foreground/80">
                 {booking.specialRequests}
               </p>
+            </>
+          )}
+
+          {linkedInquiry && (
+            <>
+              <div className="mt-8 flex items-center justify-between">
+                <h2 className="font-heading text-lg font-semibold text-foreground">Linked Inquiry</h2>
+                <Link href={`/admin/inquiries/${linkedInquiry.id}`} className="text-xs font-medium text-primary hover:underline">
+                  Open full inquiry →
+                </Link>
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <Badge tone={inquiryStatusTone(linkedInquiry.status)}>{linkedInquiry.status.replace("_", " ")}</Badge>
+                <span className="text-xs text-foreground/50">{linkedInquiry.createdAt}</span>
+              </div>
+              <div className="mt-3">
+                <InquiryReplyForm
+                  id={linkedInquiry.id}
+                  status={linkedInquiry.status}
+                  existingReply={linkedInquiry.staffReply}
+                  customerEmail={linkedInquiry.customerEmail}
+                  customerPhone={linkedInquiry.customerPhone}
+                  source={linkedInquiry.source}
+                />
+              </div>
             </>
           )}
 

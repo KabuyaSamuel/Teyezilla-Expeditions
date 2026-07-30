@@ -104,3 +104,21 @@ export async function getInquiryById(id: string): Promise<Inquiry | undefined> {
   if (inquiry.source !== "ai_trip_planner") return inquiry;
   return attachTripPlanner(inquiry, await getTripPlannerRequests());
 }
+
+export async function getInquiryByBookingId(bookingId: string): Promise<Inquiry | undefined> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return undefined;
+
+  const { data, error } = await supabase
+    .from("inquiries")
+    .select("*, tour:tours(title), journey:journeys(title)")
+    .eq("booking_id", bookingId)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.warn("[inquiries] Supabase query failed:", error.message);
+    return undefined;
+  }
+
+  return mapRow(data);
+}

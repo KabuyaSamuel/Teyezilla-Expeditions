@@ -19,21 +19,54 @@ const SOURCE_FILTERS = [
   { value: "ai_trip_planner", label: "Trip Planner" },
 ];
 
+const KIND_FILTERS = [
+  { value: "", label: "All Leads" },
+  { value: "booking", label: "From a Booking" },
+  { value: "general", label: "General" },
+];
+
+function buildHref(source?: string, kind?: string): string {
+  const params = new URLSearchParams();
+  if (source) params.set("source", source);
+  if (kind) params.set("kind", kind);
+  const qs = params.toString();
+  return qs ? `/admin/inquiries?${qs}` : "/admin/inquiries";
+}
+
 export default async function AdminInquiriesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ source?: string }>;
+  searchParams: Promise<{ source?: string; kind?: string }>;
 }) {
-  const { source } = await searchParams;
+  const { source, kind } = await searchParams;
   const all = await getInquiries();
-  const inquiries = source ? all.filter((i) => i.source === source) : all;
+  const inquiries = all
+    .filter((i) => !source || i.source === source)
+    .filter((i) => !kind || (kind === "booking" ? !!i.bookingId : !i.bookingId));
 
   return (
     <div>
       <PageHeader
         title="Inquiry Management"
-        description="The single inbox: website enquiries, WhatsApp, contact form, and trip planner requests."
+        description="The single inbox: website enquiries, WhatsApp, contact form, and trip planner requests. Booking enquiries also appear in Booking Management -- use the lead-type filter below to tell them apart."
       />
+
+      <div className="mb-3 flex flex-wrap gap-2">
+        {KIND_FILTERS.map((f) => {
+          const active = (kind ?? "") === f.value;
+          return (
+            <Link
+              key={f.value}
+              href={buildHref(source, f.value)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                active ? "bg-accent text-white" : "bg-accent/10 text-foreground/70 hover:bg-accent/20"
+              }`}
+            >
+              {f.label}
+            </Link>
+          );
+        })}
+      </div>
 
       <div className="mb-5 flex flex-wrap gap-2">
         {SOURCE_FILTERS.map((f) => {
@@ -41,7 +74,7 @@ export default async function AdminInquiriesPage({
           return (
             <Link
               key={f.value}
-              href={f.value ? `/admin/inquiries?source=${f.value}` : "/admin/inquiries"}
+              href={buildHref(f.value, kind)}
               className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                 active ? "bg-primary text-white" : "bg-secondary/15 text-foreground/70 hover:bg-secondary/25"
               }`}
@@ -64,6 +97,7 @@ export default async function AdminInquiriesPage({
                 <Badge tone="info">{SOURCE_LABELS[inq.source]}</Badge>
                 <Badge tone={inquiryStatusTone(inq.status)}>{inq.status.replace("_", " ")}</Badge>
                 {inq.repliedAt && <Badge tone="success">Replied</Badge>}
+                {inq.bookingId && <Badge tone="pending">From Booking</Badge>}
               </div>
             </div>
             {(inq.tourTitle || inq.journeyTitle) && (

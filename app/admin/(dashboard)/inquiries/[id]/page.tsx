@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
@@ -40,6 +41,13 @@ export default async function InquiryDetailPage({
           </div>
           {(inquiry.tourTitle || inquiry.journeyTitle) && (
             <p className="mt-2 text-xs text-foreground/50">Re: {inquiry.tourTitle || inquiry.journeyTitle}</p>
+          )}
+          {inquiry.bookingId && (
+            <p className="mt-2 text-xs">
+              <Link href={`/admin/bookings/${inquiry.bookingId}`} className="font-medium text-primary hover:underline">
+                View linked booking →
+              </Link>
+            </p>
           )}
 
           <h2 className="mt-6 font-heading text-sm font-semibold uppercase tracking-wide text-foreground/50">

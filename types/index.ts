@@ -16,6 +16,9 @@ export interface Destination extends SEOFields {
   overview: string;
   bestTimeToVisit: string;
   visaInfo: string;
+  healthGuidance: string;
+  packingList: string;
+  insuranceInfo: string;
   isLaunchDestination: boolean;
 }
 

@@ -126,6 +126,32 @@ export default async function DestinationPage({ params }: Props) {
           </div>
         </div>
 
+        {(destination.healthGuidance || destination.packingList || destination.insuranceInfo) && (
+          <div className="mt-8">
+            <h2 className="font-heading text-2xl font-bold text-foreground">Travel Guide</h2>
+            <div className="mt-6 grid gap-6 md:grid-cols-3">
+              {destination.healthGuidance && (
+                <div className="card p-6">
+                  <h3 className="font-heading text-base font-semibold text-foreground">Health & Vaccinations</h3>
+                  <p className="mt-2 text-sm text-foreground/70">{destination.healthGuidance}</p>
+                </div>
+              )}
+              {destination.packingList && (
+                <div className="card p-6">
+                  <h3 className="font-heading text-base font-semibold text-foreground">What to Pack</h3>
+                  <p className="mt-2 text-sm text-foreground/70">{destination.packingList}</p>
+                </div>
+              )}
+              {destination.insuranceInfo && (
+                <div className="card p-6">
+                  <h3 className="font-heading text-base font-semibold text-foreground">Travel Insurance</h3>
+                  <p className="mt-2 text-sm text-foreground/70">{destination.insuranceInfo}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {relatedTours.length > 0 && (
           <div className="mt-16">
             <h2 className="font-heading text-2xl font-bold text-foreground">

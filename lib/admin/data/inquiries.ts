@@ -21,6 +21,8 @@ export interface Inquiry {
   staffReply?: string;
   repliedAt?: string;
   createdAt: string;
+  /** Set when this inquiry was mirrored from a booking enquiry (app/booking/actions.ts). */
+  bookingId?: string;
   // Structured trip parameters for source = 'ai_trip_planner', joined from
   // trip_planner_requests (matched by customer email, most recent first).
   tripPlanner?: TripPlannerRequest;
@@ -53,6 +55,7 @@ function mapRow(row: Record<string, any>): Inquiry {
     staffReply: row.staff_reply ?? undefined,
     repliedAt: row.replied_at ?? undefined,
     createdAt: row.created_at,
+    bookingId: row.booking_id ?? undefined,
   };
 }
 

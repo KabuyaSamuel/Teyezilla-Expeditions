@@ -4,25 +4,24 @@ import Badge from "@/components/admin/Badge";
 import Link from "next/link";
 import { getBookings } from "@/lib/admin/data/bookings";
 import { getInquiries } from "@/lib/admin/data/inquiries";
-import { getDestinations } from "@/lib/destinations";
 import { bookingStatusTone } from "@/lib/admin/status-tone";
 
 export default async function AdminDashboardPage() {
-  const [destinations, bookings, inquiries] = await Promise.all([
-    getDestinations(),
-    getBookings(),
-    getInquiries(),
-  ]);
+  const [bookings, inquiries] = await Promise.all([getBookings(), getInquiries()]);
   const totalBookings = bookings.length;
   // Revenue is staff-entered: bookings marked paid, using the quoted total.
   const revenueTotal = bookings
     .filter((b) => b.paymentStatus === "paid")
     .reduce((sum, b) => sum + b.totalAmount, 0);
+  // Every booking enquiry is mirrored into `inquiries` (app/booking/actions.ts)
+  // so it also shows up in the single-inbox Inquiry Management view. Exclude
+  // booking-derived inquiries here so each lead is counted exactly once
+  // instead of once per table.
   const newEnquiries =
     bookings.filter((b) => b.bookingStatus === "inquiry").length +
-    inquiries.filter((i) => i.status === "new").length;
+    inquiries.filter((i) => i.status === "new" && !i.bookingId).length;
 
-  const now = new Date("2026-07-18");
+  const now = new Date();
   const upcomingTours = bookings
     .filter((b) => b.travelDate && new Date(b.travelDate) >= now && b.bookingStatus !== "cancelled")
     .sort((a, b) => new Date(a.travelDate!).getTime() - new Date(b.travelDate!).getTime());
@@ -31,11 +30,11 @@ export default async function AdminDashboardPage() {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 4);
 
+  // Uses the same primary-destination attribution as Reports (see
+  // lib/admin/data/bookings.ts) so tour AND journey bookings both count,
+  // rather than matching tour slugs against destination slugs by substring.
   const destinationCounts = bookings.reduce<Record<string, number>>((acc, b) => {
-    const dest = destinations.find((d) =>
-      b.tourSlug.includes(d.slug.split("-")[0])
-    );
-    const key = dest?.countryName ?? "Other";
+    const key = b.destinationName || "Other";
     acc[key] = (acc[key] ?? 0) + 1;
     return acc;
   }, {});

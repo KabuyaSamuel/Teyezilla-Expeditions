@@ -168,6 +168,9 @@ export async function submitBookingEnquiry(
     journey_id: product.kind === "journey" ? product.id : null,
     message: summaryLines.join("\n"),
     status: "new",
+    // Links this mirror row back to the booking so admin "new enquiry"
+    // counts only count the lead once instead of once per table.
+    booking_id: bookingId,
   });
   if (inquiryError) console.warn("[booking] inquiry insert failed:", inquiryError.message);
 

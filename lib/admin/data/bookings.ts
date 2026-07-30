@@ -9,12 +9,21 @@ export interface Booking {
   customerId: string;
   customerName: string;
   customerEmail: string;
+  tourId: string | null;
   tourSlug: string;
   tourTitle: string;
+  journeyId: string | null;
   journeySlug: string;
   journeyTitle: string;
   /** The tour or journey the enquiry is about (whichever is linked). */
   productTitle: string;
+  productType: "tour" | "journey" | "";
+  /**
+   * The destination this booking's revenue is attributed to for reporting.
+   * Tours: their own destination. Journeys: the primary (first) leg's
+   * destination — see the comment on the reports revenue split for why.
+   */
+  destinationName: string;
   travelDate: string | null;
   flexibleDates: boolean;
   travelerCount: number;
@@ -32,24 +41,56 @@ export interface Booking {
   createdAt: string;
 }
 
-const SELECT = "*, customer:customers(full_name, email), tour:tours(title, slug), journey:journeys(title, slug)";
+const SELECT =
+  "*, customer:customers(full_name, email), " +
+  "tour:tours(title, slug, destinations(country_name)), " +
+  "journey:journeys(title, slug, journey_destinations(is_primary, display_order, destinations(country_name)))";
 
 // Joins customers, tours, and journeys to get display names, since the
 // `bookings` table only stores foreign keys.
 function mapRow(row: Record<string, any>): Booking {
   const tourTitle = row.tour?.title ?? "";
   const journeyTitle = row.journey?.title ?? "";
+  const productType: Booking["productType"] = row.tour_id ? "tour" : row.journey_id ? "journey" : "";
+
+  let destinationName = "";
+  if (productType === "tour") {
+    destinationName = row.tour?.destinations?.country_name ?? "";
+  } else if (productType === "journey") {
+    const legs = (row.journey?.journey_destinations ?? []) as Array<{
+      is_primary: boolean;
+      display_order: number | null;
+      destinations: { country_name: string } | null;
+    }>;
+    // Attribution rule: full revenue to the primary (first) leg of a
+    // multi-country journey, not split across every country it visits.
+    // Splitting evenly would understate each destination's real commercial
+    // pull on the sales chart; crediting the full amount to every leg would
+    // duplicate it and inflate total revenue shown per destination beyond
+    // what the journey actually earned. Crediting the primary destination
+    // keeps the chart's total consistent with actual revenue while still
+    // giving each journey's headline country credit for the sale.
+    const primary =
+      legs.find((l) => l.is_primary) ??
+      [...legs].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))[0];
+    destinationName = primary?.destinations?.country_name ?? "";
+  }
+
   return {
     id: row.id,
     bookingReference: row.booking_reference,
     customerId: row.customer_id,
     customerName: row.customer?.full_name ?? "Unknown Customer",
     customerEmail: row.customer?.email ?? "",
+    tourId: row.tour_id ?? null,
     tourSlug: row.tour?.slug ?? "",
     tourTitle,
+    journeyId: row.journey_id ?? null,
     journeySlug: row.journey?.slug ?? "",
     journeyTitle,
     productTitle: tourTitle || journeyTitle || "Unknown Tour",
+    productType,
+    destinationName,
     travelDate: row.travel_date ?? null,
     flexibleDates: Boolean(row.flexible_dates),
     travelerCount: Number(row.traveler_count ?? 0),

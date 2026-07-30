@@ -5,6 +5,8 @@ import BookingActions from "@/components/admin/BookingActions";
 import { getBookingById } from "@/lib/admin/data/bookings";
 import { getCustomerById } from "@/lib/admin/data/customers";
 import { getStatusOptions } from "@/lib/admin/data/status-options";
+import { getLoyaltyAccrualRate } from "@/lib/admin/actions/loyalty";
+import { getAdminSession } from "@/lib/admin/session";
 import { bookingStatusTone, paymentStatusTone } from "@/lib/admin/status-tone";
 
 export default async function BookingDetailPage({
@@ -17,10 +19,15 @@ export default async function BookingDetailPage({
   if (!booking) notFound();
 
   const customer = booking.customerId ? await getCustomerById(booking.customerId) : undefined;
-  const [bookingStatusOptions, paymentStatusOptions] = await Promise.all([
+  const [bookingStatusOptions, paymentStatusOptions, loyaltyAccrualRate, session] = await Promise.all([
     getStatusOptions("booking_status"),
     getStatusOptions("payment_status"),
+    getLoyaltyAccrualRate(),
+    getAdminSession(),
   ]);
+  // Loyalty redemption is a write to a customer's point balance; restrict it
+  // to the roles the loyalty programme is scoped to (see permissions.ts).
+  const canRedeemLoyalty = session?.role === "admin" || session?.role === "manager";
   const bookingTone =
     bookingStatusOptions.find((o) => o.key === booking.bookingStatus)?.tone ?? bookingStatusTone(booking.bookingStatus);
   const paymentTone =
@@ -83,6 +90,9 @@ export default async function BookingDetailPage({
               currency={booking.currency}
               bookingStatusOptions={bookingStatusOptions}
               paymentStatusOptions={paymentStatusOptions}
+              customerLoyaltyBalance={customer?.loyaltyPoints}
+              loyaltyAccrualRate={loyaltyAccrualRate}
+              canRedeemLoyalty={canRedeemLoyalty}
             />
           </div>
         </div>

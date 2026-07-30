@@ -1,9 +1,10 @@
 import PageHeader from "@/components/admin/PageHeader";
 import StatCard from "@/components/admin/StatCard";
 import { getBookings } from "@/lib/admin/data/bookings";
+import { getLoyaltySummary } from "@/lib/admin/data/loyalty";
 
 export default async function AdminReportsPage() {
-  const bookings = await getBookings();
+  const [bookings, loyalty] = await Promise.all([getBookings(), getLoyaltySummary()]);
 
   // Revenue is staff-entered: bookings marked paid, using the quoted total.
   // Product-agnostic by construction (no filter on tourSlug/productType), so
@@ -113,6 +114,41 @@ export default async function AdminReportsPage() {
             ))}
             {salesByDestination.length === 0 && (
               <p className="text-sm text-foreground/50">No paid bookings yet.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <div className="card p-6">
+          <h2 className="font-heading text-lg font-semibold text-foreground">Loyalty Programme</h2>
+          <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+            <div>
+              <p className="font-heading text-xl font-bold text-accent">{loyalty.totalOutstanding.toLocaleString()}</p>
+              <p className="text-[11px] text-foreground/50">outstanding points</p>
+            </div>
+            <div>
+              <p className="font-heading text-xl font-bold text-success">+{loyalty.earnedLast30Days.toLocaleString()}</p>
+              <p className="text-[11px] text-foreground/50">earned, last 30 days</p>
+            </div>
+            <div>
+              <p className="font-heading text-xl font-bold text-error">-{loyalty.redeemedLast30Days.toLocaleString()}</p>
+              <p className="text-[11px] text-foreground/50">redeemed, last 30 days</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <h2 className="font-heading text-lg font-semibold text-foreground">Top Customers by Balance</h2>
+          <div className="mt-4 space-y-2">
+            {loyalty.topCustomers.map((c, i) => (
+              <div key={c.id} className="flex items-center justify-between text-sm">
+                <span className="text-foreground/80">{i + 1}. {c.name}</span>
+                <span className="font-medium text-accent">{c.balance.toLocaleString()} pts</span>
+              </div>
+            ))}
+            {loyalty.topCustomers.length === 0 && (
+              <p className="text-sm text-foreground/50">No customers with a loyalty balance yet.</p>
             )}
           </div>
         </div>

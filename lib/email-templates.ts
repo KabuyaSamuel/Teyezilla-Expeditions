@@ -168,6 +168,7 @@ export function customerQuoteEmail({
   quotedAmount,
   currency,
   message,
+  loyaltyRedemption,
 }: {
   customerName: string;
   bookingReference: string;
@@ -175,6 +176,7 @@ export function customerQuoteEmail({
   quotedAmount: number;
   currency: string;
   message: string;
+  loyaltyRedemption?: { points: number; discountAmount: number; currency: string };
 }): string {
   return layout(
     "Your Quote",
@@ -187,6 +189,13 @@ export function customerQuoteEmail({
     <p style="margin:16px 0;padding:16px 20px;background-color:${IVORY};border-left:4px solid ${GOLD};font-size:22px;font-weight:bold;color:${EMERALD};">
       ${escapeHtml(currency)} ${quotedAmount.toLocaleString()}
     </p>
+    ${
+      loyaltyRedemption
+        ? `<p style="margin:0 0 12px;font-size:13px;color:#6b6b6b;">
+             This price already includes a ${escapeHtml(loyaltyRedemption.currency)} ${loyaltyRedemption.discountAmount.toLocaleString()}
+             discount from redeeming ${loyaltyRedemption.points.toLocaleString()} loyalty points. Thank you for traveling with us before.</p>`
+        : ""
+    }
     ${message ? `<p style="margin:0 0 12px;white-space:pre-line;">${escapeHtml(message)}</p>` : ""}
     <p style="margin:0 0 12px;">
       Reply to this email or message us on WhatsApp to confirm, adjust, or ask anything.

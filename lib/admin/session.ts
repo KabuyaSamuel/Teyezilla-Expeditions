@@ -10,6 +10,7 @@ import type { StaffRole } from "./permissions";
 // supabase/seed.sql for the staff-linking steps.
 
 export interface AdminSession {
+  id: string;
   name: string;
   email: string;
   role: StaffRole;
@@ -27,7 +28,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
 
   const { data: staffRow, error } = await supabase
     .from("staff")
-    .select("full_name, email, role")
+    .select("id, full_name, email, role")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
@@ -37,6 +38,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   }
 
   return {
+    id: staffRow.id as string,
     name: staffRow.full_name as string,
     email: staffRow.email as string,
     role: staffRow.role as StaffRole,

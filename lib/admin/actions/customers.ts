@@ -11,9 +11,11 @@ export interface CustomerInput {
   nationality: string;
   emergencyContact: string;
   notes: string;
-  loyaltyPoints: number;
 }
 
+// loyalty_points is deliberately not settable here -- it only changes
+// through lib/admin/actions/loyalty.ts, which writes a ledger row alongside
+// every balance change. Direct overwrite would leave adjustments unaudited.
 function toRow(input: CustomerInput) {
   return {
     full_name: input.fullName,
@@ -22,7 +24,6 @@ function toRow(input: CustomerInput) {
     nationality: input.nationality,
     emergency_contact: input.emergencyContact,
     notes: input.notes,
-    loyalty_points: input.loyaltyPoints,
   };
 }
 

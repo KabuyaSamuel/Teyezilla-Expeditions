@@ -5,6 +5,8 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getBookingById } from "@/lib/admin/data/bookings";
 import { getStatusOptions } from "@/lib/admin/data/status-options";
 import { createNotification } from "@/lib/admin/actions/notifications";
+import { accrueLoyaltyForBooking, redeemLoyaltyPoints } from "@/lib/admin/actions/loyalty";
+import { getCustomerById } from "@/lib/admin/data/customers";
 import { sendCustomerConfirmation } from "@/lib/email";
 import { customerQuoteEmail } from "@/lib/email-templates";
 
@@ -56,6 +58,23 @@ export async function updatePaymentStatus(id: string, status: string): Promise<v
   const { error } = await supabase.from("bookings").update({ payment_status: status }).eq("id", id);
   if (error) throw new Error(error.message);
 
+  if (status === "paid") {
+    const booking = await getBookingById(id);
+    if (booking) {
+      // Fail-soft: a loyalty accrual hiccup must never make the payment
+      // status update itself appear to fail.
+      try {
+        await accrueLoyaltyForBooking(id);
+      } catch (err) {
+        console.warn("[bookings] loyalty accrual failed:", err instanceof Error ? err.message : err);
+      }
+      await createNotification({
+        type: "payment_confirmed",
+        message: `Payment confirmed for booking ${booking.bookingReference} (${booking.productTitle}).`,
+      });
+    }
+  }
+
   revalidateBooking(id);
 }
 
@@ -65,8 +84,16 @@ export async function cancelBooking(id: string): Promise<void> {
 
 // Saves the quoted amount to total_amount, moves the booking to "quoted", and
 // emails the customer (fail-soft; the status change lands even if the email
-// doesn't).
-export async function sendQuote(id: string, quotedAmount: number, message: string): Promise<{ emailSent: boolean }> {
+// doesn't). If redeemPoints is set, applies it as a discount off quotedAmount
+// first -- the ledger transaction is written before the discounted total is
+// saved, so a failed redemption never silently produces a discounted quote
+// with no record of why.
+export async function sendQuote(
+  id: string,
+  quotedAmount: number,
+  message: string,
+  redeemPoints?: number
+): Promise<{ emailSent: boolean }> {
   if (!Number.isFinite(quotedAmount) || quotedAmount <= 0) {
     throw new Error("Enter a quoted amount greater than zero.");
   }
@@ -77,9 +104,26 @@ export async function sendQuote(id: string, quotedAmount: number, message: strin
   const booking = await getBookingById(id);
   if (!booking) throw new Error("Booking not found.");
 
+  let discountAmount = 0;
+  if (redeemPoints && redeemPoints > 0) {
+    if (!booking.customerId) throw new Error("This booking has no linked customer to redeem points for.");
+    const customer = await getCustomerById(booking.customerId);
+    if (!customer) throw new Error("Customer record not found.");
+    const result = await redeemLoyaltyPoints({
+      customerId: booking.customerId,
+      bookingId: id,
+      bookingReference: booking.bookingReference,
+      points: redeemPoints,
+      currentBalance: customer.loyaltyPoints,
+    });
+    discountAmount = result.discountAmount;
+  }
+
+  const finalAmount = Math.max(0, quotedAmount - discountAmount);
+
   const { error } = await supabase
     .from("bookings")
-    .update({ total_amount: quotedAmount, booking_status: "quoted" })
+    .update({ total_amount: finalAmount, booking_status: "quoted" })
     .eq("id", id);
   if (error) throw new Error(error.message);
 
@@ -92,9 +136,13 @@ export async function sendQuote(id: string, quotedAmount: number, message: strin
         customerName: booking.customerName,
         bookingReference: booking.bookingReference,
         enquiryTitle: booking.productTitle,
-        quotedAmount,
+        quotedAmount: finalAmount,
         currency: booking.currency,
         message,
+        loyaltyRedemption:
+          discountAmount > 0
+            ? { points: redeemPoints as number, discountAmount, currency: booking.currency }
+            : undefined,
       }),
     });
     emailSent = result.sent;

@@ -8,6 +8,7 @@ import {
   updatePaymentStatus,
 } from "@/lib/admin/actions/bookings";
 import type { StatusOption } from "@/lib/admin/data/status-options";
+import { dollarValueOfPoints } from "@/lib/loyalty-shared";
 
 export default function BookingActions({
   id,
@@ -17,6 +18,9 @@ export default function BookingActions({
   currency,
   bookingStatusOptions,
   paymentStatusOptions,
+  customerLoyaltyBalance,
+  loyaltyAccrualRate,
+  canRedeemLoyalty,
 }: {
   id: string;
   bookingReference: string;
@@ -25,6 +29,10 @@ export default function BookingActions({
   currency: string;
   bookingStatusOptions: StatusOption[];
   paymentStatusOptions: StatusOption[];
+  /** Undefined when the booking has no linked customer. */
+  customerLoyaltyBalance?: number;
+  loyaltyAccrualRate: number;
+  canRedeemLoyalty: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +40,11 @@ export default function BookingActions({
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteAmount, setQuoteAmount] = useState("");
   const [quoteMessage, setQuoteMessage] = useState("");
+  const [redeemPoints, setRedeemPoints] = useState("");
+
+  const canOfferRedemption = canRedeemLoyalty && (customerLoyaltyBalance ?? 0) > 0;
+  const redeemPointsNum = Number(redeemPoints) || 0;
+  const redeemDiscount = redeemPointsNum > 0 ? dollarValueOfPoints(redeemPointsNum, loyaltyAccrualRate) : 0;
 
   async function run(fn: () => Promise<void>) {
     setBusy(true);
@@ -49,10 +62,11 @@ export default function BookingActions({
   async function handleSendQuote() {
     const amount = Number(quoteAmount);
     await run(async () => {
-      const { emailSent } = await sendQuote(id, amount, quoteMessage.trim());
+      const { emailSent } = await sendQuote(id, amount, quoteMessage.trim(), redeemPointsNum || undefined);
       setQuoteOpen(false);
       setQuoteAmount("");
       setQuoteMessage("");
+      setRedeemPoints("");
       setNotice(
         emailSent
           ? "Quote saved and emailed to the customer."
@@ -146,6 +160,31 @@ export default function BookingActions({
             onChange={(e) => setQuoteMessage(e.target.value)}
             className="mt-3 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
+
+          {canOfferRedemption && (
+            <div className="mt-3 rounded-xl bg-accent/10 p-3">
+              <label className="text-xs font-medium text-foreground/70">
+                Apply loyalty points (customer has {customerLoyaltyBalance!.toLocaleString()} available)
+              </label>
+              <div className="mt-1 flex items-center gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  max={customerLoyaltyBalance}
+                  placeholder="Points to redeem"
+                  value={redeemPoints}
+                  onChange={(e) => setRedeemPoints(e.target.value)}
+                  className="w-40 rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                {redeemDiscount > 0 && (
+                  <span className="text-xs font-medium text-accent">
+                    -{currency} {redeemDiscount.toLocaleString()} discount
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="mt-3 flex gap-3">
             <button
               type="button"

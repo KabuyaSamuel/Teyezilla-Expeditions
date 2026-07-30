@@ -49,12 +49,6 @@ export default async function BookingDetailPage({
       <PageHeader
         title={booking.bookingReference}
         description={`${booking.productTitle} · ${travelDateLabel}`}
-        action={
-          <div className="flex gap-2">
-            <button className="btn-outline text-sm">Generate Voucher</button>
-            <button className="btn-outline text-sm">Generate Invoice</button>
-          </div>
-        }
       />
 
       <div className="grid gap-6 lg:grid-cols-3">

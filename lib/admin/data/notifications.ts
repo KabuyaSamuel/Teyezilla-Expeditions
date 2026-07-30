@@ -18,6 +18,22 @@ function mapRow(row: Record<string, any>): AdminNotification {
   };
 }
 
+export async function getUnreadNotificationCount(): Promise<number> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return 0;
+
+  const { count, error } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("is_read", false);
+
+  if (error) {
+    console.warn("[notifications] unread count query failed:", error.message);
+    return 0;
+  }
+  return count ?? 0;
+}
+
 export async function getNotifications(): Promise<AdminNotification[]> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) {

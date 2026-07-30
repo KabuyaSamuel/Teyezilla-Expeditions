@@ -7,9 +7,11 @@ import { getModulesForRole, ROLE_LABELS, type StaffRole } from "@/lib/admin/perm
 export default function AdminSidebar({
   role,
   name,
+  unreadNotifications = 0,
 }: {
   role: StaffRole;
   name: string;
+  unreadNotifications?: number;
 }) {
   const pathname = usePathname();
   const modules = getModulesForRole(role);
@@ -39,7 +41,12 @@ export default function AdminSidebar({
               }`}
             >
               <span>{mod.icon}</span>
-              {mod.label}
+              <span className="flex-1">{mod.label}</span>
+              {mod.key === "notifications" && unreadNotifications > 0 && (
+                <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-white">
+                  {unreadNotifications}
+                </span>
+              )}
             </Link>
           );
         })}

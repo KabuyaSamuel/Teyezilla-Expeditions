@@ -2,6 +2,7 @@
 
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
+import { createNotification } from "@/lib/admin/actions/notifications";
 import { sendAdminNotification, sendCustomerConfirmation } from "@/lib/email";
 import {
   adminEnquiryEmail,
@@ -69,6 +70,11 @@ export async function submitTripPlannerRequest(
     status: "new",
   });
   if (inquiryError) console.warn("[trip-planner] inquiry insert failed:", inquiryError.message);
+
+  await createNotification({
+    type: "follow_up",
+    message: `New trip planner request from ${input.name} for ${input.destination}.`,
+  });
 
   const fields: EmailField[] = [
     { label: "Name", value: input.name },

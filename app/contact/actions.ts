@@ -2,6 +2,7 @@
 
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
+import { createNotification } from "@/lib/admin/actions/notifications";
 import { sendAdminNotification, sendCustomerConfirmation } from "@/lib/email";
 import { adminEnquiryEmail, customerContactConfirmationEmail } from "@/lib/email-templates";
 import { contactSchema, zodFieldErrors, type EnquiryFormState } from "@/lib/enquiry-shared";
@@ -36,6 +37,11 @@ export async function submitContactMessage(
     console.warn("[contact] inquiry insert failed:", error.message);
     return { formError: "Something went wrong sending your message. Please try again or contact us on WhatsApp." };
   }
+
+  await createNotification({
+    type: "follow_up",
+    message: `New contact form message from ${input.name}.`,
+  });
 
   await sendAdminNotification({
     subject: `New contact form message from ${input.name}`,

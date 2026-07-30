@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getBookingById } from "@/lib/admin/data/bookings";
 import { getStatusOptions } from "@/lib/admin/data/status-options";
+import { createNotification } from "@/lib/admin/actions/notifications";
 import { sendCustomerConfirmation } from "@/lib/email";
 import { customerQuoteEmail } from "@/lib/email-templates";
 
@@ -30,6 +31,16 @@ export async function updateBookingStatus(id: string, status: string): Promise<v
 
   const { error } = await supabase.from("bookings").update({ booking_status: status }).eq("id", id);
   if (error) throw new Error(error.message);
+
+  if (status === "confirmed" || status === "cancelled") {
+    const booking = await getBookingById(id);
+    if (booking) {
+      await createNotification({
+        type: "admin_alert",
+        message: `Booking ${booking.bookingReference} for ${booking.productTitle} is now ${status}.`,
+      });
+    }
+  }
 
   revalidateBooking(id);
 }

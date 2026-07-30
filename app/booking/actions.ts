@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
+import { createNotification } from "@/lib/admin/actions/notifications";
 import { sendAdminNotification, sendCustomerConfirmation } from "@/lib/email";
 import {
   adminEnquiryEmail,
@@ -174,7 +175,13 @@ export async function submitBookingEnquiry(
   });
   if (inquiryError) console.warn("[booking] inquiry insert failed:", inquiryError.message);
 
-  // 4. Emails (fail-soft, never block the submission).
+  // 4. Admin notification (fail-soft, never block the submission).
+  await createNotification({
+    type: "new_booking",
+    message: `New enquiry for ${product.title} (${bookingReference}) from ${input.fullName}.`,
+  });
+
+  // 5. Emails (fail-soft, never block the submission).
   const emailFields: EmailField[] = [
     { label: "Reference", value: bookingReference },
     { label: `${product.kind === "tour" ? "Tour" : "Journey"}`, value: product.title },

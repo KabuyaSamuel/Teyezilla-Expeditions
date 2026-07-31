@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
+import ResponsiveTable, { MobileCardField, MobileCardHeader } from "@/components/admin/ResponsiveTable";
 import { getCustomers } from "@/lib/admin/data/customers";
 
 export default async function AdminCustomersPage() {
@@ -15,34 +16,31 @@ export default async function AdminCustomersPage() {
           </Link>
         }
       />
-      <div className="card overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-secondary/20 text-xs uppercase tracking-wide text-foreground/50">
-            <tr>
-              <th className="px-5 py-3">Name</th>
-              <th className="px-5 py-3">Email</th>
-              <th className="px-5 py-3">Nationality</th>
-              <th className="px-5 py-3">Loyalty Points</th>
-              <th className="px-5 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {customers.map((c) => (
-              <tr key={c.id} className="border-b border-secondary/10 last:border-0">
-                <td className="px-5 py-3 font-medium text-foreground">{c.fullName}</td>
-                <td className="px-5 py-3 text-foreground/70">{c.email}</td>
-                <td className="px-5 py-3 text-foreground/70">{c.nationality}</td>
-                <td className="px-5 py-3 text-foreground/70">{c.loyaltyPoints}</td>
-                <td className="px-5 py-3">
-                  <Link href={`/admin/customers/${c.id}`} className="text-primary hover:underline">
-                    View Profile
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ResponsiveTable
+        rows={customers}
+        keyField={(c) => c.id}
+        emptyMessage="No customers yet."
+        columns={[
+          { header: "Name", cell: (c) => c.fullName, className: "font-medium text-foreground" },
+          { header: "Email", cell: (c) => c.email },
+          { header: "Nationality", cell: (c) => c.nationality },
+          { header: "Loyalty Points", cell: (c) => c.loyaltyPoints },
+          { header: "", cell: (c) => <Link href={`/admin/customers/${c.id}`} className="text-primary hover:underline">View Profile</Link> },
+        ]}
+        renderMobileCard={(c) => (
+          <>
+            <MobileCardHeader
+              title={c.fullName}
+              subtitle={c.email}
+              action={<Link href={`/admin/customers/${c.id}`} className="hover:underline">View Profile</Link>}
+            />
+            <div className="mt-3 space-y-1 border-t border-secondary/10 pt-3">
+              <MobileCardField label="Nationality" value={c.nationality || "-"} />
+              <MobileCardField label="Loyalty Points" value={c.loyaltyPoints} />
+            </div>
+          </>
+        )}
+      />
     </div>
   );
 }

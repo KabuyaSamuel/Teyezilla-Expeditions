@@ -1,7 +1,8 @@
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
-import { getBookings } from "@/lib/admin/data/bookings";
+import ResponsiveTable, { MobileCardField, MobileCardHeader } from "@/components/admin/ResponsiveTable";
+import { getBookings, type Booking } from "@/lib/admin/data/bookings";
 import { getStatusOptions } from "@/lib/admin/data/status-options";
 import { bookingStatusTone, paymentStatusTone } from "@/lib/admin/status-tone";
 
@@ -11,52 +12,52 @@ export default async function AdminBookingsPage() {
     getStatusOptions("booking_status"),
     getStatusOptions("payment_status"),
   ]);
+
+  const toneFor = (b: Booking) => ({
+    booking: bookingStatusOptions.find((o) => o.key === b.bookingStatus)?.tone ?? bookingStatusTone(b.bookingStatus),
+    payment: paymentStatusOptions.find((o) => o.key === b.paymentStatus)?.tone ?? paymentStatusTone(b.paymentStatus),
+  });
+
   return (
     <div>
       <PageHeader
         title="Booking Management"
         description="Enquiries through to completed journeys. Statuses are set manually as staff quote and confirm."
       />
-      <div className="card overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-secondary/20 text-xs uppercase tracking-wide text-foreground/50">
-            <tr>
-              <th className="px-5 py-3">Reference</th>
-              <th className="px-5 py-3">Customer</th>
-              <th className="px-5 py-3">Tour / Journey</th>
-              <th className="px-5 py-3">Travel Date</th>
-              <th className="px-5 py-3">Travelers</th>
-              <th className="px-5 py-3">Payment</th>
-              <th className="px-5 py-3">Status</th>
-              <th className="px-5 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings.map((b) => {
-              const bookingTone =
-                bookingStatusOptions.find((o) => o.key === b.bookingStatus)?.tone ?? bookingStatusTone(b.bookingStatus);
-              const paymentTone =
-                paymentStatusOptions.find((o) => o.key === b.paymentStatus)?.tone ?? paymentStatusTone(b.paymentStatus);
-              return (
-                <tr key={b.id} className="border-b border-secondary/10 last:border-0">
-                  <td className="px-5 py-3 font-medium text-foreground">{b.bookingReference}</td>
-                  <td className="px-5 py-3 text-foreground/70">{b.customerName}</td>
-                  <td className="px-5 py-3 text-foreground/70">{b.productTitle}</td>
-                  <td className="px-5 py-3 text-foreground/70">{b.travelDate ?? "Flexible"}</td>
-                  <td className="px-5 py-3 text-foreground/70">{b.travelerCount}</td>
-                  <td className="px-5 py-3"><Badge tone={paymentTone}>{b.paymentStatus.replace("_", " ")}</Badge></td>
-                  <td className="px-5 py-3"><Badge tone={bookingTone}>{b.bookingStatus}</Badge></td>
-                  <td className="px-5 py-3">
-                    <Link href={`/admin/bookings/${b.id}`} className="text-primary hover:underline">
-                      View
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <ResponsiveTable
+        rows={bookings}
+        keyField={(b) => b.id}
+        emptyMessage="No bookings yet."
+        columns={[
+          { header: "Reference", cell: (b) => b.bookingReference, className: "font-medium text-foreground" },
+          { header: "Customer", cell: (b) => b.customerName },
+          { header: "Tour / Journey", cell: (b) => b.productTitle },
+          { header: "Travel Date", cell: (b) => b.travelDate ?? "Flexible" },
+          { header: "Travelers", cell: (b) => b.travelerCount },
+          { header: "Payment", cell: (b) => <Badge tone={toneFor(b).payment}>{b.paymentStatus.replace("_", " ")}</Badge> },
+          { header: "Status", cell: (b) => <Badge tone={toneFor(b).booking}>{b.bookingStatus}</Badge> },
+          { header: "", cell: (b) => <Link href={`/admin/bookings/${b.id}`} className="text-primary hover:underline">View</Link> },
+        ]}
+        renderMobileCard={(b) => {
+          const tone = toneFor(b);
+          return (
+            <>
+              <MobileCardHeader
+                title={b.bookingReference}
+                subtitle={b.customerName}
+                action={<Link href={`/admin/bookings/${b.id}`} className="hover:underline">View</Link>}
+              />
+              <div className="mt-3 space-y-1 border-t border-secondary/10 pt-3">
+                <MobileCardField label="Tour / Journey" value={b.productTitle} />
+                <MobileCardField label="Travel Date" value={b.travelDate ?? "Flexible"} />
+                <MobileCardField label="Travelers" value={b.travelerCount} />
+                <MobileCardField label="Payment" value={<Badge tone={tone.payment}>{b.paymentStatus.replace("_", " ")}</Badge>} />
+                <MobileCardField label="Status" value={<Badge tone={tone.booking}>{b.bookingStatus}</Badge>} />
+              </div>
+            </>
+          );
+        }}
+      />
     </div>
   );
 }

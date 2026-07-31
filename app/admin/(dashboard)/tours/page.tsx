@@ -1,12 +1,15 @@
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
+import ResponsiveTable, { MobileCardField, MobileCardHeader } from "@/components/admin/ResponsiveTable";
 import { getTours } from "@/lib/tours";
 import { getDestinations } from "@/lib/destinations";
 import { contentStatusTone } from "@/lib/admin/status-tone";
 
 export default async function AdminToursPage() {
   const [tours, destinations] = await Promise.all([getTours(), getDestinations()]);
+  const destinationName = (destinationId: string) => destinations.find((d) => d.id === destinationId)?.countryName ?? "-";
+
   return (
     <div>
       <PageHeader
@@ -19,45 +22,36 @@ export default async function AdminToursPage() {
         }
       />
 
-      <div className="card overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-secondary/20 text-xs uppercase tracking-wide text-foreground/50">
-            <tr>
-              <th className="px-5 py-3">Tour</th>
-              <th className="px-5 py-3">Destination</th>
-              <th className="px-5 py-3">Category</th>
-              <th className="px-5 py-3">Duration</th>
-              <th className="px-5 py-3">Price From</th>
-              <th className="px-5 py-3">Featured</th>
-              <th className="px-5 py-3">Status</th>
-              <th className="px-5 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {tours.map((tour) => {
-              const destination = destinations.find((d) => d.id === tour.destinationId);
-              return (
-                <tr key={tour.id} className="border-b border-secondary/10 last:border-0">
-                  <td className="px-5 py-3 font-medium text-foreground">{tour.title}</td>
-                  <td className="px-5 py-3 text-foreground/70">{destination?.countryName ?? "-"}</td>
-                  <td className="px-5 py-3 text-foreground/70">{tour.categoryLabel}</td>
-                  <td className="px-5 py-3 text-foreground/70">{tour.durationDays}d</td>
-                  <td className="px-5 py-3 text-foreground/70">{tour.currency} {tour.priceFrom}</td>
-                  <td className="px-5 py-3">{tour.featured ? "★" : "-"}</td>
-                  <td className="px-5 py-3">
-                    <Badge tone={contentStatusTone(tour.status)}>{tour.status}</Badge>
-                  </td>
-                  <td className="px-5 py-3">
-                    <Link href={`/admin/tours/${tour.slug}`} className="text-primary hover:underline">
-                      Edit
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <ResponsiveTable
+        rows={tours}
+        keyField={(t) => t.id}
+        emptyMessage="No tours yet."
+        columns={[
+          { header: "Tour", cell: (t) => t.title, className: "font-medium text-foreground" },
+          { header: "Destination", cell: (t) => destinationName(t.destinationId) },
+          { header: "Category", cell: (t) => t.categoryLabel },
+          { header: "Duration", cell: (t) => `${t.durationDays}d` },
+          { header: "Price From", cell: (t) => `${t.currency} ${t.priceFrom}` },
+          { header: "Featured", cell: (t) => (t.featured ? "★" : "-") },
+          { header: "Status", cell: (t) => <Badge tone={contentStatusTone(t.status)}>{t.status}</Badge> },
+          { header: "", cell: (t) => <Link href={`/admin/tours/${t.slug}`} className="text-primary hover:underline">Edit</Link> },
+        ]}
+        renderMobileCard={(t) => (
+          <>
+            <MobileCardHeader
+              title={t.featured ? `★ ${t.title}` : t.title}
+              subtitle={destinationName(t.destinationId)}
+              action={<Link href={`/admin/tours/${t.slug}`} className="hover:underline">Edit</Link>}
+            />
+            <div className="mt-3 space-y-1 border-t border-secondary/10 pt-3">
+              <MobileCardField label="Category" value={t.categoryLabel} />
+              <MobileCardField label="Duration" value={`${t.durationDays}d`} />
+              <MobileCardField label="Price From" value={`${t.currency} ${t.priceFrom}`} />
+              <MobileCardField label="Status" value={<Badge tone={contentStatusTone(t.status)}>{t.status}</Badge>} />
+            </div>
+          </>
+        )}
+      />
     </div>
   );
 }

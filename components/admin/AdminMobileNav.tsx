@@ -30,7 +30,7 @@ export default function AdminMobileNav({
         )}
       </button>
       {open && (
-        <nav className="mt-3 grid grid-cols-2 gap-2">
+        <nav className="mt-3 grid grid-cols-1 gap-2 xs:grid-cols-2">
           {modules.map((mod) => (
             <Link
               key={mod.key}

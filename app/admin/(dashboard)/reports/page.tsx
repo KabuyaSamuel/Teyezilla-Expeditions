@@ -122,7 +122,7 @@ export default async function AdminReportsPage() {
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div className="card p-6">
           <h2 className="font-heading text-lg font-semibold text-foreground">Loyalty Programme</h2>
-          <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+          <div className="mt-4 grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
             <div>
               <p className="font-heading text-xl font-bold text-accent">{loyalty.totalOutstanding.toLocaleString()}</p>
               <p className="text-[11px] text-foreground/50">outstanding points</p>

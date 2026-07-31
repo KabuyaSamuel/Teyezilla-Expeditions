@@ -54,7 +54,7 @@ export default async function BookingDetailPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="card p-6 lg:col-span-2">
           <h2 className="font-heading text-lg font-semibold text-foreground">Enquiry Details</h2>
-          <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <dl className="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
             <div><dt className="text-foreground/50">Customer</dt><dd className="font-medium text-foreground">{booking.customerName}</dd></div>
             <div><dt className="text-foreground/50">{booking.journeyTitle ? "Journey" : "Tour"}</dt><dd className="font-medium text-foreground">{booking.productTitle}</dd></div>
             <div><dt className="text-foreground/50">Travel Date</dt><dd className="font-medium text-foreground">{travelDateLabel}</dd></div>

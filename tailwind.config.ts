@@ -7,6 +7,12 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      // Default Tailwind screens (sm:640 md:768 lg:1024 xl:1280) stay as-is;
+      // xs fills the gap for large-phone-specific tweaks (Pro Max/Pixel Pro
+      // class devices) without disturbing any existing sm:/md:/lg: usage.
+      screens: {
+        xs: "430px",
+      },
       colors: {
         primary: {
           DEFAULT: "#0F5D46", // Forest Emerald Green

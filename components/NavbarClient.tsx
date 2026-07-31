@@ -132,8 +132,17 @@ export default function NavbarClient({
             only have about 360px left after the logo and CTA. Rather than
             force that into a strip too narrow to read, tablets get the
             mobile menu below -- widened to use the extra room instead of
-            rendering it identically to a 375px phone (see md: classes there). */}
-        <nav className="hidden items-center gap-6 lg:ml-24 lg:flex xl:ml-32">
+            rendering it identically to a 375px phone (see md: classes there).
+
+            lg:ml-6/gap-4 (not the xl:ml-32/gap-6 values) at exactly 1024px:
+            measured live, the full row (logo + items + icons + CTA) needs
+            ~1093px, which the xl-tier spacing alone doesn't leave room for
+            at 1024px -- the CTA button rendered with its right edge past
+            the viewport, with no scrollbar to reach it since the header is
+            fixed-position (overflow there doesn't extend document scrollWidth,
+            so a generic overflow-x audit won't catch this the way it would
+            for normal in-flow content). */}
+        <nav className="hidden items-center gap-4 lg:ml-6 lg:flex xl:ml-32 xl:gap-6">
           {NAV_ITEMS.map((item) =>
             item.groups && item.groups.length > 0 ? (
               <div
@@ -246,7 +255,7 @@ export default function NavbarClient({
           )}
         </nav>
 
-        <div className="ml-auto hidden items-center gap-4 lg:flex">
+        <div className="ml-auto hidden items-center gap-3 lg:flex xl:gap-4">
           <SearchBox variant="desktop" transparent={transparent} />
           <a
             href={`tel:+${WHATSAPP_NUMBER}`}

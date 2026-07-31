@@ -263,7 +263,7 @@ export default function NavbarClient({
         </div>
 
         <button
-          className={`ml-auto ${transparent ? "text-white lg:hidden" : "text-primary lg:hidden"}`}
+          className={`ml-auto -mr-2.5 flex h-11 w-11 items-center justify-center ${transparent ? "text-white lg:hidden" : "text-primary lg:hidden"}`}
           aria-label="Toggle menu"
           onClick={() => setMenuOpen((v) => !v)}
         >

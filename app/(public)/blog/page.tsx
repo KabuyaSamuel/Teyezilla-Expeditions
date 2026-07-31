@@ -35,10 +35,10 @@ export default async function BlogPage({ searchParams }: Props) {
       <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">The Teyezilla Journal</span>
       <h1 className="mt-3 h1-page">Stories from the Field</h1>
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="mt-6 flex flex-wrap gap-2.5">
         <Link
           href="/blog"
-          className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+          className={`rounded-full px-4 py-2.5 text-sm font-medium transition-colors ${
             !category ? "bg-primary text-white" : "bg-secondary/15 text-foreground hover:bg-secondary/25"
           }`}
         >
@@ -48,7 +48,7 @@ export default async function BlogPage({ searchParams }: Props) {
           <Link
             key={c}
             href={`/blog?category=${encodeURIComponent(c)}`}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+            className={`rounded-full px-4 py-2.5 text-sm font-medium transition-colors ${
               category === c ? "bg-primary text-white" : "bg-secondary/15 text-foreground hover:bg-secondary/25"
             }`}
           >

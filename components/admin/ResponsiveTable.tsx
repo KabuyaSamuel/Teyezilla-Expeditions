@@ -75,9 +75,9 @@ export default function ResponsiveTable<T>({
 
 export function MobileCardField({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-1 text-sm">
-      <span className="text-foreground/50">{label}</span>
-      <span className="text-right font-medium text-foreground">{value}</span>
+    <div className="flex items-start justify-between gap-3 py-1 text-sm">
+      <span className="shrink-0 text-foreground/50">{label}</span>
+      <span className="break-words text-right font-medium text-foreground">{value}</span>
     </div>
   );
 }

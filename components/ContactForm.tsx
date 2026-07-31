@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { submitContactMessage } from "@/app/contact/actions";
+import { submitContactMessage } from "@/app/(public)/contact/actions";
 import { whatsappLink, type EnquiryFormState } from "@/lib/enquiry-shared";
 
 const inputClass =

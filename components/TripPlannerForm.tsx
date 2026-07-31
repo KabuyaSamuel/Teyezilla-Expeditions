@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { submitTripPlannerRequest } from "@/app/trip-planner/actions";
+import { submitTripPlannerRequest } from "@/app/(public)/trip-planner/actions";
 import { whatsappLink, TRIP_EXTRAS, type EnquiryFormState } from "@/lib/enquiry-shared";
 
 const DESTINATIONS = ["Kenya", "Tanzania", "Zanzibar", "Egypt", "Morocco", "Multi-country"];

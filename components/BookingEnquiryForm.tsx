@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { submitBookingEnquiry } from "@/app/booking/actions";
+import { submitBookingEnquiry } from "@/app/(public)/booking/actions";
 import { BUDGET_RANGES, COUNTRIES, REFERRAL_SOURCES, type EnquiryFormState } from "@/lib/enquiry-shared";
 
 export interface ProductOption {

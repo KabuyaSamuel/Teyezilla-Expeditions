@@ -103,7 +103,7 @@ export default function StaffForm({ existingStaff }: { existingStaff?: StaffMemb
         </div>
       </section>
 
-      <div className="flex justify-end gap-3">
+      <div className="flex flex-wrap justify-end gap-3">
         {existingStaff && (
           <button type="button" onClick={handleDelete} disabled={saving} className="rounded-full border-2 border-error px-5 py-2 text-sm font-medium text-error hover:bg-error hover:text-white transition-colors disabled:opacity-50">
             Remove Access

@@ -17,7 +17,7 @@ export default function AdminMobileNav({
   const modules = getModulesForRole(role);
 
   return (
-    <div className="border-b border-secondary/20 bg-white px-4 py-3 lg:hidden">
+    <div className="border-b border-secondary/20 bg-white px-4 py-3 md:hidden">
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 text-sm font-medium text-primary"

@@ -395,7 +395,7 @@ export default function TourForm({
             <option value="published">Published</option>
           </select>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           {existingTour && (
             <button type="button" onClick={handleDelete} disabled={saving} className="rounded-full border-2 border-error px-5 py-2 text-sm font-medium text-error hover:bg-error hover:text-white transition-colors disabled:opacity-50">
               Delete

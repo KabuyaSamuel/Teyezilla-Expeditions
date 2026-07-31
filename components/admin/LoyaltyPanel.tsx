@@ -46,13 +46,13 @@ export default function LoyaltyPanel({
         <form onSubmit={handleAdjust} className="mt-4 space-y-2 rounded-xl bg-secondary/10 p-3">
           <p className="text-xs font-medium text-foreground/70">Adjust points</p>
           {error && <p className="text-xs text-error">{error}</p>}
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 xs:flex-row">
             <input
               type="number"
               placeholder="+/- amount"
               value={delta}
               onChange={(e) => setDelta(e.target.value)}
-              className="w-28 rounded-full border border-secondary/40 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="rounded-full border border-secondary/40 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary xs:w-28"
             />
             <input
               type="text"

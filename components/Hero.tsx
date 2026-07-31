@@ -20,7 +20,7 @@ export default function Hero() {
           <span className="h-px w-8 bg-accent sm:w-12" />
         </span>
 
-        <h1 className="flex max-w-2xl flex-col items-start gap-1 font-heading text-3xl font-bold leading-tight sm:text-4xl md:text-6xl">
+        <h1 className="h1-hero flex max-w-2xl flex-col items-start gap-1">
           <span className="animate-fadeUp inline-block bg-black/55 px-2 py-0.5 text-white [animation-delay:100ms] [box-decoration-break:clone] [-webkit-box-decoration-break:clone] sm:px-3 sm:py-1">
             Extraordinary Journeys.
           </span>

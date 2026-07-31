@@ -72,7 +72,7 @@ export default function BlogContentBlocks({ blocks }: { blocks: ContentBlock[] }
         switch (block.type) {
           case "heading1":
             return (
-              <h2 key={block.id} className="!mt-10 font-heading text-3xl font-bold text-foreground">
+              <h2 key={block.id} className="!mt-10 h2-section">
                 <InlineMarkdown text={block.text} />
               </h2>
             );

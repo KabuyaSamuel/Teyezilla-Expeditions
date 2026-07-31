@@ -58,7 +58,7 @@ export default function CategoryOverview() {
   return (
     <section className="section">
       <ScrollReveal>
-        <h2 className="font-heading text-3xl font-bold text-foreground">Explore Teyezilla</h2>
+        <h2 className="h2-section">Explore Teyezilla</h2>
         <p className="mt-2 text-foreground/70">Seven ways to discover Africa, all in one place.</p>
       </ScrollReveal>
 

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { Menu, X, ChevronDown, Phone } from "lucide-react";
 import SearchBox from "./SearchBox";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
+import { TOGGLE_MOBILE_MENU_EVENT } from "./MobileTabBar";
 
 interface DropdownLink {
   label: string;
@@ -73,6 +74,17 @@ export default function NavbarClient({
     setOpenMobileSection(null);
   }, [pathname]);
 
+  // MobileTabBar's Search/Menu buttons live outside this component (they're
+  // rendered from app/(public)/layout.tsx, not here), so they open this
+  // panel via a plain window event instead of lifted state.
+  useEffect(() => {
+    function onToggle() {
+      setMenuOpen((v) => !v);
+    }
+    window.addEventListener(TOGGLE_MOBILE_MENU_EVENT, onToggle);
+    return () => window.removeEventListener(TOGGLE_MOBILE_MENU_EVENT, onToggle);
+  }, []);
+
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
@@ -114,6 +126,13 @@ export default function NavbarClient({
           />
         </Link>
 
+        {/* lg: (1024px) is deliberate, not the default choice left unexamined:
+            8 nav items plus the phone/search icons and "Plan Your Journey"
+            CTA need roughly 750px on their own, and tablets (768-1023px)
+            only have about 360px left after the logo and CTA. Rather than
+            force that into a strip too narrow to read, tablets get the
+            mobile menu below -- widened to use the extra room instead of
+            rendering it identically to a 375px phone (see md: classes there). */}
         <nav className="hidden items-center gap-6 lg:ml-24 lg:flex xl:ml-32">
           {NAV_ITEMS.map((item) =>
             item.groups && item.groups.length > 0 ? (
@@ -253,7 +272,7 @@ export default function NavbarClient({
       </div>
 
       {menuOpen && (
-        <nav className="flex max-h-[calc(100vh-5rem)] flex-col gap-1 overflow-y-auto border-t border-secondary/30 bg-background px-6 py-6 lg:hidden">
+        <nav className="mx-auto flex max-h-[calc(100vh-5rem)] max-w-3xl flex-col gap-1 overflow-y-auto border-t border-secondary/30 bg-background px-6 py-6 lg:hidden">
           <div className="mb-3 flex items-center gap-2">
             <SearchBox variant="mobile" />
             <a
@@ -264,6 +283,9 @@ export default function NavbarClient({
               <Phone className="h-5 w-5" />
             </a>
           </div>
+          {/* md: widens this to 2 columns of sublinks instead of 1 once a
+              section is expanded, so tablet width (768-1023px) doesn't sit
+              on an unused right half the way a plain phone-width column would. */}
           {NAV_ITEMS.map((item) => {
             const flatLinks: DropdownLink[] = item.groups
               ? item.groups.flatMap((g) => g.links)
@@ -284,7 +306,7 @@ export default function NavbarClient({
                   />
                 </button>
                 {openMobileSection === item.label && (
-                  <div className="ml-3 flex flex-col gap-1 border-l border-secondary/30 pl-3 pb-2">
+                  <div className="ml-3 grid grid-cols-1 gap-1 border-l border-secondary/30 pl-3 pb-2 md:grid-cols-2 md:gap-x-6">
                     {flatLinks.map((link) => (
                       <Link
                         key={link.href}

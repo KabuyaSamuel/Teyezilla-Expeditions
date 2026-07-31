@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import MobileTabBar from "@/components/MobileTabBar";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 
 // This route group is exactly the public site (everything except /admin).
@@ -23,6 +24,7 @@ export default function PublicLayout({
       <main className="flex-1 pt-20">{children}</main>
       <Footer />
       <WhatsAppButton phoneNumber={WHATSAPP_NUMBER} />
+      <MobileTabBar phoneNumber={WHATSAPP_NUMBER} />
     </>
   );
 }

@@ -77,7 +77,7 @@ export default async function Footer() {
   ].filter((link): link is typeof link & { href: string } => !!link.href);
 
   return (
-    <footer className="bg-primary text-white">
+    <footer className="bg-primary pb-16 text-white lg:pb-0">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 sm:grid-cols-2 lg:grid-cols-5">
         <div className="sm:col-span-2 lg:col-span-1">
           <Link href="/" aria-label="Teyezilla Expeditions home">

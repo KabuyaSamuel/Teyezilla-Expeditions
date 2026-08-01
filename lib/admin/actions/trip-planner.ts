@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { countryCodeForName, generateBookingReference } from "@/lib/country-codes";
 
 export async function saveTripPlannerItinerary(requestId: string, itinerary: string): Promise<void> {
   const supabase = await getSupabaseServerClient();
@@ -41,7 +42,10 @@ export async function convertTripPlannerToBooking(requestId: string, inquiryId: 
     .single();
   if (customerError) throw new Error(customerError.message);
 
-  const bookingReference = `TZ-${Math.floor(10000 + Math.random() * 90000)}`;
+  // No specific tour/journey is referenced (the trip is bespoke), but the
+  // request's free-text destination often names a real country -- use its
+  // code when it matches, otherwise fall back to the generic "XX-" prefix.
+  const bookingReference = generateBookingReference(countryCodeForName(request.destination));
   const specialRequests = [
     `Converted from trip planner request: ${request.destination ?? "custom trip"}, ${request.days ?? "?"} day(s), style: ${request.travel_style ?? "-"}${request.luxury_level ? ` (${request.luxury_level})` : ""}.`,
     request.budget_usd ? `Stated budget: $${request.budget_usd} USD.` : "",

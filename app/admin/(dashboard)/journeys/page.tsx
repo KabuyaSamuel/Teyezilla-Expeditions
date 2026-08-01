@@ -2,11 +2,37 @@ import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import ResponsiveTable, { MobileCardField, MobileCardHeader } from "@/components/admin/ResponsiveTable";
-import { getAdminJourneys } from "@/lib/admin/data/journeys";
+import AdminListToolbar from "@/components/admin/AdminListToolbar";
+import Pagination from "@/components/admin/Pagination";
+import { getAdminJourneysPaginated } from "@/lib/admin/data/journeys";
+import { getDestinations } from "@/lib/destinations";
 import { contentStatusTone } from "@/lib/admin/status-tone";
+import { ADMIN_LIST_PAGE_SIZE, parsePage, parseSort, parseString } from "@/lib/admin/list-query";
 
-export default async function AdminJourneysPage() {
-  const journeys = await getAdminJourneys();
+const SORT_OPTIONS = [
+  { value: "created_at_desc", label: "Newest First" },
+  { value: "created_at_asc", label: "Oldest First" },
+  { value: "title_asc", label: "Name A–Z" },
+  { value: "title_desc", label: "Name Z–A" },
+  { value: "price_from_asc", label: "Price: Low to High" },
+  { value: "price_from_desc", label: "Price: High to Low" },
+];
+
+export default async function AdminJourneysPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const page = parsePage(params);
+  const search = parseString(params, "q");
+  const destinationId = parseString(params, "country");
+  const { sortBy, sortDir } = parseSort<"created_at" | "title" | "price_from">(params, "created_at_desc");
+
+  const [{ items: journeys, total }, destinations] = await Promise.all([
+    getAdminJourneysPaginated({ page, pageSize: ADMIN_LIST_PAGE_SIZE, search, sortBy, sortDir, destinationId }),
+    getDestinations(),
+  ]);
 
   return (
     <div>
@@ -20,10 +46,16 @@ export default async function AdminJourneysPage() {
         }
       />
 
+      <AdminListToolbar
+        searchPlaceholder="Search journeys by name…"
+        sortOptions={SORT_OPTIONS}
+        countries={destinations.map((d) => ({ id: d.id, label: d.countryName }))}
+      />
+
       <ResponsiveTable
         rows={journeys}
         keyField={(j) => j.id}
-        emptyMessage="No journeys yet. Add the first one to get started."
+        emptyMessage="No journeys found."
         columns={[
           { header: "Journey", cell: (j) => j.title, className: "font-medium text-foreground" },
           { header: "Primary Destination", cell: (j) => j.primaryDestinationName },
@@ -47,6 +79,14 @@ export default async function AdminJourneysPage() {
             </div>
           </>
         )}
+      />
+
+      <Pagination
+        basePath="/admin/journeys"
+        currentParams={{ q: search, sort: `${sortBy}_${sortDir}`, country: destinationId }}
+        page={page}
+        pageSize={ADMIN_LIST_PAGE_SIZE}
+        total={total}
       />
     </div>
   );

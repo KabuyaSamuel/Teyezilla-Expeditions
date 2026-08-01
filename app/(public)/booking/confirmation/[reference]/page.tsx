@@ -31,13 +31,19 @@ async function getEnquiry(reference: string): Promise<EnquirySummary | null> {
     .maybeSingle();
 
   if (error || !data) return null;
+  // Without generated DB types, supabase-js can't know tour_id/journey_id
+  // are to-one relationships, so it infers embedded selects as arrays
+  // regardless -- cast at the point of use, matching how every other
+  // mapRow-style function in this codebase handles the same shape.
+  const tour = data.tour as unknown as { title: string } | null;
+  const journey = data.journey as unknown as { title: string } | null;
   return {
     travelDate: data.travel_date,
     flexibleDates: Boolean(data.flexible_dates),
     adults: data.adults,
     children: data.children,
     budgetRange: data.budget_range,
-    productTitle: data.tour?.title ?? data.journey?.title ?? "your chosen journey",
+    productTitle: tour?.title ?? journey?.title ?? "your chosen journey",
   };
 }
 

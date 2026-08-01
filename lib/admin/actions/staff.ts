@@ -54,8 +54,22 @@ export async function createStaffMember(input: StaffInput): Promise<{ tempPasswo
     role: input.role,
   });
   if (staffError) {
-    // Roll back the auth user so we don't leave a login-capable orphan.
-    await supabase.auth.admin.deleteUser(authUser.user.id);
+    console.error("[createStaffMember] staff insert failed:", staffError.message);
+    // Roll back the auth user so we don't leave a login-capable orphan. In
+    // its own try/catch: if the rollback itself throws, the original
+    // staffError.message below is what the admin needs to see and fix --
+    // an unrelated rollback failure must never mask it and fall through to
+    // Next.js's generic redacted "Server Components render" error instead.
+    try {
+      await supabase.auth.admin.deleteUser(authUser.user.id);
+    } catch (rollbackErr) {
+      console.error(
+        "[createStaffMember] rollback of orphaned auth user failed:",
+        rollbackErr instanceof Error ? rollbackErr.message : rollbackErr,
+        "-- auth_user_id:",
+        authUser.user.id
+      );
+    }
     throw new Error(staffError.message);
   }
 

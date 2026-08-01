@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 // Server-side Supabase client for use in Server Components, Server Actions,
@@ -40,7 +41,14 @@ export async function getSupabaseServerClient() {
 
 // Admin/service-role client for privileged server-only operations (seeding,
 // admin writes that should bypass RLS). NEVER import this in client
-// components or expose the service role key to the browser.
+// components or expose the service role key to the browser. Every current
+// importer is a "use server" action file or a server component (verified),
+// so a normal static import is safe here -- it never reaches a client
+// bundle regardless. A previous version used a runtime require() instead,
+// intended to keep this out of client bundles, but a bare require() inside
+// an ESM module is a real risk under Turbopack's production bundling (it
+// can behave differently in `next build` than in `next dev`), which is the
+// more likely failure mode to guard against.
 export function getSupabaseServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -49,8 +57,6 @@ export function getSupabaseServiceClient() {
     return null;
   }
 
-  // Lazy import so this code path never bundles into client code.
-  const { createClient } = require("@supabase/supabase-js");
   return createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });

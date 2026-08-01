@@ -1,4 +1,6 @@
 import type { Activity } from "@/lib/activities";
+import type { Vehicle } from "@/lib/vehicles";
+import type { Accommodation } from "@/lib/accommodations";
 import type { Tour } from "@/types";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 import {
@@ -52,6 +54,8 @@ export interface JourneyDetail extends Journey, ProductScalars {
   highlights: ProductHighlight[];
   addons: ProductAddon[];
   activities: Activity[];
+  vehicles: Vehicle[];
+  accommodations: Accommodation[];
   includedTours: Tour[];
 }
 
@@ -169,6 +173,8 @@ const DETAIL_SELECT = `
   journey_highlights(*),
   journey_addons(*),
   journey_activities(activities(id, name, slug, description, icon)),
+  journey_vehicles(vehicles(id, name, slug, vehicle_type, seats, description, features, image)),
+  journey_accommodations(accommodations(id, destination_id, name, slug, description, hero_image, tier)),
   journey_tours(display_order, tours(*))
 `;
 
@@ -214,6 +220,31 @@ export async function getJourneyBySlug(slug: string): Promise<JourneyDetail | un
       .map((a: any) => a.activities)
       .filter(Boolean)
       .map((a: any) => ({ id: a.id, name: a.name, slug: a.slug, description: a.description ?? "", icon: a.icon ?? "" })),
+    vehicles: (row.journey_vehicles ?? [])
+      .map((v: any) => v.vehicles)
+      .filter(Boolean)
+      .map((v: any) => ({
+        id: v.id,
+        name: v.name,
+        slug: v.slug,
+        vehicleType: v.vehicle_type ?? "",
+        seats: v.seats ?? null,
+        description: v.description ?? "",
+        features: v.features ?? [],
+        image: v.image ?? "",
+      })),
+    accommodations: (row.journey_accommodations ?? [])
+      .map((a: any) => a.accommodations)
+      .filter(Boolean)
+      .map((a: any) => ({
+        id: a.id,
+        destinationId: a.destination_id,
+        name: a.name,
+        slug: a.slug ?? "",
+        description: a.description ?? "",
+        heroImage: a.hero_image ?? "",
+        tier: a.tier ?? "",
+      })),
     includedTours: [...(row.journey_tours ?? [])]
       .sort((a: any, b: any) => a.display_order - b.display_order)
       .map((jt: any) => jt.tours)

@@ -42,6 +42,38 @@ export async function getDestinations(): Promise<Destination[]> {
   return data.map(mapRow);
 }
 
+export interface DestinationsQuery {
+  page: number;
+  pageSize: number;
+  search?: string;
+  sortBy?: "created_at" | "country_name";
+  sortDir?: "asc" | "desc";
+}
+
+export async function getDestinationsPaginated(
+  query: DestinationsQuery
+): Promise<{ items: Destination[]; total: number }> {
+  const supabase = getSupabasePublicClient();
+  if (!supabase) {
+    console.warn("[destinations] Supabase not configured, returning no destinations.");
+    return { items: [], total: 0 };
+  }
+
+  let q = supabase.from("destinations").select("*", { count: "exact" });
+  if (query.search) q = q.ilike("country_name", `%${query.search}%`);
+  q = q.order(query.sortBy ?? "created_at", { ascending: query.sortDir === "asc" });
+
+  const from = (query.page - 1) * query.pageSize;
+  const { data, error, count } = await q.range(from, from + query.pageSize - 1);
+
+  if (error || !data) {
+    console.warn("[destinations] Supabase query failed:", error?.message);
+    return { items: [], total: 0 };
+  }
+
+  return { items: data.map(mapRow), total: count ?? 0 };
+}
+
 export async function getLaunchDestinations(): Promise<Destination[]> {
   const all = await getDestinations();
   return all.filter((d) => d.isLaunchDestination);

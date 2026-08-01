@@ -1,13 +1,18 @@
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/PageHeader";
 import JourneyForm from "@/components/admin/JourneyForm";
+import AvailabilityCalendar from "@/components/admin/AvailabilityCalendar";
 import { getAdminJourneyBySlug } from "@/lib/admin/data/journeys";
+import { getJourneyAvailability } from "@/lib/admin/data/availability";
+import { addJourneyAvailabilityDate, removeJourneyAvailabilityDate } from "@/lib/admin/actions/availability";
 import { getDestinations } from "@/lib/destinations";
 import { getJourneyTypes } from "@/lib/journeys";
 import { getExperienceTypes } from "@/lib/experienceTypes";
 import { getSafariThemes } from "@/lib/safari";
 import { getActivities } from "@/lib/activities";
 import { getTours } from "@/lib/tours";
+import { getAdminVehicles } from "@/lib/admin/data/vehicles";
+import { getAdminAccommodations } from "@/lib/admin/data/accommodations";
 
 export default async function EditJourneyPage({
   params,
@@ -15,16 +20,21 @@ export default async function EditJourneyPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [journey, destinations, journeyTypes, experienceTypes, safariThemes, activities, tours] = await Promise.all([
-    getAdminJourneyBySlug(slug),
-    getDestinations(),
-    getJourneyTypes(),
-    getExperienceTypes(),
-    getSafariThemes(),
-    getActivities(),
-    getTours(),
-  ]);
+  const [journey, destinations, journeyTypes, experienceTypes, safariThemes, activities, tours, vehicles, accommodations] =
+    await Promise.all([
+      getAdminJourneyBySlug(slug),
+      getDestinations(),
+      getJourneyTypes(),
+      getExperienceTypes(),
+      getSafariThemes(),
+      getActivities(),
+      getTours(),
+      getAdminVehicles(),
+      getAdminAccommodations(),
+    ]);
   if (!journey) notFound();
+
+  const availability = await getJourneyAvailability(journey.id);
 
   return (
     <div>
@@ -37,7 +47,16 @@ export default async function EditJourneyPage({
         safariThemes={safariThemes}
         activities={activities}
         tours={tours}
+        vehicles={vehicles}
+        accommodations={accommodations}
       />
+      <div className="mt-8">
+        <AvailabilityCalendar
+          dates={availability}
+          onAdd={addJourneyAvailabilityDate.bind(null, journey.id, journey.slug)}
+          onRemove={removeJourneyAvailabilityDate.bind(null, journey.slug)}
+        />
+      </div>
     </div>
   );
 }

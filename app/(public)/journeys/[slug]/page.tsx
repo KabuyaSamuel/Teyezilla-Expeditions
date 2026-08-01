@@ -13,6 +13,8 @@ import ProductGoodToKnow from "@/components/ProductGoodToKnow";
 import ProductTeyezillaMoment from "@/components/ProductTeyezillaMoment";
 import ProductPricingTiers from "@/components/ProductPricingTiers";
 import ProductAddons from "@/components/ProductAddons";
+import ProductVehicles from "@/components/ProductVehicles";
+import ProductAccommodations from "@/components/ProductAccommodations";
 import TourCard from "@/components/TourCard";
 import RelatedContent from "@/components/RelatedContent";
 
@@ -184,6 +186,8 @@ export default async function JourneyPage({ params }: Props) {
             )}
 
             <ProductFactsGrid facts={facts} />
+            <ProductVehicles vehicles={journey.vehicles} />
+            <ProductAccommodations accommodations={journey.accommodations} />
             <ProductIncludesExcludes inclusions={journey.inclusions} exclusions={journey.exclusions} />
             <ProductGoodToKnow
               bringList={journey.bringList}

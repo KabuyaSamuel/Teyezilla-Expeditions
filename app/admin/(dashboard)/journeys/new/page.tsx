@@ -6,16 +6,21 @@ import { getExperienceTypes } from "@/lib/experienceTypes";
 import { getSafariThemes } from "@/lib/safari";
 import { getActivities } from "@/lib/activities";
 import { getTours } from "@/lib/tours";
+import { getAdminVehicles } from "@/lib/admin/data/vehicles";
+import { getAdminAccommodations } from "@/lib/admin/data/accommodations";
 
 export default async function NewJourneyPage() {
-  const [destinations, journeyTypes, experienceTypes, safariThemes, activities, tours] = await Promise.all([
-    getDestinations(),
-    getJourneyTypes(),
-    getExperienceTypes(),
-    getSafariThemes(),
-    getActivities(),
-    getTours(),
-  ]);
+  const [destinations, journeyTypes, experienceTypes, safariThemes, activities, tours, vehicles, accommodations] =
+    await Promise.all([
+      getDestinations(),
+      getJourneyTypes(),
+      getExperienceTypes(),
+      getSafariThemes(),
+      getActivities(),
+      getTours(),
+      getAdminVehicles(),
+      getAdminAccommodations(),
+    ]);
 
   return (
     <div>
@@ -27,6 +32,8 @@ export default async function NewJourneyPage() {
         safariThemes={safariThemes}
         activities={activities}
         tours={tours}
+        vehicles={vehicles}
+        accommodations={accommodations}
       />
     </div>
   );

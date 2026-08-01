@@ -16,6 +16,8 @@ import ProductGoodToKnow from "@/components/ProductGoodToKnow";
 import ProductTeyezillaMoment from "@/components/ProductTeyezillaMoment";
 import ProductPricingTiers from "@/components/ProductPricingTiers";
 import ProductAddons from "@/components/ProductAddons";
+import ProductVehicles from "@/components/ProductVehicles";
+import ProductAccommodations from "@/components/ProductAccommodations";
 import RelatedContent from "@/components/RelatedContent";
 
 interface Props {
@@ -192,6 +194,8 @@ export default async function TourPage({ params }: Props) {
             )}
 
             <ProductFactsGrid facts={facts} />
+            <ProductVehicles vehicles={tour.vehicles} />
+            <ProductAccommodations accommodations={tour.accommodations} />
             <ProductIncludesExcludes inclusions={tour.inclusions} exclusions={tour.exclusions} />
             <ProductGoodToKnow
               bringList={tour.bringList}

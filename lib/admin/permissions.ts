@@ -18,6 +18,9 @@ export type AdminModuleKey =
   | "journeys"
   | "collections"
   | "activities"
+  | "vehicles"
+  | "accommodations"
+  | "operations"
   | "destinations"
   | "bookings"
   | "customers"
@@ -46,7 +49,10 @@ export const ADMIN_MODULES: AdminModuleDef[] = [
   { key: "journeys", label: "Journey Management", href: "/admin/journeys", icon: "✈️", description: "Multi-country and signature journeys" },
   { key: "collections", label: "Collections", href: "/admin/collections", icon: "🧩", description: "Curated tour and journey collections" },
   { key: "activities", label: "Activities Library", href: "/admin/activities", icon: "🎯", description: "Reusable named activities for tours and journeys" },
+  { key: "vehicles", label: "Vehicle Library", href: "/admin/vehicles", icon: "🚙", description: "Reusable named expedition vehicles for tours and journeys" },
+  { key: "accommodations", label: "Accommodation Library", href: "/admin/accommodations", icon: "🏕️", description: "Camps, lodges, and hotels by destination" },
   { key: "destinations", label: "Destination Management", href: "/admin/destinations", icon: "🌍", description: "Countries, overviews, visa and best-time-to-visit info" },
+  { key: "operations", label: "Operations", href: "/admin/operations", icon: "🧭", description: "Assign guides, drivers, and vehicles to upcoming departures" },
   { key: "bookings", label: "Booking Management", href: "/admin/bookings", icon: "📅", description: "Enquiries, quotes, confirmations, cancellations" },
   { key: "customers", label: "Customer Management (CRM)", href: "/admin/customers", icon: "👥", description: "Customer profiles and history" },
   { key: "inquiries", label: "Inquiry Management", href: "/admin/inquiries", icon: "💬", description: "Website, WhatsApp, contact form, and trip planner inquiries" },
@@ -72,7 +78,10 @@ export const ROLE_MODULE_ACCESS: Record<StaffRole, AdminModuleKey[]> = {
     "journeys",
     "collections",
     "activities",
+    "vehicles",
+    "accommodations",
     "destinations",
+    "operations",
     "bookings",
     "customers",
     "inquiries",
@@ -93,8 +102,8 @@ export const ROLE_MODULE_ACCESS: Record<StaffRole, AdminModuleKey[]> = {
     "inquiries",
     "notifications",
   ],
-  tour_guide: ["dashboard", "bookings", "travel-resources", "notifications"],
-  driver: ["dashboard", "bookings", "notifications"],
+  tour_guide: ["dashboard", "bookings", "operations", "travel-resources", "notifications"],
+  driver: ["dashboard", "bookings", "operations", "notifications"],
 };
 
 export function canAccessModule(role: StaffRole, moduleKey: AdminModuleKey): boolean {

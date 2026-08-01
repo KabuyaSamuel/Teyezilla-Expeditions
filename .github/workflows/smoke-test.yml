@@ -47,7 +47,14 @@ jobs:
 
       - name: Run smoke test
         env:
-          # environment_url is GitHub's current field; target_url is the
-          # older one some integrations (including Vercel's) still send.
-          TARGET_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.url }}
+          # Deliberately NOT using deployment_status's environment_url/
+          # target_url here: for Production, Vercel reports its own
+          # auto-generated per-deployment *.vercel.app alias, which sits
+          # behind Deployment Protection same as Preview does -- only the
+          # real custom domain is actually public (confirmed directly: a
+          # "Production" deployment_status run still hit vercel.com/login
+          # on that alias). workflow_dispatch can still target any URL
+          # explicitly; everything else falls back to smoke-test.mjs's own
+          # default (the real production domain).
+          TARGET_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || '' }}
         run: node scripts/smoke-test.mjs "$TARGET_URL"

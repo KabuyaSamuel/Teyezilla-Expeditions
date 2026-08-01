@@ -14,6 +14,14 @@ name: Lighthouse
 # instead of the real app (confirmed directly -- this is what broke the
 # admin job before this restriction was added). Revisit if preview checks
 # are wanted later via Vercel's Protection Bypass for Automation.
+#
+# Even for Production, the LHCI_BASE_URL steps below deliberately ignore
+# deployment_status's environment_url/target_url: Vercel reports its own
+# auto-generated per-deployment *.vercel.app alias there, and that alias
+# sits behind Deployment Protection too, same as Preview -- only the real
+# custom domain is actually public (confirmed directly: a "Production"
+# deployment_status run still hit vercel.com/login on that alias). Falls
+# back to each script's own default (the real production domain) instead.
 # workflow_dispatch runs still work against any URL, preview included.
 
 on:
@@ -43,7 +51,7 @@ jobs:
 
       - name: Lighthouse (public pages)
         env:
-          LHCI_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.url }}
+          LHCI_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || '' }}
         run: npx lhci autorun --config=./lighthouserc.js
 
   # Logs into the admin dashboard as a dedicated CI-only staff account
@@ -72,7 +80,7 @@ jobs:
       - name: Fetch admin session cookie
         id: cookie
         env:
-          LHCI_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.url }}
+          LHCI_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || '' }}
           LHCI_ADMIN_EMAIL: ${{ secrets.LHCI_ADMIN_EMAIL }}
           LHCI_ADMIN_PASSWORD: ${{ secrets.LHCI_ADMIN_PASSWORD }}
         run: |
@@ -82,6 +90,6 @@ jobs:
 
       - name: Lighthouse (admin dashboard, authenticated)
         env:
-          LHCI_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.url }}
+          LHCI_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || '' }}
           LHCI_ADMIN_COOKIE: ${{ steps.cookie.outputs.cookie }}
         run: npx lhci autorun --config=./lighthouserc.admin.js

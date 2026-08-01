@@ -1,0 +1,41 @@
+name: CI
+
+# Runs on every push and PR against Dev2/main: typecheck and build, so a
+# broken build/type state gets caught here instead of only being noticed
+# after it's merged (or worse, deployed). Doesn't need any Supabase secrets
+# -- every data-fetching function in this codebase already fails open
+# (returns null/[] with a console.warn) when Supabase env vars aren't set,
+# so the build still succeeds; it just prerenders zero dynamic
+# tour/journey/destination pages instead of the real ones. Add
+# NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY as repo secrets
+# later if you want CI to build against real data.
+#
+# `npm run lint` is deliberately not run here: it currently fails with 121
+# pre-existing @typescript-eslint/no-explicit-any errors scattered across
+# the codebase (none from recent work), so wiring it in now would make this
+# workflow red from its first run. Add it back once that's cleaned up.
+
+on:
+  push:
+    branches: [main, Dev2]
+  pull_request:
+    branches: [main, Dev2]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build

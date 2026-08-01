@@ -1,31 +1,9 @@
-import { redirect } from "next/navigation";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
-
-async function login(formData: FormData) {
-  "use server";
-
-  const email = String(formData.get("email") || "");
-  const password = String(formData.get("password") || "");
-  const from = String(formData.get("from") || "/admin");
-
-  const supabase = await getSupabaseServerClient();
-  if (!supabase) {
-    redirect(`/admin/login?error=config&from=${encodeURIComponent(from)}`);
-  }
-
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-  if (error) {
-    redirect(`/admin/login?error=1&from=${encodeURIComponent(from)}`);
-  }
-
-  redirect(from || "/admin");
-}
+import LoginForm from "@/components/admin/LoginForm";
 
 export default async function AdminLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; from?: string; config_error?: string }>;
+  searchParams: Promise<{ from?: string; config_error?: string }>;
 }) {
   const params = await searchParams;
 
@@ -37,44 +15,14 @@ export default async function AdminLoginPage({
         </h1>
         <p className="mt-1 text-sm text-foreground/60">Sign in to manage the platform.</p>
 
-        {(params.config_error || params.error === "config") && (
+        {params.config_error && (
           <p className="mt-4 rounded-xl bg-error/10 px-4 py-2 text-sm text-error">
             Supabase isn&apos;t configured yet. Add NEXT_PUBLIC_SUPABASE_URL and
             NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local, then restart the dev server.
           </p>
         )}
-        {params.error === "1" && (
-          <p className="mt-4 rounded-xl bg-error/10 px-4 py-2 text-sm text-error">
-            Invalid email or password.
-          </p>
-        )}
 
-        <form action={login} className="mt-6 space-y-4">
-          <input type="hidden" name="from" value={params.from || "/admin"} />
-          <div>
-            <label htmlFor="email" className="text-xs font-medium text-foreground/60">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="username"
-              className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="text-xs font-medium text-foreground/60">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <button type="submit" className="btn-primary w-full">Log In</button>
-        </form>
+        <LoginForm from={params.from || "/admin"} />
 
         {process.env.NODE_ENV !== "production" && (
           <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">

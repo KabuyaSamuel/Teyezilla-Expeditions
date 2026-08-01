@@ -39,3 +39,30 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # RLS regression tests (tests/rls/*.test.ts) run against the real
+  # Supabase project -- there's no separate test project for this app.
+  # Every test creates its own throwaway rows and cleans them up; nothing
+  # here reads or writes real content. Needs NEXT_PUBLIC_SUPABASE_URL,
+  # NEXT_PUBLIC_SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY as repo
+  # secrets -- until those are added this job fails fast with a clear
+  # "X is not set" error from tests/rls/helpers.ts rather than skipping
+  # silently.
+  rls-tests:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: RLS regression tests
+        run: npm test

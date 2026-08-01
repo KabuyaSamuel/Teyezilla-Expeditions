@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 // Plain, cookie-free Supabase client for public content reads (destinations,
 // tours, blog posts, reviews). Unlike lib/supabase/server.ts, this doesn't
-// depend on next/headers cookies(), so it's safe to call from anywhere —
+// depend on next/headers cookies(), so it's safe to call from anywhere;
 // including generateStaticParams and generateMetadata, which run at build
 // time outside a request context and would throw if they touched cookies().
 // Never use this for anything that needs the signed-in user's session.

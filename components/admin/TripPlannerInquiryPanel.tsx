@@ -55,7 +55,7 @@ export default function TripPlannerInquiryPanel({
       await convertTripPlannerToBooking(request.id, inquiryId);
     } catch (err) {
       // A successful convert redirects away; only real failures land here.
-      // (Next.js redirects surface as a thrown NEXT_REDIRECT — rethrow those.)
+      // (Next.js redirects surface as a thrown NEXT_REDIRECT; rethrow those.)
       if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
       setError(err instanceof Error ? err.message : "Failed to convert to booking.");
       setBusy(false);
@@ -68,12 +68,12 @@ export default function TripPlannerInquiryPanel({
         Trip Planner Request
       </p>
       <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-foreground/70 sm:grid-cols-3 lg:grid-cols-6">
-        <div><p className="text-foreground/40">Destination</p><p className="font-medium text-foreground">{request.destination || "—"}</p></div>
-        <div><p className="text-foreground/40">Budget</p><p className="font-medium text-foreground">{request.budgetUsd ? `$${request.budgetUsd.toLocaleString()}` : "—"}</p></div>
-        <div><p className="text-foreground/40">Days</p><p className="font-medium text-foreground">{request.days || "—"}</p></div>
-        <div><p className="text-foreground/40">Travelers</p><p className="font-medium text-foreground">{request.travelers || "—"}</p></div>
-        <div><p className="text-foreground/40">Style</p><p className="font-medium text-foreground">{request.travelStyle || "—"}</p></div>
-        <div><p className="text-foreground/40">Luxury Level</p><p className="font-medium text-foreground">{request.luxuryLevel || "—"}</p></div>
+        <div><p className="text-foreground/40">Destination</p><p className="font-medium text-foreground">{request.destination || "-"}</p></div>
+        <div><p className="text-foreground/40">Budget</p><p className="font-medium text-foreground">{request.budgetUsd ? `$${request.budgetUsd.toLocaleString()}` : "-"}</p></div>
+        <div><p className="text-foreground/40">Days</p><p className="font-medium text-foreground">{request.days || "-"}</p></div>
+        <div><p className="text-foreground/40">Travelers</p><p className="font-medium text-foreground">{request.travelers || "-"}</p></div>
+        <div><p className="text-foreground/40">Style</p><p className="font-medium text-foreground">{request.travelStyle || "-"}</p></div>
+        <div><p className="text-foreground/40">Luxury Level</p><p className="font-medium text-foreground">{request.luxuryLevel || "-"}</p></div>
       </div>
 
       <div className="mt-4">

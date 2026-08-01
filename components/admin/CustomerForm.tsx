@@ -25,7 +25,6 @@ export default function CustomerForm({ existingCustomer }: { existingCustomer?: 
       nationality: String(formData.get("nationality") ?? ""),
       emergencyContact: String(formData.get("emergencyContact") ?? ""),
       notes: String(formData.get("notes") ?? ""),
-      loyaltyPoints: Number(formData.get("loyaltyPoints") ?? 0),
     };
 
     try {
@@ -79,17 +78,13 @@ export default function CustomerForm({ existingCustomer }: { existingCustomer?: 
           <label htmlFor="emergencyContact" className="text-xs font-medium text-foreground/60">Emergency Contact</label>
           <input id="emergencyContact" name="emergencyContact" defaultValue={existingCustomer?.emergencyContact} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
-        <div>
-          <label htmlFor="loyaltyPoints" className="text-xs font-medium text-foreground/60">Loyalty Points</label>
-          <input id="loyaltyPoints" name="loyaltyPoints" type="number" min={0} defaultValue={existingCustomer?.loyaltyPoints ?? 0} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-        </div>
         <div className="sm:col-span-2">
           <label htmlFor="notes" className="text-xs font-medium text-foreground/60">Notes</label>
           <textarea id="notes" name="notes" rows={3} defaultValue={existingCustomer?.notes} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       </section>
 
-      <div className="flex justify-end gap-3">
+      <div className="flex flex-wrap justify-end gap-3">
         {existingCustomer && (
           <button type="button" onClick={handleDelete} disabled={saving} className="rounded-full border-2 border-error px-5 py-2 text-sm font-medium text-error hover:bg-error hover:text-white transition-colors disabled:opacity-50">
             Delete

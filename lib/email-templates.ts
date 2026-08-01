@@ -1,5 +1,5 @@
 // Template-literal HTML email builders. Shared layout: Forest Emerald Green
-// header band, Warm Ivory background, gold accents — matching the site brand.
+// header band, Warm Ivory background, gold accents; matching the site brand.
 // All visitor-entered values must pass through escapeHtml before rendering.
 
 const EMERALD = "#0F5D46";
@@ -104,7 +104,7 @@ export function customerEnquiryConfirmationEmail({
     ${
       bookingReference
         ? `<p style="margin:0 0 12px;">Your enquiry reference is
-             <strong style="color:${EMERALD};">${escapeHtml(bookingReference)}</strong> —
+             <strong style="color:${EMERALD};">${escapeHtml(bookingReference)}</strong>,
              quote it in any follow-up so we can find your details instantly.</p>`
         : ""
     }
@@ -112,7 +112,7 @@ export function customerEnquiryConfirmationEmail({
     <p style="margin:16px 0 4px;font-weight:bold;color:${EMERALD};">What happens next</p>
     <ol style="margin:4px 0 12px;padding-left:20px;font-size:14px;">
       <li>A travel consultant reviews your enquiry and travel dates.</li>
-      <li>We reply by email or WhatsApp with a tailored quote — usually within 24 hours.</li>
+      <li>We reply by email or WhatsApp with a tailored quote, usually within 24 hours.</li>
       <li>Once you're happy, we confirm your journey and arrange payment offline (bank transfer or invoice).</li>
     </ol>
     ${whatsappUrl ? button(whatsappUrl, "Chat with us on WhatsApp") : ""}
@@ -168,6 +168,7 @@ export function customerQuoteEmail({
   quotedAmount,
   currency,
   message,
+  loyaltyRedemption,
 }: {
   customerName: string;
   bookingReference: string;
@@ -175,6 +176,7 @@ export function customerQuoteEmail({
   quotedAmount: number;
   currency: string;
   message: string;
+  loyaltyRedemption?: { points: number; discountAmount: number; currency: string };
 }): string {
   return layout(
     "Your Quote",
@@ -187,10 +189,17 @@ export function customerQuoteEmail({
     <p style="margin:16px 0;padding:16px 20px;background-color:${IVORY};border-left:4px solid ${GOLD};font-size:22px;font-weight:bold;color:${EMERALD};">
       ${escapeHtml(currency)} ${quotedAmount.toLocaleString()}
     </p>
+    ${
+      loyaltyRedemption
+        ? `<p style="margin:0 0 12px;font-size:13px;color:#6b6b6b;">
+             This price already includes a ${escapeHtml(loyaltyRedemption.currency)} ${loyaltyRedemption.discountAmount.toLocaleString()}
+             discount from redeeming ${loyaltyRedemption.points.toLocaleString()} loyalty points. Thank you for traveling with us before.</p>`
+        : ""
+    }
     ${message ? `<p style="margin:0 0 12px;white-space:pre-line;">${escapeHtml(message)}</p>` : ""}
     <p style="margin:0 0 12px;">
       Reply to this email or message us on WhatsApp to confirm, adjust, or ask anything.
-      Payment is arranged offline — bank transfer, invoice, or in person — once you're happy.
+      Payment is arranged offline (bank transfer, invoice, or in person) once you're happy.
     </p>
     <p style="margin:16px 0 0;">Warm regards,<br/>The Teyezilla Expeditions Team</p>
     `

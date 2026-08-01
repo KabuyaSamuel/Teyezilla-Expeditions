@@ -1,3 +1,5 @@
+import type { ContentBlock } from "@/lib/blogBlocks";
+
 export interface SEOFields {
   metaTitle: string;
   metaDescription: string;
@@ -14,6 +16,9 @@ export interface Destination extends SEOFields {
   overview: string;
   bestTimeToVisit: string;
   visaInfo: string;
+  healthGuidance: string;
+  packingList: string;
+  insuranceInfo: string;
   isLaunchDestination: boolean;
 }
 
@@ -22,9 +27,11 @@ export interface Tour extends SEOFields {
   destinationId: string;
   title: string;
   categoryLabel: string;
+  productType: string;
   heroImage: string;
   shortDescription: string;
   durationDays: number;
+  durationHours: number | null;
   priceFrom: number;
   currency: string;
   difficulty: "Easy" | "Moderate" | "Challenging";
@@ -52,4 +59,6 @@ export interface BlogPost extends SEOFields {
   authorBio: string;
   publishedAt: string;
   category: string;
+  destinationId: string | null;
+  bodyBlocks: ContentBlock[];
 }

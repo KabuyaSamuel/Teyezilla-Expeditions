@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Destination } from "@/types";
 import type { Activity } from "@/lib/activities";
+import type { ExperienceType } from "@/lib/experienceTypes";
 import type { AdminTourDetail, ItineraryDay } from "@/lib/admin/data/tours";
 import type { PricingTierInput, HighlightInput, AddonInput } from "@/lib/admin/actions/productShared";
 import { createTour, updateTour, deleteTour } from "@/lib/admin/actions/tours";
@@ -10,15 +11,18 @@ import PricingTiersEditor from "./PricingTiersEditor";
 import HighlightsEditor from "./HighlightsEditor";
 import AddonsEditor from "./AddonsEditor";
 import ActivitiesPicker from "./ActivitiesPicker";
+import ExperienceTypesPicker from "./ExperienceTypesPicker";
 
 export default function TourForm({
   existingTour,
   destinations,
   activities,
+  experienceTypes,
 }: {
   existingTour?: AdminTourDetail;
   destinations: Destination[];
   activities: Activity[];
+  experienceTypes: ExperienceType[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +37,7 @@ export default function TourForm({
   );
   const [addons, setAddons] = useState<AddonInput[]>(existingTour?.addons.map((a) => ({ ...a })) ?? []);
   const [activityIds, setActivityIds] = useState<string[]>(existingTour?.activityIds ?? []);
+  const [experienceTypeIds, setExperienceTypeIds] = useState<string[]>(existingTour?.experienceTypeIds ?? []);
 
   function addItineraryDay() {
     setItinerary((prev) => [...prev, { day: prev.length + 1, title: "", description: "" }]);
@@ -62,10 +67,10 @@ export default function TourForm({
       title: String(formData.get("tourTitle") ?? ""),
       slug: existingTour?.slug ?? "",
       destinationId: String(formData.get("destinationId") ?? ""),
-      categoryLabel: String(formData.get("categoryLabel") ?? ""),
       productType: String(formData.get("productType") ?? "experience"),
       difficulty: String(formData.get("difficulty") ?? "Easy"),
       durationDays: Number(formData.get("durationDays") ?? 0),
+      durationHours: formData.get("durationHours") ? Number(formData.get("durationHours")) : null,
       priceFrom: Number(formData.get("priceFrom") ?? 0),
       shortDescription: String(formData.get("shortDescription") ?? ""),
       inclusions: splitLines(formData.get("inclusions")),
@@ -93,6 +98,7 @@ export default function TourForm({
       highlights,
       addons,
       activityIds,
+      experienceTypeIds,
       featured: formData.get("featured") === "on",
       status: String(formData.get("status") ?? "draft"),
     };
@@ -106,7 +112,7 @@ export default function TourForm({
       // On success the action redirects to /admin/tours; if we get here
       // without a redirect having thrown, something unexpected happened.
     } catch (err) {
-      // Next.js redirect() throws a special error to trigger navigation —
+      // Next.js redirect() throws a special error to trigger navigation;
       // let that propagate instead of treating it as a failure.
       if (err && typeof err === "object" && "digest" in err && String(err.digest).startsWith("NEXT_REDIRECT")) {
         throw err;
@@ -161,10 +167,6 @@ export default function TourForm({
             </select>
           </div>
           <div>
-            <label htmlFor="categoryLabel" className="text-xs font-medium text-foreground/60">Category</label>
-            <input id="categoryLabel" name="categoryLabel" defaultValue={existingTour?.categoryLabel} placeholder="Safari, Beach, Culture..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          </div>
-          <div>
             <label htmlFor="difficulty" className="text-xs font-medium text-foreground/60">Difficulty</label>
             <select id="difficulty" name="difficulty" defaultValue={existingTour?.difficulty ?? "Easy"} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
               <option>Easy</option>
@@ -177,12 +179,27 @@ export default function TourForm({
             <input id="durationDays" name="durationDays" type="number" min={1} defaultValue={existingTour?.durationDays} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
+            <label htmlFor="durationHours" className="text-xs font-medium text-foreground/60">
+              Duration (hours), for short experiences under a day
+            </label>
+            <input
+              id="durationHours"
+              name="durationHours"
+              type="number"
+              min={1}
+              defaultValue={existingTour?.durationHours ?? undefined}
+              placeholder="e.g. 4"
+              className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <div>
             <label htmlFor="priceFrom" className="text-xs font-medium text-foreground/60">Price From (USD)</label>
             <input id="priceFrom" name="priceFrom" type="number" min={0} defaultValue={existingTour?.priceFrom} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
         <div className="mt-4">
           <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Short Description</label>
+          <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~120–150 characters (keeps card layouts uniform across the site).</p>
           <textarea id="shortDescription" name="shortDescription" defaultValue={existingTour?.shortDescription} rows={3} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       </section>
@@ -270,6 +287,7 @@ export default function TourForm({
       <PricingTiersEditor tiers={pricingTiers} onChange={setPricingTiers} />
       <AddonsEditor addons={addons} onChange={setAddons} />
       <ActivitiesPicker activities={activities} selectedIds={activityIds} onChange={setActivityIds} />
+      <ExperienceTypesPicker experienceTypes={experienceTypes} selectedIds={experienceTypeIds} onChange={setExperienceTypeIds} />
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Logistics</h2>
@@ -342,10 +360,12 @@ export default function TourForm({
         <div className="mt-4 grid gap-4">
           <div>
             <label htmlFor="metaTitle" className="text-xs font-medium text-foreground/60">Meta Title</label>
+            <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~50–60 characters (longer titles get truncated in Google search results).</p>
             <input id="metaTitle" name="metaTitle" defaultValue={existingTour?.metaTitle} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="metaDescription" className="text-xs font-medium text-foreground/60">Meta Description</label>
+            <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~150–160 characters (Google's snippet cuts off beyond this).</p>
             <textarea id="metaDescription" name="metaDescription" defaultValue={existingTour?.metaDescription} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
@@ -375,7 +395,7 @@ export default function TourForm({
             <option value="published">Published</option>
           </select>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           {existingTour && (
             <button type="button" onClick={handleDelete} disabled={saving} className="rounded-full border-2 border-error px-5 py-2 text-sm font-medium text-error hover:bg-error hover:text-white transition-colors disabled:opacity-50">
               Delete

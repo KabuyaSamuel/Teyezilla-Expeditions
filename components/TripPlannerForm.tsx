@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { submitTripPlannerRequest } from "@/app/trip-planner/actions";
-import { whatsappLink, type EnquiryFormState } from "@/lib/enquiry-shared";
+import { submitTripPlannerRequest } from "@/app/(public)/trip-planner/actions";
+import { whatsappLink, TRIP_EXTRAS, type EnquiryFormState } from "@/lib/enquiry-shared";
 
 const DESTINATIONS = ["Kenya", "Tanzania", "Zanzibar", "Egypt", "Morocco", "Multi-country"];
 const STYLES = ["Relaxed", "Adventure", "Culture-focused", "Luxury"];
@@ -32,7 +32,15 @@ export default function TripPlannerForm() {
     travelers: "",
     travelStyle: STYLES[0],
     luxuryLevel: "",
+    extras: [] as string[],
   });
+
+  function toggleExtra(extra: string) {
+    setParams((p) => ({
+      ...p,
+      extras: p.extras.includes(extra) ? p.extras.filter((e) => e !== extra) : [...p.extras, extra],
+    }));
+  }
   const errors = state.fieldErrors ?? {};
 
   if (state.success) {
@@ -40,7 +48,7 @@ export default function TripPlannerForm() {
     return (
       <div className="mt-8 rounded-2xl bg-primary/5 p-8 text-center">
         <p className="font-heading text-xl font-semibold text-primary">
-          Trip request received — thank you!
+          Trip request received, thank you!
         </p>
         <p className="mt-2 text-sm text-foreground/70">
           Our travel team will send a suggested itinerary and quote within 24 hours.
@@ -172,11 +180,31 @@ export default function TripPlannerForm() {
           </select>
         </div>
       </div>
+
+      <div>
+        <p className="px-2 text-sm font-medium text-foreground">Anything else you'd like included? (optional)</p>
+        <div className="mt-2 flex flex-wrap gap-4 px-2">
+          {TRIP_EXTRAS.map((extra) => (
+            <label key={extra} className="flex items-center gap-2 text-sm text-foreground/80">
+              <input
+                type="checkbox"
+                name="extras"
+                value={extra}
+                checked={params.extras.includes(extra)}
+                onChange={() => toggleExtra(extra)}
+                className="h-4 w-4 accent-primary"
+              />
+              {extra}
+            </label>
+          ))}
+        </div>
+      </div>
+
       {state.formError && (
         <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{state.formError}</p>
       )}
       <button type="submit" disabled={pending} className="btn-primary disabled:opacity-60">
-        {pending ? "Sending…" : "Request My Itinerary"}
+        {pending ? "Sending…" : "SUBMIT MY JOURNEY REQUEST"}
       </button>
     </form>
   );

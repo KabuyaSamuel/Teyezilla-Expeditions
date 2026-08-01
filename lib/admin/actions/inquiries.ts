@@ -34,7 +34,7 @@ export async function assignInquiry(id: string, formData: FormData): Promise<voi
 }
 
 // Records the reply and advances the inquiry to "quoted" if it's still
-// "new"/"in_progress" — no email/WhatsApp API is wired up yet (Phase 4), so
+// "new"/"in_progress"; no email/WhatsApp API is wired up yet (Phase 4), so
 // this is the record of what was sent; the actual send happens via the
 // mailto:/wa.me link the reply page opens alongside it.
 export async function sendInquiryReply(id: string, currentStatus: string, formData: FormData): Promise<void> {

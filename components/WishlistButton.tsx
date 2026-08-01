@@ -37,7 +37,7 @@ export default function WishlistButton({ id, label }: { id: string; label: strin
       onClick={toggle}
       aria-label={saved ? `Remove ${label} from wishlist` : `Save ${label} to wishlist`}
       aria-pressed={saved}
-      className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-primary shadow-card transition-transform duration-200 ease-smooth hover:scale-110"
+      className="absolute right-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-primary shadow-card transition-transform duration-200 ease-smooth hover:scale-110"
     >
       <Heart className={`h-4 w-4 ${saved ? "fill-accent text-accent" : ""}`} />
     </button>

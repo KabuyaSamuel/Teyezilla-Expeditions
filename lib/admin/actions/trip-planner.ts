@@ -18,7 +18,7 @@ export async function saveTripPlannerItinerary(requestId: string, itinerary: str
 }
 
 // Creates a booking enquiry from a trip planner request: upserts the customer
-// by email, opens a booking in 'inquiry' status (no tour/journey attached —
+// by email, opens a booking in 'inquiry' status (no tour/journey attached,
 // the trip is bespoke), and marks the request + inquiry as converted.
 export async function convertTripPlannerToBooking(requestId: string, inquiryId: string): Promise<void> {
   const supabase = await getSupabaseServerClient();
@@ -43,7 +43,7 @@ export async function convertTripPlannerToBooking(requestId: string, inquiryId: 
 
   const bookingReference = `TZ-${Math.floor(10000 + Math.random() * 90000)}`;
   const specialRequests = [
-    `Converted from trip planner request: ${request.destination ?? "custom trip"}, ${request.days ?? "?"} day(s), style: ${request.travel_style ?? "—"}${request.luxury_level ? ` (${request.luxury_level})` : ""}.`,
+    `Converted from trip planner request: ${request.destination ?? "custom trip"}, ${request.days ?? "?"} day(s), style: ${request.travel_style ?? "-"}${request.luxury_level ? ` (${request.luxury_level})` : ""}.`,
     request.budget_usd ? `Stated budget: $${request.budget_usd} USD.` : "",
     request.ai_suggested_itinerary ? `Suggested itinerary:\n${request.ai_suggested_itinerary}` : "",
   ]

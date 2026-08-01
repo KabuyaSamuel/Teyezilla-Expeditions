@@ -1,4 +1,4 @@
--- Teyezilla Expeditions — Database Schema (Phase 1)
+-- Teyezilla Expeditions: Database Schema (Phase 1)
 -- Target: Supabase (Postgres). Every content table carries its own SEO fields
 -- (meta_title, meta_description, og_image, slug) so pages can pull metadata
 -- directly from the database via generateMetadata().
@@ -80,7 +80,7 @@ create table customers (
 -- ============ BOOKINGS ============
 -- Booking flow is inquiry-based: visitors enquire, staff quote and confirm by
 -- email/WhatsApp, payment happens offline. payment_status is a manual
--- record-keeping field only — online payment is permanently out of scope.
+-- record-keeping field only; online payment is permanently out of scope.
 -- See supabase/migrations/20260726120000_inquiry_based_bookings.sql for the
 -- full migration (status vocab remap, RLS) and rationale.
 create table bookings (
@@ -198,7 +198,7 @@ create table inquiries (
 -- ============ STAFF ============
 -- auth_user_id links each staff record to a Supabase Auth user (created via
 -- the Supabase Dashboard, Auth API, or CLI). The staff table itself never
--- stores a password — Supabase Auth owns credentials entirely.
+-- stores a password; Supabase Auth owns credentials entirely.
 create table staff (
   id uuid primary key default gen_random_uuid(),
   auth_user_id uuid unique references auth.users(id) on delete set null,
@@ -212,7 +212,7 @@ create table staff (
 -- Row Level Security: staff table should only be readable/writable by
 -- authenticated staff, and only the `admin` role should manage other staff
 -- records. Enable RLS and add policies once you're ready to lock this down
--- for production — left commented out here so local development isn't
+-- for production; left commented out here so local development isn't
 -- blocked by policies before you've created your first admin user.
 -- alter table staff enable row level security;
 -- create policy "Staff can read their own record"
@@ -230,7 +230,7 @@ create table notifications (
 
 -- ============ AFFILIATE PARTNERS ============
 -- Scaffolded per the Phase 3 spec ("scaffold the schema now; UI can come
--- later") — commission tracking and live sync are future work.
+-- later"); commission tracking and live sync are future work.
 create table affiliate_partners (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -290,7 +290,7 @@ create table journeys (
   bring_list text[], cancellation_policy text, availability_note text, teyezilla_moment text,
   created_at timestamptz default now(), updated_at timestamptz default now()
 );
--- No destination_id shortcut column — multi-country journeys use journey_destinations only.
+-- No destination_id shortcut column; multi-country journeys use journey_destinations only.
 create table journey_destinations (
   journey_id uuid not null references journeys(id) on delete cascade,
   destination_id uuid not null references destinations(id) on delete restrict,

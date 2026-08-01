@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Destination } from "@/types";
+import type { Destination, Tour } from "@/types";
 import type { JourneyType } from "@/lib/journeys";
 import type { ExperienceType } from "@/lib/experienceTypes";
 import type { SafariTheme } from "@/lib/safari";
@@ -13,6 +13,7 @@ import PricingTiersEditor from "./PricingTiersEditor";
 import HighlightsEditor from "./HighlightsEditor";
 import AddonsEditor from "./AddonsEditor";
 import ActivitiesPicker from "./ActivitiesPicker";
+import TourPicker from "./TourPicker";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as any).digest).startsWith("NEXT_REDIRECT");
@@ -25,6 +26,7 @@ export default function JourneyForm({
   experienceTypes,
   safariThemes,
   activities,
+  tours,
 }: {
   existingJourney?: AdminJourneyDetail;
   destinations: Destination[];
@@ -32,6 +34,7 @@ export default function JourneyForm({
   experienceTypes: ExperienceType[];
   safariThemes: SafariTheme[];
   activities: Activity[];
+  tours: Tour[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +54,7 @@ export default function JourneyForm({
   );
   const [addons, setAddons] = useState<AddonInput[]>(existingJourney?.addons.map((a) => ({ ...a })) ?? []);
   const [activityIds, setActivityIds] = useState<string[]>(existingJourney?.activityIds ?? []);
+  const [tourIds, setTourIds] = useState<string[]>(existingJourney?.tourIds ?? []);
 
   function toggleId(list: string[], setList: (v: string[]) => void, id: string) {
     setList(list.includes(id) ? list.filter((v) => v !== id) : [...list, id]);
@@ -129,6 +133,7 @@ export default function JourneyForm({
       highlights,
       addons,
       activityIds,
+      tourIds,
       featured: formData.get("featured") === "on",
       status: String(formData.get("status") ?? "draft"),
     };
@@ -208,6 +213,7 @@ export default function JourneyForm({
         </div>
         <div className="mt-4">
           <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Short Description</label>
+          <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~120–150 characters (keeps card layouts uniform across the site).</p>
           <textarea id="shortDescription" name="shortDescription" defaultValue={existingJourney?.shortDescription} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div className="mt-4">
@@ -369,6 +375,7 @@ export default function JourneyForm({
       <PricingTiersEditor tiers={pricingTiers} onChange={setPricingTiers} />
       <AddonsEditor addons={addons} onChange={setAddons} />
       <ActivitiesPicker activities={activities} selectedIds={activityIds} onChange={setActivityIds} />
+      <TourPicker tours={tours} selectedIds={tourIds} onChange={setTourIds} />
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Logistics</h2>
@@ -470,7 +477,7 @@ export default function JourneyForm({
             <option value="published">Published</option>
           </select>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           {existingJourney && (
             <button type="button" onClick={handleDelete} disabled={saving} className="rounded-full border-2 border-error px-5 py-2 text-sm font-medium text-error hover:bg-error hover:text-white transition-colors disabled:opacity-50">
               Delete

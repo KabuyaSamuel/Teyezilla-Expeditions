@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
+import ResponsiveTable, { MobileCardField, MobileCardHeader } from "@/components/admin/ResponsiveTable";
 import { getAdminJourneys } from "@/lib/admin/data/journeys";
 import { contentStatusTone } from "@/lib/admin/status-tone";
 
@@ -19,47 +20,34 @@ export default async function AdminJourneysPage() {
         }
       />
 
-      <div className="card overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-secondary/20 text-xs uppercase tracking-wide text-foreground/50">
-            <tr>
-              <th className="px-5 py-3">Journey</th>
-              <th className="px-5 py-3">Primary Destination</th>
-              <th className="px-5 py-3">Duration</th>
-              <th className="px-5 py-3">Price From</th>
-              <th className="px-5 py-3">Featured</th>
-              <th className="px-5 py-3">Status</th>
-              <th className="px-5 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {journeys.map((journey) => (
-              <tr key={journey.id} className="border-b border-secondary/10 last:border-0">
-                <td className="px-5 py-3 font-medium text-foreground">{journey.title}</td>
-                <td className="px-5 py-3 text-foreground/70">{journey.primaryDestinationName}</td>
-                <td className="px-5 py-3 text-foreground/70">{journey.durationDays}d</td>
-                <td className="px-5 py-3 text-foreground/70">{journey.currency} {journey.priceFrom}</td>
-                <td className="px-5 py-3">{journey.featured ? "★" : "—"}</td>
-                <td className="px-5 py-3">
-                  <Badge tone={contentStatusTone(journey.status)}>{journey.status}</Badge>
-                </td>
-                <td className="px-5 py-3">
-                  <Link href={`/admin/journeys/${journey.slug}`} className="text-primary hover:underline">
-                    Edit
-                  </Link>
-                </td>
-              </tr>
-            ))}
-            {journeys.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-5 py-6 text-center text-sm text-foreground/50">
-                  No journeys yet. Add the first one to get started.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ResponsiveTable
+        rows={journeys}
+        keyField={(j) => j.id}
+        emptyMessage="No journeys yet. Add the first one to get started."
+        columns={[
+          { header: "Journey", cell: (j) => j.title, className: "font-medium text-foreground" },
+          { header: "Primary Destination", cell: (j) => j.primaryDestinationName },
+          { header: "Duration", cell: (j) => `${j.durationDays}d` },
+          { header: "Price From", cell: (j) => `${j.currency} ${j.priceFrom}` },
+          { header: "Featured", cell: (j) => (j.featured ? "★" : "-") },
+          { header: "Status", cell: (j) => <Badge tone={contentStatusTone(j.status)}>{j.status}</Badge> },
+          { header: "", cell: (j) => <Link href={`/admin/journeys/${j.slug}`} className="text-primary hover:underline">Edit</Link> },
+        ]}
+        renderMobileCard={(j) => (
+          <>
+            <MobileCardHeader
+              title={j.featured ? `★ ${j.title}` : j.title}
+              subtitle={j.primaryDestinationName}
+              action={<Link href={`/admin/journeys/${j.slug}`} className="hover:underline">Edit</Link>}
+            />
+            <div className="mt-3 space-y-1 border-t border-secondary/10 pt-3">
+              <MobileCardField label="Duration" value={`${j.durationDays}d`} />
+              <MobileCardField label="Price From" value={`${j.currency} ${j.priceFrom}`} />
+              <MobileCardField label="Status" value={<Badge tone={contentStatusTone(j.status)}>{j.status}</Badge>} />
+            </div>
+          </>
+        )}
+      />
     </div>
   );
 }

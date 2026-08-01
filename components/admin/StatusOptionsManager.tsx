@@ -118,7 +118,7 @@ export default function StatusOptionsManager({
           </div>
         ))}
         {options.length === 0 && (
-          <p className="text-sm text-foreground/50">No statuses yet — add the first one below.</p>
+          <p className="text-sm text-foreground/50">No statuses yet. Add the first one below.</p>
         )}
       </div>
 

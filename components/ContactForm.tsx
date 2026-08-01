@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { submitContactMessage } from "@/app/contact/actions";
+import { submitContactMessage } from "@/app/(public)/contact/actions";
 import { whatsappLink, type EnquiryFormState } from "@/lib/enquiry-shared";
 
 const inputClass =
@@ -23,7 +23,7 @@ export default function ContactForm() {
   if (state.success) {
     return (
       <div className="mt-8 rounded-2xl bg-primary/5 p-8 text-center">
-        <p className="font-heading text-xl font-semibold text-primary">Message sent — thank you!</p>
+        <p className="font-heading text-xl font-semibold text-primary">Message sent, thank you!</p>
         <p className="mt-2 text-sm text-foreground/70">
           Our team will reply within 24 hours. Prefer a faster answer?
         </p>

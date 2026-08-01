@@ -4,8 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Phone } from "lucide-react";
 import SearchBox from "./SearchBox";
+import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
+import { TOGGLE_MOBILE_MENU_EVENT } from "./MobileTabBar";
 
 interface DropdownLink {
   label: string;
@@ -72,6 +74,17 @@ export default function NavbarClient({
     setOpenMobileSection(null);
   }, [pathname]);
 
+  // MobileTabBar's Search/Menu buttons live outside this component (they're
+  // rendered from app/(public)/layout.tsx, not here), so they open this
+  // panel via a plain window event instead of lifted state.
+  useEffect(() => {
+    function onToggle() {
+      setMenuOpen((v) => !v);
+    }
+    window.addEventListener(TOGGLE_MOBILE_MENU_EVENT, onToggle);
+    return () => window.removeEventListener(TOGGLE_MOBILE_MENU_EVENT, onToggle);
+  }, []);
+
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
@@ -113,7 +126,23 @@ export default function NavbarClient({
           />
         </Link>
 
-        <nav className="hidden items-center gap-6 lg:ml-24 lg:flex xl:ml-32">
+        {/* lg: (1024px) is deliberate, not the default choice left unexamined:
+            8 nav items plus the phone/search icons and "Plan Your Journey"
+            CTA need roughly 750px on their own, and tablets (768-1023px)
+            only have about 360px left after the logo and CTA. Rather than
+            force that into a strip too narrow to read, tablets get the
+            mobile menu below -- widened to use the extra room instead of
+            rendering it identically to a 375px phone (see md: classes there).
+
+            lg:ml-6/gap-4 (not the xl:ml-32/gap-6 values) at exactly 1024px:
+            measured live, the full row (logo + items + icons + CTA) needs
+            ~1093px, which the xl-tier spacing alone doesn't leave room for
+            at 1024px -- the CTA button rendered with its right edge past
+            the viewport, with no scrollbar to reach it since the header is
+            fixed-position (overflow there doesn't extend document scrollWidth,
+            so a generic overflow-x audit won't catch this the way it would
+            for normal in-flow content). */}
+        <nav className="hidden items-center gap-4 lg:ml-6 lg:flex xl:ml-32 xl:gap-6">
           {NAV_ITEMS.map((item) =>
             item.groups && item.groups.length > 0 ? (
               <div
@@ -226,15 +255,24 @@ export default function NavbarClient({
           )}
         </nav>
 
-        <div className="ml-auto hidden items-center gap-4 lg:flex">
+        <div className="ml-auto hidden items-center gap-3 lg:flex xl:gap-4">
           <SearchBox variant="desktop" transparent={transparent} />
+          <a
+            href={`tel:+${WHATSAPP_NUMBER}`}
+            aria-label="Call us"
+            className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+              transparent ? "text-white hover:text-accent" : "text-foreground hover:text-primary"
+            }`}
+          >
+            <Phone className="h-5 w-5" />
+          </a>
           <Link href="/booking" className="btn-secondary text-sm">
             Plan Your Journey
           </Link>
         </div>
 
         <button
-          className={`ml-auto ${transparent ? "text-white lg:hidden" : "text-primary lg:hidden"}`}
+          className={`ml-auto -mr-2.5 flex h-11 w-11 items-center justify-center ${transparent ? "text-white lg:hidden" : "text-primary lg:hidden"}`}
           aria-label="Toggle menu"
           onClick={() => setMenuOpen((v) => !v)}
         >
@@ -243,10 +281,20 @@ export default function NavbarClient({
       </div>
 
       {menuOpen && (
-        <nav className="flex max-h-[calc(100vh-5rem)] flex-col gap-1 overflow-y-auto border-t border-secondary/30 bg-background px-6 py-6 lg:hidden">
-          <div className="mb-3">
+        <nav className="mx-auto flex max-h-[calc(100vh-5rem)] max-w-3xl flex-col gap-1 overflow-y-auto border-t border-secondary/30 bg-background px-6 py-6 lg:hidden">
+          <div className="mb-3 flex items-center gap-2">
             <SearchBox variant="mobile" />
+            <a
+              href={`tel:+${WHATSAPP_NUMBER}`}
+              aria-label="Call us"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/15 text-foreground"
+            >
+              <Phone className="h-5 w-5" />
+            </a>
           </div>
+          {/* md: widens this to 2 columns of sublinks instead of 1 once a
+              section is expanded, so tablet width (768-1023px) doesn't sit
+              on an unused right half the way a plain phone-width column would. */}
           {NAV_ITEMS.map((item) => {
             const flatLinks: DropdownLink[] = item.groups
               ? item.groups.flatMap((g) => g.links)
@@ -267,7 +315,7 @@ export default function NavbarClient({
                   />
                 </button>
                 {openMobileSection === item.label && (
-                  <div className="ml-3 flex flex-col gap-1 border-l border-secondary/30 pl-3 pb-2">
+                  <div className="ml-3 grid grid-cols-1 gap-1 border-l border-secondary/30 pl-3 pb-2 md:grid-cols-2 md:gap-x-6">
                     {flatLinks.map((link) => (
                       <Link
                         key={link.href}

@@ -31,7 +31,7 @@ export default function PricingTiersEditor({
         </button>
       </div>
       <p className="mt-1 text-xs text-foreground/50">
-        Optional — leave empty to show a single "from" price instead (e.g. Luxury / Signature / Private Collection).
+        Optional: leave empty to show a single "from" price instead (e.g. Luxury / Signature / Private Collection).
       </p>
       <div className="mt-4 space-y-4">
         {tiers.map((t, i) => (

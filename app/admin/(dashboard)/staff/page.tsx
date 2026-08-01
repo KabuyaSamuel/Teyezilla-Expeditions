@@ -44,7 +44,7 @@ export default async function AdminStaffPage() {
 
       <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">
         Module access is defined per role in <code>lib/admin/permissions.ts</code>. Edit
-        that file to change what each role can see — every sidebar and route guard
+        that file to change what each role can see; every sidebar and route guard
         reads from the same table, so there's one place to update permissions.
       </div>
     </div>

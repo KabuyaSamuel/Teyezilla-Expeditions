@@ -13,7 +13,7 @@ function mapRow(row: Record<string, any>): Review {
 }
 
 // RLS restricts the anon role to is_approved = true rows already, so no
-// explicit filter is needed here — see supabase/migrations/*_add_rls_policies.sql.
+// explicit filter is needed here; see supabase/migrations/*_add_rls_policies.sql.
 export async function getApprovedReviews(): Promise<Review[]> {
   const supabase = getSupabasePublicClient();
   if (!supabase) {

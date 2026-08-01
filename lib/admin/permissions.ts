@@ -30,7 +30,6 @@ export type AdminModuleKey =
   | "settings"
   | "statuses"
   | "travel-resources"
-  | "affiliates"
   | "notifications";
 
 export interface AdminModuleDef {
@@ -47,7 +46,7 @@ export const ADMIN_MODULES: AdminModuleDef[] = [
   { key: "journeys", label: "Journey Management", href: "/admin/journeys", icon: "✈️", description: "Multi-country and signature journeys" },
   { key: "collections", label: "Collections", href: "/admin/collections", icon: "🧩", description: "Curated tour and journey collections" },
   { key: "activities", label: "Activities Library", href: "/admin/activities", icon: "🎯", description: "Reusable named activities for tours and journeys" },
-  { key: "destinations", label: "Destination Management", href: "/admin/destinations", icon: "🌍", description: "Countries, cities, attractions" },
+  { key: "destinations", label: "Destination Management", href: "/admin/destinations", icon: "🌍", description: "Countries, overviews, visa and best-time-to-visit info" },
   { key: "bookings", label: "Booking Management", href: "/admin/bookings", icon: "📅", description: "Enquiries, quotes, confirmations, cancellations" },
   { key: "customers", label: "Customer Management (CRM)", href: "/admin/customers", icon: "👥", description: "Customer profiles and history" },
   { key: "inquiries", label: "Inquiry Management", href: "/admin/inquiries", icon: "💬", description: "Website, WhatsApp, contact form, and trip planner inquiries" },
@@ -59,13 +58,12 @@ export const ADMIN_MODULES: AdminModuleDef[] = [
   { key: "settings", label: "Website Settings", href: "/admin/settings", icon: "⚙️", description: "Company info, currency, SEO defaults" },
   { key: "statuses", label: "Status Options", href: "/admin/statuses", icon: "🏷️", description: "Manage booking and payment status choices" },
   { key: "travel-resources", label: "Travel Resources", href: "/admin/travel-resources", icon: "🧳", description: "Visa, packing, health guidance" },
-  { key: "affiliates", label: "Affiliate Management", href: "/admin/affiliates", icon: "🔗", description: "Viator, GetYourGuide, Booking.com" },
   { key: "notifications", label: "Notifications", href: "/admin/notifications", icon: "🔔", description: "Alerts and reminders" },
 ];
 
 // Which modules each role can see. Admin sees everything; other roles get a
 // scoped subset relevant to their job. Adjust freely as the business needs
-// evolve — this table is the single source of truth for sidebar + route guards.
+// evolve; this table is the single source of truth for sidebar + route guards.
 export const ROLE_MODULE_ACCESS: Record<StaffRole, AdminModuleKey[]> = {
   admin: ADMIN_MODULES.map((m) => m.key),
   manager: [
@@ -86,7 +84,6 @@ export const ROLE_MODULE_ACCESS: Record<StaffRole, AdminModuleKey[]> = {
     "settings",
     "statuses",
     "travel-resources",
-    "affiliates",
     "notifications",
   ],
   sales_agent: [

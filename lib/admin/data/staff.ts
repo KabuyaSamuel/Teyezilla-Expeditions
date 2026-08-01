@@ -2,7 +2,7 @@ import type { StaffRole } from "../permissions";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 // Staff directory for the Staff Management module. Reads from the real
-// `staff` table — auth is entirely owned by Supabase Auth, not this file.
+// `staff` table; auth is entirely owned by Supabase Auth, not this file.
 
 export interface StaffMember {
   id: string;

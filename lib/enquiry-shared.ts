@@ -30,7 +30,7 @@ export const REFERRAL_SOURCES = [
 ] as const;
 
 // Full list of UN-recognized country / territory names, for the "Country of
-// residence" select — kept here so both the form and the zod schema can
+// residence" select; kept here so both the form and the zod schema can
 // validate against the same source of truth.
 export const COUNTRIES = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina",
@@ -116,7 +116,10 @@ export const tripPlannerSchema = z.object({
   travelers: z.coerce.number().int().min(1, "At least 1 traveler is required.").max(50),
   travelStyle: z.string().trim().min(1, "Please choose a travel style.").max(100),
   luxuryLevel: z.string().trim().max(100).optional().default(""),
+  extras: z.array(z.string().trim().max(50)).max(20).optional().default([]),
 });
+
+export const TRIP_EXTRAS = ["Private vehicle", "Airport assistance", "Flight booking"] as const;
 
 // Field-level errors keyed by input name, plus an optional form-level error.
 export interface EnquiryFormState {

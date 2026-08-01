@@ -12,6 +12,18 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
   }
+
+  /* iOS Safari zooms the whole viewport on focus for any input/textarea/select
+     under 16px, which is jarring and hard to undo mid-form. Every form input
+     site-wide used text-sm (14px); this scopes the fix to mobile widths only
+     so desktop sizing is untouched. !important is deliberate here -- it's
+     overriding Tailwind's own text-sm utility class, which otherwise wins on
+     specificity regardless of layer order. */
+  @media (max-width: 639px) {
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+  }
 }
 
 @layer components {
@@ -29,5 +41,30 @@
   }
   .card {
     @apply rounded-xl2 bg-white shadow-card transition-shadow duration-200 ease-smooth hover:shadow-cardHover;
+  }
+
+  /* Fluid type scale: font-size moves smoothly with viewport width instead
+     of jumping at breakpoints, so no heading ever renders at its full
+     desktop size on a narrow phone. Use h1-hero only for the homepage hero
+     (over photography, needs the largest scale); h1-page for every other
+     page's <h1>; h2-section for section headings within a page. */
+  .h1-hero {
+    @apply font-heading font-bold;
+    font-size: clamp(1.875rem, 7vw, 3.75rem);
+    line-height: 1.05;
+  }
+  .h1-page {
+    @apply font-heading font-bold text-foreground;
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    line-height: 1.15;
+  }
+  .h2-section {
+    @apply font-heading font-bold text-foreground;
+    font-size: clamp(1.375rem, 3.5vw, 2rem);
+    line-height: 1.2;
+  }
+  .intro-text {
+    font-size: clamp(1rem, 2.2vw, 1.125rem);
+    line-height: 1.6;
   }
 }

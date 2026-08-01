@@ -12,7 +12,7 @@ export default async function AdminStatusesPage() {
     <div>
       <PageHeader
         title="Status Options"
-        description="Manage the choices staff can pick from on every booking's status dropdowns. Reorder, rename, recolor, add, or remove — changes apply everywhere immediately."
+        description="Manage the choices staff can pick from on every booking's status dropdowns. Reorder, rename, recolor, add, or remove; changes apply everywhere immediately."
       />
       <div className="grid gap-6 lg:grid-cols-2">
         <StatusOptionsManager

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
+import ResponsiveTable, { MobileCardField, MobileCardHeader } from "@/components/admin/ResponsiveTable";
 import { getAdminCollections } from "@/lib/admin/data/collections";
 import { contentStatusTone } from "@/lib/admin/status-tone";
 
@@ -19,43 +20,31 @@ export default async function AdminCollectionsPage() {
         }
       />
 
-      <div className="card overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-secondary/20 text-xs uppercase tracking-wide text-foreground/50">
-            <tr>
-              <th className="px-5 py-3">Collection</th>
-              <th className="px-5 py-3">Tours</th>
-              <th className="px-5 py-3">Journeys</th>
-              <th className="px-5 py-3">Status</th>
-              <th className="px-5 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {collections.map((collection) => (
-              <tr key={collection.id} className="border-b border-secondary/10 last:border-0">
-                <td className="px-5 py-3 font-medium text-foreground">{collection.name}</td>
-                <td className="px-5 py-3 text-foreground/70">{collection.tourCount}</td>
-                <td className="px-5 py-3 text-foreground/70">{collection.journeyCount}</td>
-                <td className="px-5 py-3">
-                  <Badge tone={contentStatusTone(collection.status)}>{collection.status}</Badge>
-                </td>
-                <td className="px-5 py-3">
-                  <Link href={`/admin/collections/${collection.slug}`} className="text-primary hover:underline">
-                    Edit
-                  </Link>
-                </td>
-              </tr>
-            ))}
-            {collections.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-5 py-6 text-center text-sm text-foreground/50">
-                  No collections yet. Add the first one to get started.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ResponsiveTable
+        rows={collections}
+        keyField={(c) => c.id}
+        emptyMessage="No collections yet. Add the first one to get started."
+        columns={[
+          { header: "Collection", cell: (c) => c.name, className: "font-medium text-foreground" },
+          { header: "Tours", cell: (c) => c.tourCount },
+          { header: "Journeys", cell: (c) => c.journeyCount },
+          { header: "Status", cell: (c) => <Badge tone={contentStatusTone(c.status)}>{c.status}</Badge> },
+          { header: "", cell: (c) => <Link href={`/admin/collections/${c.slug}`} className="text-primary hover:underline">Edit</Link> },
+        ]}
+        renderMobileCard={(c) => (
+          <>
+            <MobileCardHeader
+              title={c.name}
+              action={<Link href={`/admin/collections/${c.slug}`} className="hover:underline">Edit</Link>}
+            />
+            <div className="mt-3 space-y-1 border-t border-secondary/10 pt-3">
+              <MobileCardField label="Tours" value={c.tourCount} />
+              <MobileCardField label="Journeys" value={c.journeyCount} />
+              <MobileCardField label="Status" value={<Badge tone={contentStatusTone(c.status)}>{c.status}</Badge>} />
+            </div>
+          </>
+        )}
+      />
     </div>
   );
 }

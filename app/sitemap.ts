@@ -1,16 +1,16 @@
 import type { MetadataRoute } from "next";
 import { getDestinations } from "@/lib/destinations";
-import { getTours } from "@/lib/tours";
+import { getPublishedTours } from "@/lib/tours";
 
 const BASE_URL = "https://www.teyezillaexpeditions.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [destinations, tours] = await Promise.all([getDestinations(), getTours()]);
+  const [destinations, tours] = await Promise.all([getDestinations(), getPublishedTours()]);
 
   const staticRoutes = [
     "",
     "/destinations",
-    "/safaris",
+    "/safari",
     "/experiences",
     "/tailor-made-trips",
     "/blog",

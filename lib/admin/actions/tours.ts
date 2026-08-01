@@ -8,6 +8,7 @@ import {
   syncHighlights,
   syncAddons,
   syncActivities,
+  syncExperienceTypes,
   productScalarsToRow,
   type PricingTierInput,
   type HighlightInput,
@@ -19,9 +20,9 @@ export interface TourInput extends ProductScalarsInput {
   title: string;
   slug: string;
   destinationId: string;
-  categoryLabel: string;
   difficulty: string;
   durationDays: number;
+  durationHours: number | null;
   priceFrom: number;
   shortDescription: string;
   inclusions: string[];
@@ -38,6 +39,7 @@ export interface TourInput extends ProductScalarsInput {
   highlights: HighlightInput[];
   addons: AddonInput[];
   activityIds: string[];
+  experienceTypeIds: string[];
 }
 
 function slugify(title: string): string {
@@ -53,9 +55,9 @@ function toRow(input: TourInput) {
     title: input.title,
     slug: input.slug || slugify(input.title),
     destination_id: input.destinationId,
-    category_label: input.categoryLabel,
     difficulty: input.difficulty,
     duration_days: input.durationDays,
+    duration_hours: input.durationHours,
     price_from: input.priceFrom,
     short_description: input.shortDescription,
     inclusions: input.inclusions,
@@ -77,6 +79,7 @@ async function syncTourRelations(supabase: any, tourId: string, input: TourInput
   await syncHighlights(supabase, "tour_highlights", "tour_id", tourId, input.highlights);
   await syncAddons(supabase, "tour_addons", "tour_id", tourId, input.addons);
   await syncActivities(supabase, "tour_activities", "tour_id", tourId, input.activityIds);
+  await syncExperienceTypes(supabase, "tour_experience_types", "tour_id", tourId, input.experienceTypeIds);
 }
 
 export async function createTour(input: TourInput): Promise<void> {

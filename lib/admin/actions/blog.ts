@@ -3,15 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { ContentBlock } from "@/lib/blogBlocks";
 
 export interface BlogPostInput {
   title: string;
   slug: string;
   category: string;
   tags: string[];
+  destinationId: string;
   excerpt: string;
   answer: string;
-  body: string;
+  bodyBlocks: ContentBlock[];
   authorName: string;
   metaTitle: string;
   metaDescription: string;
@@ -40,9 +42,10 @@ function toRow(input: BlogPostInput) {
     slug: input.slug || slugify(input.title),
     category: input.category,
     tags: input.tags,
+    destination_id: input.destinationId || null,
     excerpt: input.excerpt,
     answer: input.answer,
-    body: input.body,
+    body_blocks: input.bodyBlocks,
     author_name: input.authorName,
     meta_title: input.metaTitle,
     meta_description: input.metaDescription,

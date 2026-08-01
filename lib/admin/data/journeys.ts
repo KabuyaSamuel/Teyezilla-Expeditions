@@ -55,6 +55,7 @@ export interface AdminJourneyDetail extends ProductScalars {
   highlights: ProductHighlight[];
   addons: ProductAddon[];
   activityIds: string[];
+  tourIds: string[];
 }
 
 const LIST_SELECT = `
@@ -63,7 +64,7 @@ const LIST_SELECT = `
 `;
 
 // Uses the authenticated staff session (not the public client) because
-// journeys' public-read RLS only exposes status='published' rows — the
+// journeys' public-read RLS only exposes status='published' rows; the
 // admin list needs drafts too, which the "Staff can manage journeys"
 // policy grants via its unconditional using(true).
 export async function getAdminJourneys(): Promise<AdminJourneyListItem[]> {
@@ -97,7 +98,7 @@ export async function getAdminJourneys(): Promise<AdminJourneyListItem[]> {
       currency: row.currency ?? "USD",
       featured: Boolean(row.featured),
       status: row.status ?? "draft",
-      primaryDestinationName: primary?.destinations?.country_name ?? "—",
+      primaryDestinationName: primary?.destinations?.country_name ?? "-",
     };
   });
 }
@@ -111,7 +112,8 @@ const DETAIL_SELECT = `
   journey_pricing_tiers(*),
   journey_highlights(*),
   journey_addons(*),
-  journey_activities(activity_id)
+  journey_activities(activity_id),
+  journey_tours(tour_id)
 `;
 
 export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyDetail | undefined> {
@@ -165,5 +167,6 @@ export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyD
     highlights: (row.journey_highlights ?? []).map(mapHighlightRow),
     addons: (row.journey_addons ?? []).map(mapAddonRow),
     activityIds: (row.journey_activities ?? []).map((a: any) => a.activity_id),
+    tourIds: (row.journey_tours ?? []).map((t: any) => t.tour_id),
   };
 }

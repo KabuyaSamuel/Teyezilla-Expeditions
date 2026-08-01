@@ -1,7 +1,7 @@
--- Teyezilla Expeditions — Seed Data
+-- Teyezilla Expeditions: Seed Data
 -- Run this AFTER schema.sql to populate a fresh Supabase project with the
 -- site's real launch content. The app reads exclusively from these tables
--- (see lib/*.ts and lib/admin/data/*.ts) — there is no hardcoded fallback
+-- (see lib/*.ts and lib/admin/data/*.ts); there is no hardcoded fallback
 -- data left in the codebase, so an unseeded database renders empty pages.
 
 insert into destinations (country_name, slug, flag_emoji, hero_image, short_description, overview, best_time_to_visit, visa_info, is_launch_destination, meta_title, meta_description, og_image) values
@@ -39,10 +39,10 @@ insert into reviews (tour_id, author_name, source, rating, quote, is_approved) v
 -- so a fresh install matches the live database.
 
 insert into regions (name, slug, description, display_order) values
-('East Africa', 'east-africa', 'Kenya, Tanzania, Zanzibar, Uganda, and Rwanda — the classic safari heartland.', 1),
-('North Africa', 'north-africa', 'Egypt and Morocco — ancient wonders and desert landscapes.', 2),
-('Southern Africa', 'southern-africa', 'South Africa, Namibia, Botswana, Zambia, and Zimbabwe — dramatic wilderness and world-class safaris.', 3),
-('Indian Ocean', 'indian-ocean', 'Zanzibar, Mauritius, and Seychelles — white-sand islands off Africa''s coast.', 4);
+('East Africa', 'east-africa', 'Kenya, Tanzania, Zanzibar, Uganda, and Rwanda: the classic safari heartland.', 1),
+('North Africa', 'north-africa', 'Egypt and Morocco: ancient wonders and desert landscapes.', 2),
+('Southern Africa', 'southern-africa', 'South Africa, Namibia, Botswana, Zambia, and Zimbabwe: dramatic wilderness and world-class safaris.', 3),
+('Indian Ocean', 'indian-ocean', 'Zanzibar, Mauritius, and Seychelles: white-sand islands off Africa''s coast.', 4);
 
 insert into destinations (country_name, slug, flag_emoji, hero_image, short_description, overview, best_time_to_visit, visa_info, is_launch_destination, meta_title, meta_description, og_image) values
 ('Namibia', 'namibia', '🇳🇦', 'https://picsum.photos/seed/namibia-hero/1200/800', 'The red dunes of Sossusvlei and the wildlife of Etosha National Park.', 'Coming soon to Teyezilla Expeditions.', 'May to October.', 'eVisa available online.', false, 'Namibia Safari & Desert Tours | Teyezilla Expeditions', 'Namibia desert and safari tours, coming soon to Teyezilla Expeditions.', 'https://picsum.photos/seed/namibia-og/1200/800'),
@@ -119,8 +119,8 @@ union all select c.id, t.id from collections c, tours t where c.slug = 'the-adve
 insert into faqs (category, question, answer, display_order, status) values
 ('safari-guide', 'When is the best time to go on safari?', 'It depends on the destination: Kenya and Tanzania are best July to October for the wildebeest migration, while Rwanda and Uganda gorilla trekking is best in the dry seasons of June to September and December to February. Check the "Best Time to Visit" section on each destination page for specifics.', 1, 'published'),
 ('safari-guide', 'What should I pack for a safari?', 'Neutral-colored, breathable clothing, a warm layer for early morning game drives, comfortable closed shoes, sunscreen, a hat, and binoculars. Avoid bright colors and camouflage patterns.', 2, 'published'),
-('safari-guide', 'Do I need a visa?', 'Most Teyezilla destinations offer an eVisa or visa-on-arrival for the majority of nationalities. Visa requirements are listed on each destination page — check well before booking, as processing times vary by country.', 3, 'published'),
-('safari-guide', 'How physically demanding is a safari?', 'Most game-drive safaris require no special fitness — you''re seated in a vehicle for most of the day. Gorilla trekking is the exception and involves several hours of hiking, sometimes at altitude and over uneven terrain.', 4, 'published');
+('safari-guide', 'Do I need a visa?', 'Most Teyezilla destinations offer an eVisa or visa-on-arrival for the majority of nationalities. Visa requirements are listed on each destination page; check well before booking, as processing times vary by country.', 3, 'published'),
+('safari-guide', 'How physically demanding is a safari?', 'Most game-drive safaris require no special fitness; you''re seated in a vehicle for most of the day. Gorilla trekking is the exception and involves several hours of hiking, sometimes at altitude and over uneven terrain.', 4, 'published');
 
 -- ============ PRODUCTS ENRICHMENT: ACTIVITIES LIBRARY ============
 -- Mirrors the seed block in supabase/migrations/20260726000000_products_enrichment_schema.sql.
@@ -189,7 +189,7 @@ insert into notifications (type, message, is_read, created_at) values
 ('new_booking', 'New booking TZ-10234 for Pyramids of Giza Tour.', false, '2026-07-17T09:20:00Z'),
 ('payment_confirmed', 'Payment confirmed for TZ-10232 via M-Pesa.', false, '2026-07-16T14:05:00Z'),
 ('follow_up', 'Inquiry from Sofia Rossi needs a follow-up.', true, '2026-07-15T11:40:00Z'),
-('tour_reminder', 'Maasai Mara Safari (TZ-10231) departs in 4 weeks — confirm guide assignment.', false, '2026-07-14T08:00:00Z');
+('tour_reminder', 'Maasai Mara Safari (TZ-10231) departs in 4 weeks; confirm guide assignment.', false, '2026-07-14T08:00:00Z');
 
 -- ============ AFFILIATE PARTNERS ============
 insert into affiliate_partners (name, status, commission_rate, notes) values
@@ -201,7 +201,7 @@ insert into affiliate_partners (name, status, commission_rate, notes) values
 
 -- ============ BLOG POSTS (admin-managed metadata) ============
 -- The public /blog pages currently hold their own article bodies directly in
--- the page code — these rows exist so Blog Management has real records to
+-- the page code; these rows exist so Blog Management has real records to
 -- edit/publish/schedule against. See lib/admin/data/blog.ts for details.
 insert into blog_posts (title, slug, category, tags, meta_title, meta_description, hero_image, status, published_at, excerpt, answer, body, author_name) values
 ('Best Safari in Kenya', 'best-safari-in-kenya', 'Safari Guides', array['kenya','safari'], 'Best Safari in Kenya | Teyezilla Expeditions', 'The best Kenya safari for first-time visitors.', 'https://picsum.photos/seed/blog-kenya/800/500', 'published', '2026-05-01', 'Where to go and when, for a first Kenyan safari.', 'The best safari in Kenya for most first-time visitors is a 4 to 5 day Maasai Mara safari, ideally timed for the July to October wildebeest migration.', 'Kenya''s Maasai Mara is the country''s flagship reserve, known for consistent big-five sightings and, from July to October, the great wildebeest migration crossing the Mara River. Pairing it with a 1-2 day Amboseli extension adds close-up elephant viewing with Kilimanjaro as a backdrop.', 'Teyezilla Travel Team'),
@@ -222,7 +222,7 @@ insert into tour_availability (tour_id, date, capacity, booked_count) values
 
 -- ============ STAFF SEEDING ============
 -- Staff records need a matching Supabase Auth user before they can log in.
--- This part can't run as pure SQL — Supabase Auth users are created via the
+-- This part can't run as pure SQL; Supabase Auth users are created via the
 -- Dashboard (Authentication > Users > Add User), the Auth Admin API, or the
 -- Supabase CLI, not via a plain INSERT. Steps:
 --

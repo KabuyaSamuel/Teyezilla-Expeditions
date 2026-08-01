@@ -44,6 +44,7 @@ export interface JourneyInput extends ProductScalarsInput {
   highlights: HighlightInput[];
   addons: AddonInput[];
   activityIds: string[];
+  tourIds: string[];
 }
 
 function slugify(title: string): string {
@@ -137,6 +138,14 @@ async function syncJourneyRelations(
   await syncHighlights(supabase, "journey_highlights", "journey_id", journeyId, input.highlights);
   await syncAddons(supabase, "journey_addons", "journey_id", journeyId, input.addons);
   await syncActivities(supabase, "journey_activities", "journey_id", journeyId, input.activityIds);
+
+  await supabase.from("journey_tours").delete().eq("journey_id", journeyId);
+  if (input.tourIds.length > 0) {
+    const { error } = await supabase.from("journey_tours").insert(
+      input.tourIds.map((tourId, index) => ({ journey_id: journeyId, tour_id: tourId, display_order: index }))
+    );
+    if (error) throw new Error(error.message);
+  }
 }
 
 export async function createJourney(input: JourneyInput): Promise<void> {

@@ -24,6 +24,7 @@ export interface AdminTourDetail extends Tour, ProductScalars {
   highlights: ProductHighlight[];
   addons: ProductAddon[];
   activityIds: string[];
+  experienceTypeIds: string[];
 }
 
 function mapRow(row: Record<string, any>): AdminTourDetail {
@@ -36,6 +37,7 @@ function mapRow(row: Record<string, any>): AdminTourDetail {
     heroImage: row.hero_image ?? "",
     shortDescription: row.short_description ?? "",
     durationDays: Number(row.duration_days ?? 0),
+    durationHours: row.duration_hours != null ? Number(row.duration_hours) : null,
     priceFrom: Number(row.price_from ?? 0),
     currency: row.currency ?? "USD",
     difficulty: row.difficulty ?? "Easy",
@@ -54,6 +56,7 @@ function mapRow(row: Record<string, any>): AdminTourDetail {
     highlights: (row.tour_highlights ?? []).map(mapHighlightRow),
     addons: (row.tour_addons ?? []).map(mapAddonRow),
     activityIds: (row.tour_activities ?? []).map((a: any) => a.activity_id),
+    experienceTypeIds: (row.tour_experience_types ?? []).map((e: any) => e.experience_type_id),
   };
 }
 
@@ -62,7 +65,8 @@ const DETAIL_SELECT = `
   tour_pricing_tiers(*),
   tour_highlights(*),
   tour_addons(*),
-  tour_activities(activity_id)
+  tour_activities(activity_id),
+  tour_experience_types(experience_type_id)
 `;
 
 // Admin edit form needs fields (inclusions/exclusions/itinerary/logistics/

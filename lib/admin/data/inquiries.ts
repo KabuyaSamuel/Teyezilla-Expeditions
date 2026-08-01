@@ -21,6 +21,8 @@ export interface Inquiry {
   staffReply?: string;
   repliedAt?: string;
   createdAt: string;
+  /** Set when this inquiry was mirrored from a booking enquiry (app/booking/actions.ts). */
+  bookingId?: string;
   // Structured trip parameters for source = 'ai_trip_planner', joined from
   // trip_planner_requests (matched by customer email, most recent first).
   tripPlanner?: TripPlannerRequest;
@@ -46,13 +48,14 @@ function mapRow(row: Record<string, any>): Inquiry {
     tourTitle: row.tour?.title,
     journeyTitle: row.journey?.title,
     message: row.message ?? "",
-    // No formal FK to `staff` yet, so this can't be embedded via Postgrest —
+    // No formal FK to `staff` yet, so this can't be embedded via Postgrest;
     // resolve the display name by cross-referencing getStaffMembers() at the call site.
     assignedStaffId: row.assigned_staff_id ?? undefined,
     status: row.status,
     staffReply: row.staff_reply ?? undefined,
     repliedAt: row.replied_at ?? undefined,
     createdAt: row.created_at,
+    bookingId: row.booking_id ?? undefined,
   };
 }
 
@@ -100,4 +103,22 @@ export async function getInquiryById(id: string): Promise<Inquiry | undefined> {
   const inquiry = mapRow(data);
   if (inquiry.source !== "ai_trip_planner") return inquiry;
   return attachTripPlanner(inquiry, await getTripPlannerRequests());
+}
+
+export async function getInquiryByBookingId(bookingId: string): Promise<Inquiry | undefined> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return undefined;
+
+  const { data, error } = await supabase
+    .from("inquiries")
+    .select("*, tour:tours(title), journey:journeys(title)")
+    .eq("booking_id", bookingId)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.warn("[inquiries] Supabase query failed:", error.message);
+    return undefined;
+  }
+
+  return mapRow(data);
 }

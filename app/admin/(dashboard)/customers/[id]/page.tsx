@@ -2,8 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
+import LoyaltyPanel from "@/components/admin/LoyaltyPanel";
 import { getCustomerById } from "@/lib/admin/data/customers";
 import { getBookings } from "@/lib/admin/data/bookings";
+import { getLoyaltyTransactions } from "@/lib/admin/data/loyalty";
+import { getAdminSession } from "@/lib/admin/session";
 import { bookingStatusTone } from "@/lib/admin/status-tone";
 
 export default async function CustomerProfilePage({
@@ -12,12 +15,17 @@ export default async function CustomerProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [customer, bookings] = await Promise.all([
+  const [customer, bookings, loyaltyTransactions, session] = await Promise.all([
     getCustomerById(id),
     getBookings(),
+    getLoyaltyTransactions(id),
+    getAdminSession(),
   ]);
   if (!customer) notFound();
   const customerBookings = bookings.filter((b) => b.customerId === id);
+  // Manual point adjustment is a direct balance write, scoped to admin/manager
+  // only -- a driver or guide has no reason to adjust point balances.
+  const canAdjustLoyalty = session?.role === "admin" || session?.role === "manager";
 
   return (
     <div>
@@ -55,15 +63,23 @@ export default async function CustomerProfilePage({
           </p>
         </div>
 
-        <div className="card h-fit p-6">
-          <h2 className="font-heading text-lg font-semibold text-foreground">Profile</h2>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div><dt className="text-foreground/50">Phone</dt><dd className="font-medium text-foreground">{customer.phone}</dd></div>
-            <div><dt className="text-foreground/50">Nationality</dt><dd className="font-medium text-foreground">{customer.nationality}</dd></div>
-            <div><dt className="text-foreground/50">Emergency Contact</dt><dd className="font-medium text-foreground">{customer.emergencyContact}</dd></div>
-            <div><dt className="text-foreground/50">Loyalty Points</dt><dd className="font-medium text-accent">{customer.loyaltyPoints}</dd></div>
-            <div><dt className="text-foreground/50">Customer Since</dt><dd className="font-medium text-foreground">{customer.createdAt}</dd></div>
-          </dl>
+        <div className="space-y-6">
+          <div className="card h-fit p-6">
+            <h2 className="font-heading text-lg font-semibold text-foreground">Profile</h2>
+            <dl className="mt-4 space-y-3 text-sm">
+              <div><dt className="text-foreground/50">Phone</dt><dd className="font-medium text-foreground">{customer.phone}</dd></div>
+              <div><dt className="text-foreground/50">Nationality</dt><dd className="font-medium text-foreground">{customer.nationality}</dd></div>
+              <div><dt className="text-foreground/50">Emergency Contact</dt><dd className="font-medium text-foreground">{customer.emergencyContact}</dd></div>
+              <div><dt className="text-foreground/50">Customer Since</dt><dd className="font-medium text-foreground">{customer.createdAt}</dd></div>
+            </dl>
+          </div>
+
+          <LoyaltyPanel
+            customerId={customer.id}
+            balance={customer.loyaltyPoints}
+            transactions={loyaltyTransactions}
+            canAdjust={canAdjustLoyalty}
+          />
         </div>
       </div>
     </div>

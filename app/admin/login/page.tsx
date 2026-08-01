@@ -76,15 +76,17 @@ export default async function AdminLoginPage({
           <button type="submit" className="btn-primary w-full">Log In</button>
         </form>
 
-        <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">
-          <p className="font-medium text-foreground/80">Setting up staff accounts</p>
-          <p className="mt-2">
-            Create each staff member as a Supabase Auth user (Dashboard → Authentication →
-            Users → Add User), then add a matching row to the <code>staff</code> table with
-            their <code>auth_user_id</code> and role. See <code>supabase/seed.sql</code> for
-            the exact steps.
-          </p>
-        </div>
+        {process.env.NODE_ENV !== "production" && (
+          <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">
+            <p className="font-medium text-foreground/80">Setting up staff accounts (dev only)</p>
+            <p className="mt-2">
+              Create each staff member as a Supabase Auth user (Dashboard → Authentication →
+              Users → Add User), then add a matching row to the <code>staff</code> table with
+              their <code>auth_user_id</code> and role. See <code>supabase/seed.sql</code> for
+              the exact steps.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

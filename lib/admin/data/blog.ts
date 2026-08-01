@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { ContentBlock } from "@/lib/blogBlocks";
 
 export interface AdminBlogPost {
   id: string;
@@ -6,9 +7,11 @@ export interface AdminBlogPost {
   slug: string;
   category: string;
   tags: string[];
+  destinationId: string | null;
   excerpt: string;
   answer: string;
   body: string;
+  bodyBlocks: ContentBlock[];
   authorName: string;
   authorBio: string;
   metaTitle: string;
@@ -26,9 +29,11 @@ function mapRow(row: Record<string, any>): AdminBlogPost {
     slug: row.slug,
     category: row.category ?? "",
     tags: row.tags ?? [],
+    destinationId: row.destination_id ?? null,
     excerpt: row.excerpt ?? "",
     answer: row.answer ?? "",
     body: row.body ?? "",
+    bodyBlocks: Array.isArray(row.body_blocks) ? row.body_blocks : [],
     authorName: row.author_name ?? "",
     authorBio: row.author_bio ?? "",
     metaTitle: row.meta_title ?? "",

@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Route guard for /admin/*, using Supabase Auth. This also refreshes the
 // Supabase session cookie on every request, which is required by
-// @supabase/ssr — without it, sessions expire unexpectedly. See:
+// @supabase/ssr; without it, sessions expire unexpectedly. See:
 // https://supabase.com/docs/guides/auth/server-side/nextjs
 
 export async function proxy(request: NextRequest) {

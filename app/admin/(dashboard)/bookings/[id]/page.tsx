@@ -1,11 +1,16 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import BookingActions from "@/components/admin/BookingActions";
+import InquiryReplyForm from "@/components/admin/InquiryReplyForm";
 import { getBookingById } from "@/lib/admin/data/bookings";
 import { getCustomerById } from "@/lib/admin/data/customers";
+import { getInquiryByBookingId } from "@/lib/admin/data/inquiries";
 import { getStatusOptions } from "@/lib/admin/data/status-options";
-import { bookingStatusTone, paymentStatusTone } from "@/lib/admin/status-tone";
+import { getLoyaltyAccrualRate } from "@/lib/admin/actions/loyalty";
+import { getAdminSession } from "@/lib/admin/session";
+import { bookingStatusTone, paymentStatusTone, inquiryStatusTone } from "@/lib/admin/status-tone";
 
 export default async function BookingDetailPage({
   params,
@@ -17,10 +22,16 @@ export default async function BookingDetailPage({
   if (!booking) notFound();
 
   const customer = booking.customerId ? await getCustomerById(booking.customerId) : undefined;
-  const [bookingStatusOptions, paymentStatusOptions] = await Promise.all([
+  const [bookingStatusOptions, paymentStatusOptions, loyaltyAccrualRate, session, linkedInquiry] = await Promise.all([
     getStatusOptions("booking_status"),
     getStatusOptions("payment_status"),
+    getLoyaltyAccrualRate(),
+    getAdminSession(),
+    getInquiryByBookingId(id),
   ]);
+  // Loyalty redemption is a write to a customer's point balance; restrict it
+  // to the roles the loyalty programme is scoped to (see permissions.ts).
+  const canRedeemLoyalty = session?.role === "admin" || session?.role === "manager";
   const bookingTone =
     bookingStatusOptions.find((o) => o.key === booking.bookingStatus)?.tone ?? bookingStatusTone(booking.bookingStatus);
   const paymentTone =
@@ -38,18 +49,12 @@ export default async function BookingDetailPage({
       <PageHeader
         title={booking.bookingReference}
         description={`${booking.productTitle} · ${travelDateLabel}`}
-        action={
-          <div className="flex gap-2">
-            <button className="btn-outline text-sm">Generate Voucher</button>
-            <button className="btn-outline text-sm">Generate Invoice</button>
-          </div>
-        }
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="card p-6 lg:col-span-2">
           <h2 className="font-heading text-lg font-semibold text-foreground">Enquiry Details</h2>
-          <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <dl className="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
             <div><dt className="text-foreground/50">Customer</dt><dd className="font-medium text-foreground">{booking.customerName}</dd></div>
             <div><dt className="text-foreground/50">{booking.journeyTitle ? "Journey" : "Tour"}</dt><dd className="font-medium text-foreground">{booking.productTitle}</dd></div>
             <div><dt className="text-foreground/50">Travel Date</dt><dd className="font-medium text-foreground">{travelDateLabel}</dd></div>
@@ -57,9 +62,9 @@ export default async function BookingDetailPage({
             {booking.children > 0 && (
               <div><dt className="text-foreground/50">Children's Ages</dt><dd className="font-medium text-foreground">{booking.childrenAges || "Not given"}</dd></div>
             )}
-            <div><dt className="text-foreground/50">Country of Residence</dt><dd className="font-medium text-foreground">{booking.countryOfResidence || "—"}</dd></div>
+            <div><dt className="text-foreground/50">Country of Residence</dt><dd className="font-medium text-foreground">{booking.countryOfResidence || "-"}</dd></div>
             <div><dt className="text-foreground/50">Budget Range (per person)</dt><dd className="font-medium text-foreground">{booking.budgetRange || "Not specified"}</dd></div>
-            <div><dt className="text-foreground/50">Heard About Us Via</dt><dd className="font-medium text-foreground">{booking.referralSource || "—"}</dd></div>
+            <div><dt className="text-foreground/50">Heard About Us Via</dt><dd className="font-medium text-foreground">{booking.referralSource || "-"}</dd></div>
             <div><dt className="text-foreground/50">Quoted / Total Amount</dt><dd className="font-medium text-foreground">{booking.totalAmount > 0 ? `${booking.currency} ${booking.totalAmount.toLocaleString()}` : "Not quoted yet"}</dd></div>
             <div><dt className="text-foreground/50">Payment (manual record)</dt><dd><Badge tone={paymentTone}>{booking.paymentStatus.replace("_", " ")}</Badge></dd></div>
             <div><dt className="text-foreground/50">Booking Status</dt><dd><Badge tone={bookingTone}>{booking.bookingStatus}</Badge></dd></div>
@@ -74,6 +79,31 @@ export default async function BookingDetailPage({
             </>
           )}
 
+          {linkedInquiry && (
+            <>
+              <div className="mt-8 flex items-center justify-between">
+                <h2 className="font-heading text-lg font-semibold text-foreground">Linked Inquiry</h2>
+                <Link href={`/admin/inquiries/${linkedInquiry.id}`} className="text-xs font-medium text-primary hover:underline">
+                  Open full inquiry →
+                </Link>
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <Badge tone={inquiryStatusTone(linkedInquiry.status)}>{linkedInquiry.status.replace("_", " ")}</Badge>
+                <span className="text-xs text-foreground/50">{linkedInquiry.createdAt}</span>
+              </div>
+              <div className="mt-3">
+                <InquiryReplyForm
+                  id={linkedInquiry.id}
+                  status={linkedInquiry.status}
+                  existingReply={linkedInquiry.staffReply}
+                  customerEmail={linkedInquiry.customerEmail}
+                  customerPhone={linkedInquiry.customerPhone}
+                  source={linkedInquiry.source}
+                />
+              </div>
+            </>
+          )}
+
           <div className="mt-8">
             <BookingActions
               id={booking.id}
@@ -83,6 +113,9 @@ export default async function BookingDetailPage({
               currency={booking.currency}
               bookingStatusOptions={bookingStatusOptions}
               paymentStatusOptions={paymentStatusOptions}
+              customerLoyaltyBalance={customer?.loyaltyPoints}
+              loyaltyAccrualRate={loyaltyAccrualRate}
+              canRedeemLoyalty={canRedeemLoyalty}
             />
           </div>
         </div>

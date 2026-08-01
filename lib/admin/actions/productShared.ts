@@ -1,5 +1,5 @@
 // Shared write-side sync helpers for the product-enrichment tables. Not a
-// "use server" file itself — imported by lib/admin/actions/tours.ts and
+// "use server" file itself; imported by lib/admin/actions/tours.ts and
 // lib/admin/actions/journeys.ts, which are. Generic over table name / parent
 // FK column since tour_X and journey_X tables are otherwise column-identical.
 
@@ -158,6 +158,25 @@ export async function syncActivities(
       [parentColumn]: parentId,
       activity_id: activityId,
       display_order: i,
+    }))
+  );
+  if (error) throw new Error(error.message);
+}
+
+export async function syncExperienceTypes(
+  supabase: SupabaseLike,
+  table: "tour_experience_types" | "journey_experience_types",
+  parentColumn: "tour_id" | "journey_id",
+  parentId: string,
+  experienceTypeIds: string[]
+) {
+  await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (experienceTypeIds.length === 0) return;
+
+  const { error } = await supabase.from(table).insert(
+    experienceTypeIds.map((experienceTypeId) => ({
+      [parentColumn]: parentId,
+      experience_type_id: experienceTypeId,
     }))
   );
   if (error) throw new Error(error.message);

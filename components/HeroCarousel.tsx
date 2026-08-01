@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 
 // TEMP: free-license (Mixkit) African wildlife footage standing in for real
-// Teyezilla video until the company supplies its own — same placeholder
+// Teyezilla video until the company supplies its own; same placeholder
 // convention as the picsum/wikimedia stills used elsewhere in this project.
 // Hand-picked to be genuinely African wilderness (several Mixkit "safari"
 // clips turned out to be zoo/botanical-garden or Southeast Asian elephant
-// footage on close inspection — excluded those).
+// footage on close inspection; excluded those).
 const SLIDES = [
   {
     id: "11054",
@@ -37,7 +37,7 @@ const SLIDES = [
 
 const SLIDE_MS = 9000;
 
-// Ambient background only — ken-burns-free, autoplaying, no manual controls.
+// Ambient background only: ken-burns-free, autoplaying, no manual controls.
 // Only the active slide (and the one it's fading in from) ever hold a real
 // <video src>, so the browser fetches roughly one clip at a time instead of
 // eagerly downloading all four on load.

@@ -1,6 +1,7 @@
 import PageHeader from "@/components/admin/PageHeader";
 import { getSiteSetting } from "@/lib/settings";
 import { updateSiteSetting, updateSiteSettings } from "@/lib/admin/actions/settings";
+import { LOYALTY_ACCRUAL_SETTING_KEY, LOYALTY_ACCRUAL_DEFAULT } from "@/lib/loyalty-shared";
 
 const SETTINGS_KEYS = [
   "companyName",
@@ -15,6 +16,7 @@ const SETTINGS_KEYS = [
   "defaultLanguage",
   "defaultMetaTitle",
   "defaultMetaDescription",
+  LOYALTY_ACCRUAL_SETTING_KEY,
 ] as const;
 
 const DEFAULTS: Record<(typeof SETTINGS_KEYS)[number], string> = {
@@ -30,6 +32,7 @@ const DEFAULTS: Record<(typeof SETTINGS_KEYS)[number], string> = {
   defaultLanguage: "EN",
   defaultMetaTitle: "Teyezilla Expeditions | Extraordinary Journeys Across Africa",
   defaultMetaDescription: "Discover Africa with Teyezilla Expeditions.",
+  [LOYALTY_ACCRUAL_SETTING_KEY]: String(LOYALTY_ACCRUAL_DEFAULT),
 };
 
 export default async function AdminSettingsPage() {
@@ -126,9 +129,29 @@ export default async function AdminSettingsPage() {
         </section>
 
         <section className="card p-6">
+          <h2 className="font-heading text-lg font-semibold text-foreground">Loyalty Programme</h2>
+          <p className="mt-1 text-xs text-foreground/50">
+            Points customers earn per $10 of a booking&rsquo;s quoted total once staff mark it paid.
+            Redeeming points uses the same rate in reverse.
+          </p>
+          <div className="mt-4 max-w-xs">
+            <label htmlFor={LOYALTY_ACCRUAL_SETTING_KEY} className="text-xs font-medium text-foreground/60">Points per $10 spent</label>
+            <input
+              id={LOYALTY_ACCRUAL_SETTING_KEY}
+              name={LOYALTY_ACCRUAL_SETTING_KEY}
+              type="number"
+              min={0}
+              step="0.1"
+              defaultValue={settings[LOYALTY_ACCRUAL_SETTING_KEY]}
+              className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+        </section>
+
+        <section className="card p-6">
           <h2 className="font-heading text-lg font-semibold text-foreground">Email Templates</h2>
           <p className="mt-1 text-xs text-foreground/50">
-            Enquiry confirmations, quotes, and admin notifications are sent via Resend —
+            Enquiry confirmations, quotes, and admin notifications are sent via Resend;
             templates live in <code>lib/email-templates.ts</code>.
           </p>
         </section>

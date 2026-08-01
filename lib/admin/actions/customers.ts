@@ -11,9 +11,11 @@ export interface CustomerInput {
   nationality: string;
   emergencyContact: string;
   notes: string;
-  loyaltyPoints: number;
 }
 
+// loyalty_points is deliberately not settable here -- it only changes
+// through lib/admin/actions/loyalty.ts, which writes a ledger row alongside
+// every balance change. Direct overwrite would leave adjustments unaudited.
 function toRow(input: CustomerInput) {
   return {
     full_name: input.fullName,
@@ -22,7 +24,6 @@ function toRow(input: CustomerInput) {
     nationality: input.nationality,
     emergency_contact: input.emergencyContact,
     notes: input.notes,
-    loyalty_points: input.loyaltyPoints,
   };
 }
 
@@ -50,7 +51,7 @@ export async function updateCustomer(id: string, input: CustomerInput): Promise<
 
 // customers is referenced by bookings.customer_id with no ON DELETE clause
 // (defaults to RESTRICT), so this will fail with a clear FK-violation error
-// for any customer who has bookings — by design, not a bug to work around.
+// for any customer who has bookings; by design, not a bug to work around.
 export async function deleteCustomer(id: string): Promise<void> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");

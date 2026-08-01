@@ -26,7 +26,7 @@ const LIST_SELECT = `
   collection_journeys(journey_id)
 `;
 
-// Staff session, not the public client — collections' public-read RLS only
+// Staff session, not the public client; collections' public-read RLS only
 // exposes status='published' rows, and the admin list needs drafts too.
 export async function getAdminCollections(): Promise<AdminCollectionListItem[]> {
   const supabase = await getSupabaseServerClient();

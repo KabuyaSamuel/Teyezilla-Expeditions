@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
       },
       {
+        // picsum.photos redirects here for the actual image bytes.
+        protocol: "https",
+        hostname: "fastly.picsum.photos",
+      },
+      {
         protocol: "https",
         hostname: "upload.wikimedia.org",
       },
@@ -29,7 +34,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      // Default is 1MB — too small for real media uploads.
+      // Default is 1MB, too small for real media uploads.
       bodySizeLimit: "10mb",
     },
   },

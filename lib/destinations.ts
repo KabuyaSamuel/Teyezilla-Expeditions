@@ -12,6 +12,9 @@ function mapRow(row: Record<string, unknown>): Destination {
     overview: (row.overview as string) ?? "",
     bestTimeToVisit: (row.best_time_to_visit as string) ?? "",
     visaInfo: (row.visa_info as string) ?? "",
+    healthGuidance: (row.health_guidance as string) ?? "",
+    packingList: (row.packing_list as string) ?? "",
+    insuranceInfo: (row.insurance_info as string) ?? "",
     isLaunchDestination: Boolean(row.is_launch_destination),
     metaTitle: (row.meta_title as string) ?? "",
     metaDescription: (row.meta_description as string) ?? "",
@@ -65,7 +68,7 @@ export async function getDestinationBySlug(slug: string): Promise<Destination | 
   return mapRow(data);
 }
 
-// Tours reference their destination by id (a UUID), not by slug — use this
+// Tours reference their destination by id (a UUID), not by slug; use this
 // for that lookup rather than getDestinationBySlug.
 export async function getDestinationById(id: string): Promise<Destination | undefined> {
   const supabase = getSupabasePublicClient();

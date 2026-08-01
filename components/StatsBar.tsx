@@ -4,7 +4,7 @@ import { getTours } from "@/lib/tours";
 import ScrollReveal from "./ScrollReveal";
 
 // The Google rating isn't derived from a real aggregated review source yet
-// (no Google Business Profile sync) — still a placeholder. Happy Travelers
+// (no Google Business Profile sync), still a placeholder. Happy Travelers
 // is admin-editable now (Website Settings), passed in as a prop.
 const GOOGLE_RATING_PLACEHOLDER = "5.0";
 

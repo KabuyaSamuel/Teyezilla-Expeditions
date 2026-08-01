@@ -1,5 +1,5 @@
 // Shared read-side types + row mappers for the product-enrichment tables
-// (pricing tiers, highlights, add-ons) — tour_X and journey_X tables are
+// (pricing tiers, highlights, add-ons); tour_X and journey_X tables are
 // column-identical apart from their parent FK, so one mapper covers both.
 // Used by both the public lib (lib/tours.ts, lib/journeys.ts) and the admin
 // data layer (lib/admin/data/tours.ts, lib/admin/data/journeys.ts).

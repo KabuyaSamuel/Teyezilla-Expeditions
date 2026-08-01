@@ -2,10 +2,36 @@ import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import ResponsiveTable, { MobileCardField, MobileCardHeader } from "@/components/admin/ResponsiveTable";
-import { getDestinations } from "@/lib/destinations";
+import AdminListToolbar from "@/components/admin/AdminListToolbar";
+import Pagination from "@/components/admin/Pagination";
+import { getDestinationsPaginated } from "@/lib/destinations";
+import { ADMIN_LIST_PAGE_SIZE, parsePage, parseSort, parseString } from "@/lib/admin/list-query";
 
-export default async function AdminDestinationsPage() {
-  const destinations = await getDestinations();
+const SORT_OPTIONS = [
+  { value: "created_at_desc", label: "Newest First" },
+  { value: "created_at_asc", label: "Oldest First" },
+  { value: "country_name_asc", label: "Name A–Z" },
+  { value: "country_name_desc", label: "Name Z–A" },
+];
+
+export default async function AdminDestinationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const page = parsePage(params);
+  const search = parseString(params, "q");
+  const { sortBy, sortDir } = parseSort<"created_at" | "country_name">(params, "created_at_desc");
+
+  const { items: destinations, total } = await getDestinationsPaginated({
+    page,
+    pageSize: ADMIN_LIST_PAGE_SIZE,
+    search,
+    sortBy,
+    sortDir,
+  });
+
   return (
     <div>
       <PageHeader
@@ -17,10 +43,11 @@ export default async function AdminDestinationsPage() {
           </Link>
         }
       />
+      <AdminListToolbar searchPlaceholder="Search destinations by name…" sortOptions={SORT_OPTIONS} />
       <ResponsiveTable
         rows={destinations}
         keyField={(d) => d.id}
-        emptyMessage="No destinations yet."
+        emptyMessage="No destinations found."
         columns={[
           { header: "Destination", cell: (d) => `${d.flagEmoji} ${d.countryName}`, className: "font-medium text-foreground" },
           { header: "Best Time to Visit", cell: (d) => d.bestTimeToVisit },
@@ -45,6 +72,13 @@ export default async function AdminDestinationsPage() {
             </div>
           </>
         )}
+      />
+      <Pagination
+        basePath="/admin/destinations"
+        currentParams={{ q: search, sort: `${sortBy}_${sortDir}` }}
+        page={page}
+        pageSize={ADMIN_LIST_PAGE_SIZE}
+        total={total}
       />
     </div>
   );

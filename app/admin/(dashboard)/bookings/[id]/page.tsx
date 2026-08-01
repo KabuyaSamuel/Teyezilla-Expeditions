@@ -4,9 +4,12 @@ import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import BookingActions from "@/components/admin/BookingActions";
 import InquiryReplyForm from "@/components/admin/InquiryReplyForm";
+import GuestRoster from "@/components/admin/GuestRoster";
 import { getBookingById } from "@/lib/admin/data/bookings";
 import { getCustomerById } from "@/lib/admin/data/customers";
 import { getInquiryByBookingId } from "@/lib/admin/data/inquiries";
+import { getBookingGuests } from "@/lib/admin/data/booking-guests";
+import { addBookingGuest, removeBookingGuest } from "@/lib/admin/actions/booking-guests";
 import { getStatusOptions } from "@/lib/admin/data/status-options";
 import { getLoyaltyAccrualRate } from "@/lib/admin/actions/loyalty";
 import { getAdminSession } from "@/lib/admin/session";
@@ -22,12 +25,13 @@ export default async function BookingDetailPage({
   if (!booking) notFound();
 
   const customer = booking.customerId ? await getCustomerById(booking.customerId) : undefined;
-  const [bookingStatusOptions, paymentStatusOptions, loyaltyAccrualRate, session, linkedInquiry] = await Promise.all([
+  const [bookingStatusOptions, paymentStatusOptions, loyaltyAccrualRate, session, linkedInquiry, guests] = await Promise.all([
     getStatusOptions("booking_status"),
     getStatusOptions("payment_status"),
     getLoyaltyAccrualRate(),
     getAdminSession(),
     getInquiryByBookingId(id),
+    getBookingGuests(id),
   ]);
   // Loyalty redemption is a write to a customer's point balance; restrict it
   // to the roles the loyalty programme is scoped to (see permissions.ts).
@@ -103,6 +107,14 @@ export default async function BookingDetailPage({
               </div>
             </>
           )}
+
+          <div className="mt-8">
+            <GuestRoster
+              guests={guests}
+              onAdd={addBookingGuest.bind(null, booking.id)}
+              onRemove={removeBookingGuest.bind(null, booking.id)}
+            />
+          </div>
 
           <div className="mt-8">
             <BookingActions

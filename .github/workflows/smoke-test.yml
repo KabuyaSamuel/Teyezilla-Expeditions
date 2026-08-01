@@ -1,0 +1,53 @@
+name: Smoke Test
+
+# Hits real, deployed pages and checks they render without error --
+# catches runtime-only issues (like a missing Vercel env var) that build/
+# typecheck/RLS tests can't, since those all run without ever making an
+# HTTP request against the actual deployed environment.
+#
+# Three triggers:
+#  - deployment_status: runs automatically right after Vercel's GitHub
+#    integration reports a deployment finished. Restricted to the
+#    Production environment only -- Preview deployments sit behind
+#    Vercel's own Deployment Protection SSO wall, so a script hitting a
+#    preview URL lands on vercel.com/login instead of the real app and
+#    can't tell the difference (confirmed directly: this is what broke
+#    the admin Lighthouse check, and it means this smoke test's earlier
+#    "pass" on a preview's /admin/login was a false positive -- the SSO
+#    page returns 200 with no matching error markers). Revisit if preview
+#    checks are wanted later via Vercel's Protection Bypass for Automation.
+#  - workflow_dispatch: run on demand against production or a given URL.
+#  - schedule: a periodic production health check independent of deploys,
+#    since this exact bug class (an env var that's missing or expires)
+#    isn't tied to a code push.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Base URL to test (defaults to production)"
+        required: false
+        type: string
+  schedule:
+    - cron: "0 */6 * * *"
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'deployment_status' ||
+      (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run smoke test
+        env:
+          # environment_url is GitHub's current field; target_url is the
+          # older one some integrations (including Vercel's) still send.
+          TARGET_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.url }}
+        run: node scripts/smoke-test.mjs "$TARGET_URL"

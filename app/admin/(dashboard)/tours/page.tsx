@@ -2,13 +2,38 @@ import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import ResponsiveTable, { MobileCardField, MobileCardHeader } from "@/components/admin/ResponsiveTable";
-import { getTours } from "@/lib/tours";
+import AdminListToolbar from "@/components/admin/AdminListToolbar";
+import Pagination from "@/components/admin/Pagination";
+import { getAdminToursPaginated } from "@/lib/admin/data/tours";
 import { getDestinations } from "@/lib/destinations";
 import { contentStatusTone } from "@/lib/admin/status-tone";
+import { ADMIN_LIST_PAGE_SIZE, parsePage, parseSort, parseString } from "@/lib/admin/list-query";
 
-export default async function AdminToursPage() {
-  const [tours, destinations] = await Promise.all([getTours(), getDestinations()]);
-  const destinationName = (destinationId: string) => destinations.find((d) => d.id === destinationId)?.countryName ?? "-";
+const SORT_OPTIONS = [
+  { value: "created_at_desc", label: "Newest First" },
+  { value: "created_at_asc", label: "Oldest First" },
+  { value: "title_asc", label: "Name A–Z" },
+  { value: "title_desc", label: "Name Z–A" },
+  { value: "price_from_asc", label: "Price: Low to High" },
+  { value: "price_from_desc", label: "Price: High to Low" },
+];
+
+export default async function AdminToursPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const page = parsePage(params);
+  const search = parseString(params, "q");
+  const destinationId = parseString(params, "country");
+  const { sortBy, sortDir } = parseSort<"created_at" | "title" | "price_from">(params, "created_at_desc");
+
+  const [{ items: tours, total }, destinations] = await Promise.all([
+    getAdminToursPaginated({ page, pageSize: ADMIN_LIST_PAGE_SIZE, search, sortBy, sortDir, destinationId }),
+    getDestinations(),
+  ]);
+  const destinationName = (id: string) => destinations.find((d) => d.id === id)?.countryName ?? "-";
 
   return (
     <div>
@@ -22,10 +47,16 @@ export default async function AdminToursPage() {
         }
       />
 
+      <AdminListToolbar
+        searchPlaceholder="Search tours by name…"
+        sortOptions={SORT_OPTIONS}
+        countries={destinations.map((d) => ({ id: d.id, label: d.countryName }))}
+      />
+
       <ResponsiveTable
         rows={tours}
         keyField={(t) => t.id}
-        emptyMessage="No tours yet."
+        emptyMessage="No tours found."
         columns={[
           { header: "Tour", cell: (t) => t.title, className: "font-medium text-foreground" },
           { header: "Destination", cell: (t) => destinationName(t.destinationId) },
@@ -51,6 +82,14 @@ export default async function AdminToursPage() {
             </div>
           </>
         )}
+      />
+
+      <Pagination
+        basePath="/admin/tours"
+        currentParams={{ q: search, sort: `${sortBy}_${sortDir}`, country: destinationId }}
+        page={page}
+        pageSize={ADMIN_LIST_PAGE_SIZE}
+        total={total}
       />
     </div>
   );

@@ -17,15 +17,13 @@ import {
   SITE_URL,
   type EnquiryFormState,
 } from "@/lib/enquiry-shared";
-
-function generateBookingReference(): string {
-  return `TZ-${Math.floor(10000 + Math.random() * 90000)}`;
-}
+import { countryCodeForName, generateBookingReference } from "@/lib/country-codes";
 
 interface ProductRef {
   id: string;
   title: string;
   kind: "tour" | "journey";
+  countryName: string | null;
 }
 
 async function lookupProduct(tourSlug: string, journeySlug: string): Promise<ProductRef | null> {
@@ -33,12 +31,33 @@ async function lookupProduct(tourSlug: string, journeySlug: string): Promise<Pro
   if (!supabase) return null;
 
   if (tourSlug) {
-    const { data } = await supabase.from("tours").select("id, title").eq("slug", tourSlug).maybeSingle();
-    if (data) return { id: data.id, title: data.title, kind: "tour" };
+    const { data } = await supabase
+      .from("tours")
+      .select("id, title, destinations(country_name)")
+      .eq("slug", tourSlug)
+      .maybeSingle();
+    if (data) {
+      const destination = data.destinations as unknown as { country_name: string } | null;
+      return { id: data.id, title: data.title, kind: "tour", countryName: destination?.country_name ?? null };
+    }
   }
   if (journeySlug) {
-    const { data } = await supabase.from("journeys").select("id, title").eq("slug", journeySlug).maybeSingle();
-    if (data) return { id: data.id, title: data.title, kind: "journey" };
+    const { data } = await supabase
+      .from("journeys")
+      .select("id, title, journey_destinations(is_primary, display_order, destinations(country_name))")
+      .eq("slug", journeySlug)
+      .maybeSingle();
+    if (data) {
+      const legs = (data.journey_destinations ?? []) as unknown as Array<{
+        is_primary: boolean;
+        display_order: number | null;
+        destinations: { country_name: string } | null;
+      }>;
+      const primary =
+        legs.find((l) => l.is_primary) ??
+        [...legs].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))[0];
+      return { id: data.id, title: data.title, kind: "journey", countryName: primary?.destinations?.country_name ?? null };
+    }
   }
   return null;
 }
@@ -129,22 +148,30 @@ export async function submitBookingEnquiry(
     payment_status: "unpaid",
   };
 
+  const countryCode = countryCodeForName(product.countryName);
+
   let bookingId: string | null = null;
   let bookingReference = "";
-  for (let attempt = 0; attempt < 2 && !bookingId; attempt++) {
-    bookingReference = generateBookingReference();
-    const { data, error } = await db
-      .from("bookings")
-      .insert({ ...bookingRow, booking_reference: bookingReference })
-      .select("id")
-      .maybeSingle();
+  let bookingInserted = false;
+  for (let attempt = 0; attempt < 2 && !bookingInserted; attempt++) {
+    bookingReference = generateBookingReference(countryCode);
+    const insertQuery = db.from("bookings").insert({ ...bookingRow, booking_reference: bookingReference });
+    // The anon client's RLS on `bookings` is insert-only (no select policy),
+    // so chaining .select() to read the id back turns this into a single
+    // `INSERT ... RETURNING` statement that fails the RLS check entirely --
+    // even though a plain insert without RETURNING succeeds. Only ask for
+    // the row back when writing through the service-role client, which
+    // bypasses RLS; the anon path just doesn't get a bookingId (already
+    // handled as optional everywhere it's used below).
+    const { data, error } = service ? await insertQuery.select("id").maybeSingle() : await insertQuery;
     if (error) {
       if (attempt === 1) {
         console.warn("[booking] booking insert failed:", error.message);
         return { formError: "Something went wrong saving your enquiry. Please try again or contact us on WhatsApp." };
       }
     } else {
-      bookingId = data?.id ?? null;
+      bookingInserted = true;
+      bookingId = (data as { id: string } | null)?.id ?? null;
     }
   }
 

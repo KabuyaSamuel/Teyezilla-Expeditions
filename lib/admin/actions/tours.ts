@@ -9,6 +9,8 @@ import {
   syncAddons,
   syncActivities,
   syncExperienceTypes,
+  syncVehicles,
+  syncAccommodations,
   productScalarsToRow,
   type PricingTierInput,
   type HighlightInput,
@@ -23,6 +25,7 @@ export interface TourInput extends ProductScalarsInput {
   difficulty: string;
   durationDays: number;
   durationHours: number | null;
+  heroImage: string;
   priceFrom: number;
   shortDescription: string;
   inclusions: string[];
@@ -40,6 +43,25 @@ export interface TourInput extends ProductScalarsInput {
   addons: AddonInput[];
   activityIds: string[];
   experienceTypeIds: string[];
+  vehicleIds: string[];
+  accommodationIds: string[];
+}
+
+// Soft-enforces the same readiness bar shown as a checklist in TourForm --
+// this is the actual gate (the checklist is just a UI hint), so a status of
+// "published" can't be reached via a direct API call with missing content
+// either.
+function assertPublishable(input: TourInput) {
+  if (input.status !== "published") return;
+  const missing: string[] = [];
+  if (!input.heroImage) missing.push("hero image");
+  if (!input.shortDescription) missing.push("short description");
+  if (!input.itinerary.some((d) => d.title && d.description)) missing.push("at least one itinerary day");
+  if (input.highlights.length === 0) missing.push("at least one highlight");
+  if (input.inclusions.length === 0) missing.push("at least one inclusion");
+  if (missing.length > 0) {
+    throw new Error(`Can't publish yet -- missing: ${missing.join(", ")}.`);
+  }
 }
 
 function slugify(title: string): string {
@@ -58,6 +80,7 @@ function toRow(input: TourInput) {
     difficulty: input.difficulty,
     duration_days: input.durationDays,
     duration_hours: input.durationHours,
+    hero_image: input.heroImage,
     price_from: input.priceFrom,
     short_description: input.shortDescription,
     inclusions: input.inclusions,
@@ -80,9 +103,12 @@ async function syncTourRelations(supabase: any, tourId: string, input: TourInput
   await syncAddons(supabase, "tour_addons", "tour_id", tourId, input.addons);
   await syncActivities(supabase, "tour_activities", "tour_id", tourId, input.activityIds);
   await syncExperienceTypes(supabase, "tour_experience_types", "tour_id", tourId, input.experienceTypeIds);
+  await syncVehicles(supabase, "tour_vehicles", "tour_id", tourId, input.vehicleIds);
+  await syncAccommodations(supabase, "tour_accommodations", "tour_id", tourId, input.accommodationIds);
 }
 
 export async function createTour(input: TourInput): Promise<void> {
+  assertPublishable(input);
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
@@ -97,6 +123,7 @@ export async function createTour(input: TourInput): Promise<void> {
 }
 
 export async function updateTour(id: string, input: TourInput): Promise<void> {
+  assertPublishable(input);
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 

@@ -6,6 +6,8 @@ import type { JourneyType } from "@/lib/journeys";
 import type { ExperienceType } from "@/lib/experienceTypes";
 import type { SafariTheme } from "@/lib/safari";
 import type { Activity } from "@/lib/activities";
+import type { AdminVehicle } from "@/lib/admin/data/vehicles";
+import type { AdminAccommodation } from "@/lib/admin/data/accommodations";
 import type { AdminJourneyDetail, ItineraryDay } from "@/lib/admin/data/journeys";
 import type { PricingTierInput, HighlightInput, AddonInput } from "@/lib/admin/actions/productShared";
 import { createJourney, updateJourney, deleteJourney } from "@/lib/admin/actions/journeys";
@@ -13,6 +15,9 @@ import PricingTiersEditor from "./PricingTiersEditor";
 import HighlightsEditor from "./HighlightsEditor";
 import AddonsEditor from "./AddonsEditor";
 import ActivitiesPicker from "./ActivitiesPicker";
+import VehiclesPicker from "./VehiclesPicker";
+import AccommodationsPicker from "./AccommodationsPicker";
+import PublishChecklist from "./PublishChecklist";
 import TourPicker from "./TourPicker";
 
 function isRedirectError(err: unknown): boolean {
@@ -26,6 +31,8 @@ export default function JourneyForm({
   experienceTypes,
   safariThemes,
   activities,
+  vehicles,
+  accommodations,
   tours,
 }: {
   existingJourney?: AdminJourneyDetail;
@@ -34,6 +41,8 @@ export default function JourneyForm({
   experienceTypes: ExperienceType[];
   safariThemes: SafariTheme[];
   activities: Activity[];
+  vehicles: AdminVehicle[];
+  accommodations: AdminAccommodation[];
   tours: Tour[];
 }) {
   const [saving, setSaving] = useState(false);
@@ -54,6 +63,8 @@ export default function JourneyForm({
   );
   const [addons, setAddons] = useState<AddonInput[]>(existingJourney?.addons.map((a) => ({ ...a })) ?? []);
   const [activityIds, setActivityIds] = useState<string[]>(existingJourney?.activityIds ?? []);
+  const [vehicleIds, setVehicleIds] = useState<string[]>(existingJourney?.vehicleIds ?? []);
+  const [accommodationIds, setAccommodationIds] = useState<string[]>(existingJourney?.accommodationIds ?? []);
   const [tourIds, setTourIds] = useState<string[]>(existingJourney?.tourIds ?? []);
 
   function toggleId(list: string[], setList: (v: string[]) => void, id: string) {
@@ -133,6 +144,8 @@ export default function JourneyForm({
       highlights,
       addons,
       activityIds,
+      vehicleIds,
+      accommodationIds,
       tourIds,
       featured: formData.get("featured") === "on",
       status: String(formData.get("status") ?? "draft"),
@@ -375,6 +388,8 @@ export default function JourneyForm({
       <PricingTiersEditor tiers={pricingTiers} onChange={setPricingTiers} />
       <AddonsEditor addons={addons} onChange={setAddons} />
       <ActivitiesPicker activities={activities} selectedIds={activityIds} onChange={setActivityIds} />
+      <VehiclesPicker vehicles={vehicles} selectedIds={vehicleIds} onChange={setVehicleIds} />
+      <AccommodationsPicker accommodations={accommodations} selectedIds={accommodationIds} onChange={setAccommodationIds} />
       <TourPicker tours={tours} selectedIds={tourIds} onChange={setTourIds} />
 
       <section className="card p-6">
@@ -466,6 +481,17 @@ export default function JourneyForm({
         <p className="mt-1 text-xs text-foreground/50">Select from the Media Library, or upload new assets there first.</p>
         <a href="/admin/media" className="btn-outline mt-3 inline-block text-sm">Open Media Library</a>
       </section>
+
+      <PublishChecklist
+        items={[
+          { label: "Hero image", done: !!existingJourney?.heroImage },
+          { label: "Short description", done: !!existingJourney?.shortDescription },
+          { label: "At least one destination", done: destinationIds.length > 0 },
+          { label: "At least one itinerary day", done: itinerary.some((d) => d.title && d.description) },
+          { label: "At least one highlight", done: highlights.length > 0 },
+          { label: "At least one inclusion", done: !!existingJourney?.inclusions?.length },
+        ]}
+      />
 
       <section className="card flex flex-wrap items-center justify-between gap-4 p-6">
         <div className="flex items-center gap-3">

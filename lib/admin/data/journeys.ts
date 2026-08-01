@@ -55,6 +55,8 @@ export interface AdminJourneyDetail extends ProductScalars {
   highlights: ProductHighlight[];
   addons: ProductAddon[];
   activityIds: string[];
+  vehicleIds: string[];
+  accommodationIds: string[];
   tourIds: string[];
 }
 
@@ -62,6 +64,24 @@ const LIST_SELECT = `
   id, slug, title, duration_days, price_from, currency, featured, status,
   journey_destinations(destination_id, is_primary, display_order, destinations(country_name))
 `;
+
+function mapListRow(row: any): AdminJourneyListItem {
+  const dests = (row.journey_destinations ?? []) as any[];
+  const primary =
+    dests.find((d) => d.is_primary) ??
+    [...dests].sort((a, b) => a.display_order - b.display_order)[0];
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    durationDays: Number(row.duration_days ?? 0),
+    priceFrom: Number(row.price_from ?? 0),
+    currency: row.currency ?? "USD",
+    featured: Boolean(row.featured),
+    status: row.status ?? "draft",
+    primaryDestinationName: primary?.destinations?.country_name ?? "-",
+  };
+}
 
 // Uses the authenticated staff session (not the public client) because
 // journeys' public-read RLS only exposes status='published' rows; the
@@ -84,23 +104,50 @@ export async function getAdminJourneys(): Promise<AdminJourneyListItem[]> {
     return [];
   }
 
-  return data.map((row: any) => {
-    const dests = (row.journey_destinations ?? []) as any[];
-    const primary =
-      dests.find((d) => d.is_primary) ??
-      [...dests].sort((a, b) => a.display_order - b.display_order)[0];
-    return {
-      id: row.id,
-      slug: row.slug,
-      title: row.title,
-      durationDays: Number(row.duration_days ?? 0),
-      priceFrom: Number(row.price_from ?? 0),
-      currency: row.currency ?? "USD",
-      featured: Boolean(row.featured),
-      status: row.status ?? "draft",
-      primaryDestinationName: primary?.destinations?.country_name ?? "-",
-    };
-  });
+  return data.map(mapListRow);
+}
+
+export interface AdminJourneysQuery {
+  page: number;
+  pageSize: number;
+  search?: string;
+  sortBy?: "created_at" | "title" | "price_from";
+  sortDir?: "asc" | "desc";
+  destinationId?: string;
+}
+
+export async function getAdminJourneysPaginated(
+  query: AdminJourneysQuery
+): Promise<{ items: AdminJourneyListItem[]; total: number }> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) {
+    console.warn("[admin/journeys] Supabase not configured, returning no journeys.");
+    return { items: [], total: 0 };
+  }
+
+  // Filtering by country requires an inner join on journey_destinations so
+  // PostgREST only counts/returns journeys that actually have a leg in that
+  // destination; without a country filter the plain left-join select (every
+  // journey, with or without destinations) is used instead.
+  const select = query.destinationId
+    ? `id, slug, title, duration_days, price_from, currency, featured, status,
+       journey_destinations!inner(destination_id, is_primary, display_order, destinations(country_name))`
+    : LIST_SELECT;
+
+  let q = supabase.from("journeys").select(select, { count: "exact" });
+  if (query.search) q = q.ilike("title", `%${query.search}%`);
+  if (query.destinationId) q = q.eq("journey_destinations.destination_id", query.destinationId);
+  q = q.order(query.sortBy ?? "created_at", { ascending: query.sortDir === "asc" });
+
+  const from = (query.page - 1) * query.pageSize;
+  const { data, error, count } = await q.range(from, from + query.pageSize - 1);
+
+  if (error || !data) {
+    console.warn("[admin/journeys] Supabase query failed:", error?.message);
+    return { items: [], total: 0 };
+  }
+
+  return { items: data.map(mapListRow), total: count ?? 0 };
 }
 
 const DETAIL_SELECT = `
@@ -113,6 +160,8 @@ const DETAIL_SELECT = `
   journey_highlights(*),
   journey_addons(*),
   journey_activities(activity_id),
+  journey_vehicles(vehicle_id),
+  journey_accommodations(accommodation_id),
   journey_tours(tour_id)
 `;
 
@@ -167,6 +216,8 @@ export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyD
     highlights: (row.journey_highlights ?? []).map(mapHighlightRow),
     addons: (row.journey_addons ?? []).map(mapAddonRow),
     activityIds: (row.journey_activities ?? []).map((a: any) => a.activity_id),
+    vehicleIds: (row.journey_vehicles ?? []).map((v: any) => v.vehicle_id),
+    accommodationIds: (row.journey_accommodations ?? []).map((a: any) => a.accommodation_id),
     tourIds: (row.journey_tours ?? []).map((t: any) => t.tour_id),
   };
 }

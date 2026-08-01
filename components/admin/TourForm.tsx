@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { Destination } from "@/types";
 import type { Activity } from "@/lib/activities";
 import type { ExperienceType } from "@/lib/experienceTypes";
+import type { AdminVehicle } from "@/lib/admin/data/vehicles";
+import type { AdminAccommodation } from "@/lib/admin/data/accommodations";
 import type { AdminTourDetail, ItineraryDay } from "@/lib/admin/data/tours";
 import type { PricingTierInput, HighlightInput, AddonInput } from "@/lib/admin/actions/productShared";
 import { createTour, updateTour, deleteTour } from "@/lib/admin/actions/tours";
@@ -12,17 +14,24 @@ import HighlightsEditor from "./HighlightsEditor";
 import AddonsEditor from "./AddonsEditor";
 import ActivitiesPicker from "./ActivitiesPicker";
 import ExperienceTypesPicker from "./ExperienceTypesPicker";
+import VehiclesPicker from "./VehiclesPicker";
+import AccommodationsPicker from "./AccommodationsPicker";
+import PublishChecklist from "./PublishChecklist";
 
 export default function TourForm({
   existingTour,
   destinations,
   activities,
   experienceTypes,
+  vehicles,
+  accommodations,
 }: {
   existingTour?: AdminTourDetail;
   destinations: Destination[];
   activities: Activity[];
   experienceTypes: ExperienceType[];
+  vehicles: AdminVehicle[];
+  accommodations: AdminAccommodation[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +47,8 @@ export default function TourForm({
   const [addons, setAddons] = useState<AddonInput[]>(existingTour?.addons.map((a) => ({ ...a })) ?? []);
   const [activityIds, setActivityIds] = useState<string[]>(existingTour?.activityIds ?? []);
   const [experienceTypeIds, setExperienceTypeIds] = useState<string[]>(existingTour?.experienceTypeIds ?? []);
+  const [vehicleIds, setVehicleIds] = useState<string[]>(existingTour?.vehicleIds ?? []);
+  const [accommodationIds, setAccommodationIds] = useState<string[]>(existingTour?.accommodationIds ?? []);
 
   function addItineraryDay() {
     setItinerary((prev) => [...prev, { day: prev.length + 1, title: "", description: "" }]);
@@ -72,6 +83,7 @@ export default function TourForm({
       durationDays: Number(formData.get("durationDays") ?? 0),
       durationHours: formData.get("durationHours") ? Number(formData.get("durationHours")) : null,
       priceFrom: Number(formData.get("priceFrom") ?? 0),
+      heroImage: String(formData.get("heroImage") ?? ""),
       shortDescription: String(formData.get("shortDescription") ?? ""),
       inclusions: splitLines(formData.get("inclusions")),
       exclusions: splitLines(formData.get("exclusions")),
@@ -99,6 +111,8 @@ export default function TourForm({
       addons,
       activityIds,
       experienceTypeIds,
+      vehicleIds,
+      accommodationIds,
       featured: formData.get("featured") === "on",
       status: String(formData.get("status") ?? "draft"),
     };
@@ -198,6 +212,10 @@ export default function TourForm({
           </div>
         </div>
         <div className="mt-4">
+          <label htmlFor="heroImage" className="text-xs font-medium text-foreground/60">Hero Image URL</label>
+          <input id="heroImage" name="heroImage" defaultValue={existingTour?.heroImage} placeholder="https://..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div className="mt-4">
           <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Short Description</label>
           <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~120–150 characters (keeps card layouts uniform across the site).</p>
           <textarea id="shortDescription" name="shortDescription" defaultValue={existingTour?.shortDescription} rows={3} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
@@ -288,6 +306,8 @@ export default function TourForm({
       <AddonsEditor addons={addons} onChange={setAddons} />
       <ActivitiesPicker activities={activities} selectedIds={activityIds} onChange={setActivityIds} />
       <ExperienceTypesPicker experienceTypes={experienceTypes} selectedIds={experienceTypeIds} onChange={setExperienceTypeIds} />
+      <VehiclesPicker vehicles={vehicles} selectedIds={vehicleIds} onChange={setVehicleIds} />
+      <AccommodationsPicker accommodations={accommodations} selectedIds={accommodationIds} onChange={setAccommodationIds} />
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Logistics</h2>
@@ -384,6 +404,16 @@ export default function TourForm({
           Open Media Library
         </a>
       </section>
+
+      <PublishChecklist
+        items={[
+          { label: "Hero image", done: !!existingTour?.heroImage },
+          { label: "Short description", done: !!existingTour?.shortDescription },
+          { label: "At least one itinerary day", done: itinerary.some((d) => d.title && d.description) },
+          { label: "At least one highlight", done: highlights.length > 0 },
+          { label: "At least one inclusion", done: !!existingTour?.inclusions?.length },
+        ]}
+      />
 
       <section className="card flex flex-wrap items-center justify-between gap-4 p-6">
         <div className="flex items-center gap-3">

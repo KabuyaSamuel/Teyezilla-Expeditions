@@ -8,12 +8,31 @@ import {
   syncHighlights,
   syncAddons,
   syncActivities,
+  syncVehicles,
+  syncAccommodations,
   productScalarsToRow,
   type PricingTierInput,
   type HighlightInput,
   type AddonInput,
   type ProductScalarsInput,
 } from "./productShared";
+
+// Soft-enforces the same readiness bar shown as a checklist in JourneyForm --
+// this is the actual gate (the checklist is just a UI hint), so a status of
+// "published" can't be reached via a direct API call with missing content.
+function assertPublishable(input: JourneyInput) {
+  if (input.status !== "published") return;
+  const missing: string[] = [];
+  if (!input.heroImage) missing.push("hero image");
+  if (!input.shortDescription) missing.push("short description");
+  if (input.destinationIds.length === 0) missing.push("at least one destination");
+  if (!input.itinerary.some((d) => d.title && d.description)) missing.push("at least one itinerary day");
+  if (input.highlights.length === 0) missing.push("at least one highlight");
+  if (input.inclusions.length === 0) missing.push("at least one inclusion");
+  if (missing.length > 0) {
+    throw new Error(`Can't publish yet -- missing: ${missing.join(", ")}.`);
+  }
+}
 
 export interface JourneyInput extends ProductScalarsInput {
   title: string;
@@ -44,6 +63,8 @@ export interface JourneyInput extends ProductScalarsInput {
   highlights: HighlightInput[];
   addons: AddonInput[];
   activityIds: string[];
+  vehicleIds: string[];
+  accommodationIds: string[];
   tourIds: string[];
 }
 
@@ -138,6 +159,8 @@ async function syncJourneyRelations(
   await syncHighlights(supabase, "journey_highlights", "journey_id", journeyId, input.highlights);
   await syncAddons(supabase, "journey_addons", "journey_id", journeyId, input.addons);
   await syncActivities(supabase, "journey_activities", "journey_id", journeyId, input.activityIds);
+  await syncVehicles(supabase, "journey_vehicles", "journey_id", journeyId, input.vehicleIds);
+  await syncAccommodations(supabase, "journey_accommodations", "journey_id", journeyId, input.accommodationIds);
 
   await supabase.from("journey_tours").delete().eq("journey_id", journeyId);
   if (input.tourIds.length > 0) {
@@ -149,6 +172,7 @@ async function syncJourneyRelations(
 }
 
 export async function createJourney(input: JourneyInput): Promise<void> {
+  assertPublishable(input);
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
@@ -163,6 +187,7 @@ export async function createJourney(input: JourneyInput): Promise<void> {
 }
 
 export async function updateJourney(id: string, input: JourneyInput): Promise<void> {
+  assertPublishable(input);
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 

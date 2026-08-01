@@ -163,6 +163,46 @@ export async function syncActivities(
   if (error) throw new Error(error.message);
 }
 
+export async function syncVehicles(
+  supabase: SupabaseLike,
+  table: "tour_vehicles" | "journey_vehicles",
+  parentColumn: "tour_id" | "journey_id",
+  parentId: string,
+  vehicleIds: string[]
+) {
+  await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (vehicleIds.length === 0) return;
+
+  const { error } = await supabase.from(table).insert(
+    vehicleIds.map((vehicleId, i) => ({
+      [parentColumn]: parentId,
+      vehicle_id: vehicleId,
+      display_order: i,
+    }))
+  );
+  if (error) throw new Error(error.message);
+}
+
+export async function syncAccommodations(
+  supabase: SupabaseLike,
+  table: "tour_accommodations" | "journey_accommodations",
+  parentColumn: "tour_id" | "journey_id",
+  parentId: string,
+  accommodationIds: string[]
+) {
+  await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (accommodationIds.length === 0) return;
+
+  const { error } = await supabase.from(table).insert(
+    accommodationIds.map((accommodationId, i) => ({
+      [parentColumn]: parentId,
+      accommodation_id: accommodationId,
+      display_order: i,
+    }))
+  );
+  if (error) throw new Error(error.message);
+}
+
 export async function syncExperienceTypes(
   supabase: SupabaseLike,
   table: "tour_experience_types" | "journey_experience_types",

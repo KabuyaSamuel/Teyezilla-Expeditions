@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Destination } from "@/types";
 import { createDestination, updateDestination, deleteDestination } from "@/lib/admin/actions/destinations";
+import { AFRICAN_COUNTRIES, flagEmojiForCode } from "@/lib/country-codes";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -70,8 +71,27 @@ export default function DestinationForm({ existingDestination }: { existingDesti
           <input id="countryName" name="countryName" required defaultValue={existingDestination?.countryName} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div>
-          <label htmlFor="flagEmoji" className="text-xs font-medium text-foreground/60">Flag Emoji</label>
-          <input id="flagEmoji" name="flagEmoji" defaultValue={existingDestination?.flagEmoji} placeholder="🇰🇪" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <label htmlFor="flagEmoji" className="text-xs font-medium text-foreground/60">Country Flag</label>
+          <select
+            id="flagEmoji"
+            name="flagEmoji"
+            defaultValue={existingDestination?.flagEmoji ?? ""}
+            className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">Select a country</option>
+            {AFRICAN_COUNTRIES.map((c) => {
+              // Zanzibar isn't a sovereign country (part of Tanzania, with
+              // its own ISO code), so it doesn't have a real flag emoji --
+              // existing destination rows use 🏝️ for it, kept here so
+              // editing that row round-trips instead of matching no option.
+              const emoji = c.name === "Zanzibar" ? "🏝️" : flagEmojiForCode(c.code);
+              return (
+                <option key={c.code} value={emoji}>
+                  {emoji} {c.name}
+                </option>
+              );
+            })}
+          </select>
         </div>
         <div className="sm:col-span-2">
           <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Short Description</label>

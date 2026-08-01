@@ -1,5 +1,7 @@
 import type { Tour } from "@/types";
 import type { Activity } from "@/lib/activities";
+import type { Vehicle } from "@/lib/vehicles";
+import type { Accommodation } from "@/lib/accommodations";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 import {
   mapPricingTierRow,
@@ -25,6 +27,8 @@ export interface TourDetail extends Tour, ProductScalars {
   highlights: ProductHighlight[];
   addons: ProductAddon[];
   activities: Activity[];
+  vehicles: Vehicle[];
+  accommodations: Accommodation[];
   featuredInJourneys: { slug: string; title: string }[];
 }
 
@@ -92,6 +96,8 @@ const DETAIL_SELECT = `
   tour_highlights(*),
   tour_addons(*),
   tour_activities(activities(id, name, slug, description, icon)),
+  tour_vehicles(vehicles(id, name, slug, vehicle_type, seats, description, features, image)),
+  tour_accommodations(accommodations(id, destination_id, name, slug, description, hero_image, tier)),
   journey_tours(journeys(slug, title))
 `;
 
@@ -131,6 +137,31 @@ export async function getTourBySlug(slug: string): Promise<TourDetail | undefine
       .map((a: any) => a.activities)
       .filter(Boolean)
       .map((a: any) => ({ id: a.id, name: a.name, slug: a.slug, description: a.description ?? "", icon: a.icon ?? "" })),
+    vehicles: (row.tour_vehicles ?? [])
+      .map((v: any) => v.vehicles)
+      .filter(Boolean)
+      .map((v: any) => ({
+        id: v.id,
+        name: v.name,
+        slug: v.slug,
+        vehicleType: v.vehicle_type ?? "",
+        seats: v.seats ?? null,
+        description: v.description ?? "",
+        features: v.features ?? [],
+        image: v.image ?? "",
+      })),
+    accommodations: (row.tour_accommodations ?? [])
+      .map((a: any) => a.accommodations)
+      .filter(Boolean)
+      .map((a: any) => ({
+        id: a.id,
+        destinationId: a.destination_id,
+        name: a.name,
+        slug: a.slug ?? "",
+        description: a.description ?? "",
+        heroImage: a.hero_image ?? "",
+        tier: a.tier ?? "",
+      })),
     featuredInJourneys: (row.journey_tours ?? [])
       .map((jt: any) => jt.journeys)
       .filter(Boolean)

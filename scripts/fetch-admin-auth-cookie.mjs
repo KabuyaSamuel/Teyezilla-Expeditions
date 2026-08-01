@@ -45,16 +45,40 @@ const browser = await puppeteer.launch({
   args: ["--no-sandbox"],
 });
 
+async function diagnosePage(page, label) {
+  const title = await page.title().catch(() => "(no title)");
+  const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 500)).catch(() => "(couldn't read body)");
+  console.error(`--- ${label} ---`);
+  console.error("URL:", page.url());
+  console.error("Title:", title);
+  console.error("Body snippet:", bodyText);
+  console.error("---");
+}
+
 try {
   const page = await browser.newPage();
   await page.goto(`${baseUrl}/admin/login`, { waitUntil: "networkidle0" });
+
+  // networkidle0 only guarantees the network went quiet, not that the
+  // client-rendered LoginForm has actually mounted -- wait for the real
+  // element instead of assuming it's there the instant navigation resolves.
+  try {
+    await page.waitForSelector("#email", { timeout: 15000 });
+  } catch {
+    await diagnosePage(page, "Login page never showed #email");
+    throw new Error("Timed out waiting for the login form's #email field to appear -- see page diagnostics above.");
+  }
+
   await page.type("#email", email);
   await page.type("#password", password);
   await page.click('button[type="submit"]');
 
-  await page.waitForFunction(() => !window.location.pathname.startsWith("/admin/login"), { timeout: 20000 }).catch(() => {
-    throw new Error(`Login did not redirect away from /admin/login within 20s. Still on: ${page.url()}`);
-  });
+  try {
+    await page.waitForFunction(() => !window.location.pathname.startsWith("/admin/login"), { timeout: 20000 });
+  } catch {
+    await diagnosePage(page, "Login did not redirect away from /admin/login");
+    throw new Error("Login form submitted but never redirected within 20s -- see page diagnostics above.");
+  }
 
   const cookies = await page.cookies();
   const authCookie = cookies.find((c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));

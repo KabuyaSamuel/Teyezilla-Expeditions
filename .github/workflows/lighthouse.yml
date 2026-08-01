@@ -1,0 +1,75 @@
+name: Lighthouse
+
+# Performance/accessibility/SEO audits against a real deployment. Not run
+# on every push -- Lighthouse audits are slow and this is meant to track
+# trends and catch regressions after a deploy, not gate every commit.
+# Assertions in lighthouserc*.js are deliberately loose "warn" thresholds
+# for now (no real baseline has been benchmarked yet); reports upload to
+# temporary-public-storage and the shareable link is printed in the job
+# log either way.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Base URL to audit (defaults to production)"
+        required: false
+        type: string
+
+jobs:
+  lighthouse-public:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lighthouse (public pages)
+        env:
+          LHCI_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.url }}
+        run: npx lhci autorun --config=./lighthouserc.js
+
+  # Logs into the admin dashboard as a dedicated CI-only staff account
+  # (ci-lighthouse@teyezillaexpeditions.com, role: manager) and audits it
+  # authenticated. Fetches a real session cookie first (see
+  # scripts/fetch-admin-auth-cookie.mjs for why -- @lhci/cli's own
+  # puppeteerScript auth mechanism proved unreliable) and passes it to
+  # Lighthouse via extraHeaders. Needs LHCI_ADMIN_EMAIL /
+  # LHCI_ADMIN_PASSWORD as repo secrets; fails fast with a clear error if
+  # they're missing or login doesn't succeed.
+  lighthouse-admin:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Fetch admin session cookie
+        id: cookie
+        env:
+          LHCI_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.url }}
+          LHCI_ADMIN_EMAIL: ${{ secrets.LHCI_ADMIN_EMAIL }}
+          LHCI_ADMIN_PASSWORD: ${{ secrets.LHCI_ADMIN_PASSWORD }}
+        run: |
+          COOKIE=$(node scripts/fetch-admin-auth-cookie.mjs)
+          echo "::add-mask::$COOKIE"
+          echo "cookie=$COOKIE" >> "$GITHUB_OUTPUT"
+
+      - name: Lighthouse (admin dashboard, authenticated)
+        env:
+          LHCI_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.url }}
+          LHCI_ADMIN_COOKIE: ${{ steps.cookie.outputs.cookie }}
+        run: npx lhci autorun --config=./lighthouserc.admin.js

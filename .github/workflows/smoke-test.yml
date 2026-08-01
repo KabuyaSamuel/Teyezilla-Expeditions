@@ -7,9 +7,15 @@ name: Smoke Test
 #
 # Three triggers:
 #  - deployment_status: runs automatically right after Vercel's GitHub
-#    integration reports a deployment finished, against that exact
-#    deployment's URL (so a broken preview is caught on the PR that
-#    caused it, not just in production).
+#    integration reports a deployment finished. Restricted to the
+#    Production environment only -- Preview deployments sit behind
+#    Vercel's own Deployment Protection SSO wall, so a script hitting a
+#    preview URL lands on vercel.com/login instead of the real app and
+#    can't tell the difference (confirmed directly: this is what broke
+#    the admin Lighthouse check, and it means this smoke test's earlier
+#    "pass" on a preview's /admin/login was a false positive -- the SSO
+#    page returns 200 with no matching error markers). Revisit if preview
+#    checks are wanted later via Vercel's Protection Bypass for Automation.
 #  - workflow_dispatch: run on demand against production or a given URL.
 #  - schedule: a periodic production health check independent of deploys,
 #    since this exact bug class (an env var that's missing or expires)
@@ -29,7 +35,9 @@ on:
 jobs:
   smoke-test:
     runs-on: ubuntu-latest
-    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    if: >-
+      github.event_name != 'deployment_status' ||
+      (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
     steps:
       - uses: actions/checkout@v4
 

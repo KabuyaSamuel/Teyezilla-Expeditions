@@ -7,6 +7,14 @@ name: Lighthouse
 # for now (no real baseline has been benchmarked yet); reports upload to
 # temporary-public-storage and the shareable link is printed in the job
 # log either way.
+#
+# deployment_status runs are restricted to the Production environment:
+# Preview deployments sit behind Vercel's own Deployment Protection SSO
+# wall, so a script hitting a preview URL lands on vercel.com/login
+# instead of the real app (confirmed directly -- this is what broke the
+# admin job before this restriction was added). Revisit if preview checks
+# are wanted later via Vercel's Protection Bypass for Automation.
+# workflow_dispatch runs still work against any URL, preview included.
 
 on:
   deployment_status:
@@ -20,7 +28,9 @@ on:
 jobs:
   lighthouse-public:
     runs-on: ubuntu-latest
-    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    if: >-
+      github.event_name != 'deployment_status' ||
+      (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +56,9 @@ jobs:
   # they're missing or login doesn't succeed.
   lighthouse-admin:
     runs-on: ubuntu-latest
-    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    if: >-
+      github.event_name != 'deployment_status' ||
+      (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
     steps:
       - uses: actions/checkout@v4
 

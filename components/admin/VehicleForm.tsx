@@ -5,7 +5,7 @@ import type { AdminVehicle } from "@/lib/admin/data/vehicles";
 import { createVehicle, updateVehicle, deleteVehicle } from "@/lib/admin/actions/vehicles";
 
 function isRedirectError(err: unknown): boolean {
-  return !!err && typeof err === "object" && "digest" in err && String((err as any).digest).startsWith("NEXT_REDIRECT");
+  return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
 }
 
 export default function VehicleForm({ existingVehicle }: { existingVehicle?: AdminVehicle }) {

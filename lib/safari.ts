@@ -1,4 +1,5 @@
 import { getSupabasePublicClient } from "@/lib/supabase/public";
+import type { Tables } from "@/types/database";
 
 export interface SafariTheme {
   id: string;
@@ -30,7 +31,12 @@ export async function getSafariThemes(): Promise<SafariTheme[]> {
     return [];
   }
 
-  return data.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug, description: t.description ?? "" }));
+  return (data as Pick<Tables<"safari_themes">, "id" | "name" | "slug" | "description">[]).map((t) => ({
+    id: t.id,
+    name: t.name,
+    slug: t.slug,
+    description: t.description ?? "",
+  }));
 }
 
 export async function getSafariGuideFaqs(): Promise<Faq[]> {

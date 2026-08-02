@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
 
 export interface AvailabilityDate {
   id: string;
@@ -7,7 +8,7 @@ export interface AvailabilityDate {
   bookedCount: number;
 }
 
-function mapRow(row: Record<string, any>): AvailabilityDate {
+function mapRow(row: Tables<"tour_availability"> | Tables<"journey_availability">): AvailabilityDate {
   return {
     id: row.id,
     date: row.date,

@@ -1,4 +1,13 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
+
+// supabase-js can't tell booking_id/staff FKs are to-one without a
+// Database-parameterized client (deliberately not used here, see
+// lib/supabase/server.ts) -- cast to the real single-object runtime shape.
+type LoyaltyTransactionRow = Tables<"loyalty_transactions"> & {
+  booking: Pick<Tables<"bookings">, "booking_reference"> | null;
+  staff: Pick<Tables<"staff">, "full_name"> | null;
+};
 
 export interface LoyaltyTransaction {
   id: string;
@@ -11,16 +20,16 @@ export interface LoyaltyTransaction {
   createdAt: string;
 }
 
-function mapRow(row: Record<string, any>): LoyaltyTransaction {
+function mapRow(row: LoyaltyTransactionRow): LoyaltyTransaction {
   return {
     id: row.id,
-    customerId: row.customer_id,
+    customerId: row.customer_id ?? "",
     pointsDelta: Number(row.points_delta ?? 0),
-    reason: row.reason,
+    reason: row.reason ?? "",
     bookingId: row.booking_id ?? undefined,
     bookingReference: row.booking?.booking_reference ?? undefined,
     createdByName: row.staff?.full_name ?? undefined,
-    createdAt: row.created_at,
+    createdAt: row.created_at ?? "",
   };
 }
 
@@ -40,7 +49,7 @@ export async function getLoyaltyTransactions(customerId: string): Promise<Loyalt
     console.warn("[loyalty] transactions query failed:", error?.message);
     return [];
   }
-  return data.map(mapRow);
+  return (data as unknown as LoyaltyTransactionRow[]).map(mapRow);
 }
 
 // Guards against double-awarding accrual points if a booking is toggled
@@ -86,14 +95,17 @@ export async function getLoyaltySummary(): Promise<LoyaltySummary> {
   ]);
 
   const { data: allCustomers } = await supabase.from("customers").select("loyalty_points");
-  const totalOutstanding = (allCustomers ?? []).reduce((s: number, c: any) => s + Number(c.loyalty_points ?? 0), 0);
+  const totalOutstanding = ((allCustomers ?? []) as Pick<Tables<"customers">, "loyalty_points">[]).reduce(
+    (s, c) => s + Number(c.loyalty_points ?? 0),
+    0
+  );
 
-  const recentDeltas = (recentRes.data ?? []) as { points_delta: number }[];
-  const earnedLast30Days = recentDeltas.filter((t) => t.points_delta > 0).reduce((s, t) => s + t.points_delta, 0);
-  const redeemedLast30Days = recentDeltas.filter((t) => t.points_delta < 0).reduce((s, t) => s + Math.abs(t.points_delta), 0);
+  const recentDeltas = (recentRes.data ?? []) as Pick<Tables<"loyalty_transactions">, "points_delta">[];
+  const earnedLast30Days = recentDeltas.filter((t) => (t.points_delta ?? 0) > 0).reduce((s, t) => s + (t.points_delta ?? 0), 0);
+  const redeemedLast30Days = recentDeltas.filter((t) => (t.points_delta ?? 0) < 0).reduce((s, t) => s + Math.abs(t.points_delta ?? 0), 0);
 
-  const topCustomers = ((customersRes.data ?? []) as any[])
-    .filter((c) => c.loyalty_points > 0)
+  const topCustomers = ((customersRes.data ?? []) as Pick<Tables<"customers">, "id" | "full_name" | "loyalty_points">[])
+    .filter((c) => (c.loyalty_points ?? 0) > 0)
     .map((c) => ({ id: c.id, name: c.full_name, balance: Number(c.loyalty_points) }));
 
   return { totalOutstanding, earnedLast30Days, redeemedLast30Days, topCustomers };

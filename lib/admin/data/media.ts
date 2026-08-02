@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
 
 export interface MediaItem {
   id: string;
@@ -10,14 +11,14 @@ export interface MediaItem {
   storagePath: string | null;
 }
 
-function mapRow(row: Record<string, any>): MediaItem {
+function mapRow(row: Tables<"media">): MediaItem {
   return {
     id: row.id,
     fileUrl: row.file_url,
-    fileType: row.file_type,
+    fileType: row.file_type as MediaItem["fileType"],
     altText: row.alt_text ?? "",
     tags: row.tags ?? [],
-    uploadedAt: row.uploaded_at,
+    uploadedAt: row.uploaded_at ?? "",
     storagePath: row.storage_path ?? null,
   };
 }

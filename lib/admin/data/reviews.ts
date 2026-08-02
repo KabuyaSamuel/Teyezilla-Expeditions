@@ -1,4 +1,10 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
+
+type AdminReviewRow = Pick<
+  Tables<"reviews">,
+  "id" | "author_name" | "source" | "rating" | "quote" | "tour_id" | "is_approved" | "is_featured"
+> & { tour: Pick<Tables<"tours">, "title"> | null };
 
 export interface AdminReview {
   id: string;
@@ -12,11 +18,11 @@ export interface AdminReview {
   isFeatured: boolean;
 }
 
-function mapRow(row: Record<string, any>): AdminReview {
+function mapRow(row: AdminReviewRow): AdminReview {
   return {
     id: row.id,
     authorName: row.author_name,
-    source: row.source,
+    source: row.source as AdminReview["source"],
     rating: Number(row.rating ?? 0),
     quote: row.quote ?? "",
     tourId: row.tour_id,
@@ -45,7 +51,12 @@ export async function getAllReviews(): Promise<AdminReview[]> {
     return [];
   }
 
-  return data.map(mapRow);
+  // supabase-js can't tell tour_id is a to-one FK without a Database-
+  // parameterized client (deliberately not used here, see
+  // lib/supabase/server.ts), so it infers the embedded `tour` relation as
+  // an array regardless -- cast to the real single-object runtime shape,
+  // same pattern used in app/(public)/booking/confirmation/[reference]/page.tsx.
+  return (data as unknown as AdminReviewRow[]).map(mapRow);
 }
 
 export async function getReviewById(id: string): Promise<AdminReview | undefined> {
@@ -66,5 +77,5 @@ export async function getReviewById(id: string): Promise<AdminReview | undefined
     return undefined;
   }
 
-  return mapRow(data);
+  return mapRow(data as unknown as AdminReviewRow);
 }

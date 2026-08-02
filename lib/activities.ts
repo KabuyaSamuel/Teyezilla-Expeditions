@@ -1,4 +1,5 @@
 import { getSupabasePublicClient } from "@/lib/supabase/public";
+import type { Tables } from "@/types/database";
 
 export interface Activity {
   id: string;
@@ -25,7 +26,7 @@ export async function getActivities(): Promise<Activity[]> {
     return [];
   }
 
-  return data.map((a: any) => ({
+  return (data as Pick<Tables<"activities">, "id" | "name" | "slug" | "description" | "icon">[]).map((a) => ({
     id: a.id,
     name: a.name,
     slug: a.slug,

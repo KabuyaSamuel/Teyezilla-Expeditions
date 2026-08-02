@@ -82,5 +82,8 @@ export async function getToursByExperienceType(slug: string): Promise<Tour[]> {
     return [];
   }
 
-  return data.map((row: any) => row.tours).filter(Boolean).map(mapTourRow);
+  return (data as unknown as { tours: Record<string, unknown> | null }[])
+    .map((row) => row.tours)
+    .filter((t): t is Record<string, unknown> => Boolean(t))
+    .map(mapTourRow);
 }

@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
 
 export interface Customer {
   id: string;
@@ -12,7 +13,7 @@ export interface Customer {
   createdAt: string;
 }
 
-function mapRow(row: Record<string, any>): Customer {
+function mapRow(row: Tables<"customers">): Customer {
   return {
     id: row.id,
     fullName: row.full_name,
@@ -22,7 +23,7 @@ function mapRow(row: Record<string, any>): Customer {
     emergencyContact: row.emergency_contact ?? "",
     notes: row.notes ?? "",
     loyaltyPoints: Number(row.loyalty_points ?? 0),
-    createdAt: row.created_at,
+    createdAt: row.created_at ?? "",
   };
 }
 

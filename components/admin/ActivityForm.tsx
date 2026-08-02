@@ -5,7 +5,7 @@ import type { AdminActivity } from "@/lib/admin/data/activities";
 import { createActivity, updateActivity, deleteActivity } from "@/lib/admin/actions/activities";
 
 function isRedirectError(err: unknown): boolean {
-  return !!err && typeof err === "object" && "digest" in err && String((err as any).digest).startsWith("NEXT_REDIRECT");
+  return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
 }
 
 export default function ActivityForm({ existingActivity }: { existingActivity?: AdminActivity }) {

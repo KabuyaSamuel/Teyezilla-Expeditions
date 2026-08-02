@@ -1,5 +1,6 @@
 import type { StaffRole } from "../permissions";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
 
 // Staff directory for the Staff Management module. Reads from the real
 // `staff` table; auth is entirely owned by Supabase Auth, not this file.
@@ -12,10 +13,12 @@ export interface StaffMember {
   role: StaffRole;
 }
 
-function mapRow(row: Record<string, any>): StaffMember {
+type StaffRow = Pick<Tables<"staff">, "id" | "auth_user_id" | "full_name" | "email" | "role">;
+
+function mapRow(row: StaffRow): StaffMember {
   return {
     id: row.id,
-    authUserId: row.auth_user_id,
+    authUserId: row.auth_user_id ?? "",
     fullName: row.full_name,
     email: row.email,
     role: row.role as StaffRole,

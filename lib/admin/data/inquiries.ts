@@ -3,6 +3,16 @@ import {
   getTripPlannerRequests,
   type TripPlannerRequest,
 } from "@/lib/admin/data/trip-planner-requests";
+import type { Tables } from "@/types/database";
+
+// supabase-js can't tell tour_id/journey_id are to-one FKs without a
+// Database-parameterized client (deliberately not used here, see
+// lib/supabase/server.ts), so cast to the real single-object runtime
+// shape rather than the array it would otherwise infer.
+type InquiryRow = Tables<"inquiries"> & {
+  tour: Pick<Tables<"tours">, "title"> | null;
+  journey: Pick<Tables<"journeys">, "title"> | null;
+};
 
 export type InquirySource = "website" | "whatsapp" | "contact_form" | "ai_trip_planner";
 export type InquiryStatus = "new" | "in_progress" | "quoted" | "converted" | "closed";
@@ -38,23 +48,23 @@ function attachTripPlanner(inquiry: Inquiry, requests: TripPlannerRequest[]): In
   return match ? { ...inquiry, tripPlanner: match } : inquiry;
 }
 
-function mapRow(row: Record<string, any>): Inquiry {
+function mapRow(row: InquiryRow): Inquiry {
   return {
     id: row.id,
-    customerName: row.customer_name,
-    customerEmail: row.customer_email,
+    customerName: row.customer_name ?? "",
+    customerEmail: row.customer_email ?? "",
     customerPhone: row.customer_phone ?? "",
-    source: row.source,
+    source: row.source as InquirySource,
     tourTitle: row.tour?.title,
     journeyTitle: row.journey?.title,
     message: row.message ?? "",
     // No formal FK to `staff` yet, so this can't be embedded via Postgrest;
     // resolve the display name by cross-referencing getStaffMembers() at the call site.
     assignedStaffId: row.assigned_staff_id ?? undefined,
-    status: row.status,
+    status: row.status as InquiryStatus,
     staffReply: row.staff_reply ?? undefined,
     repliedAt: row.replied_at ?? undefined,
-    createdAt: row.created_at,
+    createdAt: row.created_at ?? "",
     bookingId: row.booking_id ?? undefined,
   };
 }
@@ -79,7 +89,7 @@ export async function getInquiries(): Promise<Inquiry[]> {
     return [];
   }
 
-  return data.map((row) => attachTripPlanner(mapRow(row), tripPlannerRequests));
+  return (data as unknown as InquiryRow[]).map((row) => attachTripPlanner(mapRow(row), tripPlannerRequests));
 }
 
 export async function getInquiryById(id: string): Promise<Inquiry | undefined> {
@@ -100,7 +110,7 @@ export async function getInquiryById(id: string): Promise<Inquiry | undefined> {
     return undefined;
   }
 
-  const inquiry = mapRow(data);
+  const inquiry = mapRow(data as unknown as InquiryRow);
   if (inquiry.source !== "ai_trip_planner") return inquiry;
   return attachTripPlanner(inquiry, await getTripPlannerRequests());
 }
@@ -120,5 +130,5 @@ export async function getInquiryByBookingId(bookingId: string): Promise<Inquiry 
     return undefined;
   }
 
-  return mapRow(data);
+  return mapRow(data as unknown as InquiryRow);
 }

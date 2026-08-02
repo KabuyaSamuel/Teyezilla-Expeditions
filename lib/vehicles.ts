@@ -1,4 +1,5 @@
 import { getSupabasePublicClient } from "@/lib/supabase/public";
+import type { Tables } from "@/types/database";
 
 export interface Vehicle {
   id: string;
@@ -28,7 +29,11 @@ export async function getVehicles(): Promise<Vehicle[]> {
     return [];
   }
 
-  return data.map((v: any) => ({
+  type VehicleListRow = Pick<
+    Tables<"vehicles">,
+    "id" | "name" | "slug" | "vehicle_type" | "seats" | "description" | "features" | "image"
+  >;
+  return (data as VehicleListRow[]).map((v) => ({
     id: v.id,
     name: v.name,
     slug: v.slug,

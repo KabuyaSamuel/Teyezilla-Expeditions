@@ -67,6 +67,25 @@ supabase db reset --linked
 but it will wipe any data you've already added by hand. If you'd rather not risk that,
 skip step 6 and use Option B below just for the seed step.
 
+### Regenerating `types/database.ts` after a schema change
+
+`types/database.ts` is generated from the live schema, not hand-written — it's what
+lets `lib/*` data files use real column types (`Tables<"tours">` etc.) instead of
+`Record<string, any>`. It does **not** auto-update when you add a migration, so after
+`supabase db push` (or any schema change), regenerate it:
+
+```bash
+supabase gen types typescript --linked > types/database.ts
+```
+
+If you skip this after adding/renaming a column, nothing breaks immediately — the
+generated types just silently describe the *old* schema until you regenerate, which can
+mask a real mismatch instead of catching it at compile time. Note: only a portion of
+`lib/*` has been migrated to use these generated types so far (see the note in the
+relevant PR/commit history) — `lib/tours.ts`, `lib/journeys.ts`, and their `lib/admin/
+data/` counterparts still use hand-rolled types, since their heavily-joined multi-table
+selects need custom composed types rather than a straight swap.
+
 ### Option B — Dashboard SQL Editor (no CLI needed)
 
 1. Open your project's SQL Editor in the Supabase Dashboard.

@@ -6,6 +6,16 @@ import { env } from "@/lib/env";
 // Server-side Supabase client for use in Server Components, Server Actions,
 // and Route Handlers. Reads/writes the auth session via Next.js cookies so
 // the session survives across requests.
+//
+// Deliberately NOT parameterized with <Database> (see types/database.ts):
+// this client is used for nearly every write in the app, and doing so
+// forces every .insert()/.update() call into strict shape-checking
+// against the generated types -- which cascades into ~15 unrelated files
+// with real but out-of-scope mismatches (nullable columns, dynamic insert
+// objects built from index signatures, a Json-vs-ContentBlock[] mismatch
+// in blog posts). Database's Row types are applied directly at individual
+// mapRow() call sites instead -- narrower, safer, matches what this pass
+// is actually for.
 
 export async function getSupabaseServerClient() {
   const cookieStore = await cookies();

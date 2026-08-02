@@ -1,4 +1,28 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
+
+// supabase-js can't tell customer_id/tour_id/journey_id are to-one FKs
+// without a Database-parameterized client (deliberately not used here,
+// see lib/supabase/server.ts) -- cast to the real single-object runtime
+// shape for those three. journey_destinations is a genuine to-many join
+// (one journey, many legs), so it stays an array as inferred.
+type BookingRow = Tables<"bookings"> & {
+  customer: Pick<Tables<"customers">, "full_name" | "email"> | null;
+  tour:
+    | (Pick<Tables<"tours">, "title" | "slug"> & {
+        destinations: Pick<Tables<"destinations">, "country_name"> | null;
+      })
+    | null;
+  journey:
+    | (Pick<Tables<"journeys">, "title" | "slug"> & {
+        journey_destinations: Array<
+          Pick<Tables<"journey_destinations">, "is_primary" | "display_order"> & {
+            destinations: Pick<Tables<"destinations">, "country_name"> | null;
+          }
+        >;
+      })
+    | null;
+};
 
 export type PaymentStatus = "unpaid" | "deposit_received" | "paid";
 export type BookingStatus = "inquiry" | "quoted" | "confirmed" | "completed" | "cancelled";
@@ -48,7 +72,7 @@ const SELECT =
 
 // Joins customers, tours, and journeys to get display names, since the
 // `bookings` table only stores foreign keys.
-function mapRow(row: Record<string, any>): Booking {
+function mapRow(row: BookingRow): Booking {
   const tourTitle = row.tour?.title ?? "";
   const journeyTitle = row.journey?.title ?? "";
   const productType: Booking["productType"] = row.tour_id ? "tour" : row.journey_id ? "journey" : "";
@@ -57,11 +81,7 @@ function mapRow(row: Record<string, any>): Booking {
   if (productType === "tour") {
     destinationName = row.tour?.destinations?.country_name ?? "";
   } else if (productType === "journey") {
-    const legs = (row.journey?.journey_destinations ?? []) as Array<{
-      is_primary: boolean;
-      display_order: number | null;
-      destinations: { country_name: string } | null;
-    }>;
+    const legs = row.journey?.journey_destinations ?? [];
     // Attribution rule: full revenue to the primary (first) leg of a
     // multi-country journey, not split across every country it visits.
     // Splitting evenly would understate each destination's real commercial
@@ -79,7 +99,7 @@ function mapRow(row: Record<string, any>): Booking {
   return {
     id: row.id,
     bookingReference: row.booking_reference,
-    customerId: row.customer_id,
+    customerId: row.customer_id ?? "",
     customerName: row.customer?.full_name ?? "Unknown Customer",
     customerEmail: row.customer?.email ?? "",
     tourId: row.tour_id ?? null,
@@ -103,9 +123,9 @@ function mapRow(row: Record<string, any>): Booking {
     countryOfResidence: row.country_of_residence ?? "",
     totalAmount: Number(row.total_amount ?? 0),
     currency: row.currency ?? "USD",
-    paymentStatus: row.payment_status,
-    bookingStatus: row.booking_status,
-    createdAt: row.created_at,
+    paymentStatus: (row.payment_status ?? "unpaid") as PaymentStatus,
+    bookingStatus: (row.booking_status ?? "inquiry") as BookingStatus,
+    createdAt: row.created_at ?? "",
   };
 }
 
@@ -126,7 +146,9 @@ export async function getBookings(): Promise<Booking[]> {
     return [];
   }
 
-  return data.map(mapRow);
+  // SELECT is a variable, not a literal, so supabase-js can't statically
+  // parse it into a typed result -- cast to the real shape explicitly.
+  return (data as unknown as BookingRow[]).map(mapRow);
 }
 
 export async function getBookingById(id: string): Promise<Booking | undefined> {
@@ -147,5 +169,5 @@ export async function getBookingById(id: string): Promise<Booking | undefined> {
     return undefined;
   }
 
-  return mapRow(data);
+  return mapRow(data as unknown as BookingRow);
 }

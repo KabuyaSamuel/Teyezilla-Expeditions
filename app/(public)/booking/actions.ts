@@ -19,6 +19,7 @@ import {
 } from "@/lib/enquiry-shared";
 import { countryCodeForName, generateBookingReference } from "@/lib/country-codes";
 import { captureServerActionError } from "@/lib/monitoring";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 interface ProductRef {
   id: string;
@@ -88,6 +89,11 @@ export async function submitBookingEnquiry(
     return { fieldErrors: zodFieldErrors(parsed.error) };
   }
   const input = parsed.data;
+
+  const { allowed } = await checkRateLimit("booking", await getClientIp());
+  if (!allowed) {
+    return { formError: "You've submitted a few enquiries recently -- please wait a bit before sending another, or reach out on WhatsApp for anything urgent." };
+  }
 
   // Writes go through the service-role client when configured (lets us upsert
   // the customer by email); otherwise fall back to the anon client, which the

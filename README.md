@@ -115,6 +115,11 @@ Copy `.env.example` to `.env.local` and fill in:
 - `RESEND_API_KEY`, `ADMIN_NOTIFICATION_EMAIL`, `EMAIL_FROM` (transactional email via
   Resend — enquiry notifications and customer confirmations; sends are skipped
   gracefully when unset)
+- `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` (error monitoring — errors just aren't reported
+  when unset)
+- `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (rate limiting on the booking/
+  contact/trip-planner forms via Upstash Redis — see `lib/rate-limit.ts`; forms stay
+  unthrottled when unset, they don't break)
 
 The Supabase keys are on your project's Settings > API page. Restart `npm run dev`
 after adding them.

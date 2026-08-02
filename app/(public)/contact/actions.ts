@@ -7,6 +7,7 @@ import { sendAdminNotification, sendCustomerConfirmation } from "@/lib/email";
 import { adminEnquiryEmail, customerContactConfirmationEmail } from "@/lib/email-templates";
 import { contactSchema, zodFieldErrors, type EnquiryFormState } from "@/lib/enquiry-shared";
 import { captureServerActionError } from "@/lib/monitoring";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function submitContactMessage(
   _prevState: EnquiryFormState,
@@ -21,6 +22,11 @@ export async function submitContactMessage(
     return { fieldErrors: zodFieldErrors(parsed.error) };
   }
   const input = parsed.data;
+
+  const { allowed } = await checkRateLimit("contact", await getClientIp());
+  if (!allowed) {
+    return { formError: "You've sent a few messages recently -- please wait a bit before sending another, or reach out on WhatsApp for anything urgent." };
+  }
 
   const db = getSupabaseServiceClient() ?? getSupabasePublicClient();
   if (!db) {

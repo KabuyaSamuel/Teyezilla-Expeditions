@@ -55,12 +55,19 @@ jobs:
   # secrets -- until those are added this job fails fast with a clear
   # "X is not set" error from tests/rls/helpers.ts rather than skipping
   # silently.
+  #
+  # `npm test` also picks up tests/rate-limit.test.ts, which needs
+  # UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN the same way -- add
+  # those two as repo secrets once Upstash is provisioned (see
+  # lib/rate-limit.ts), same fail-fast-not-skip pattern.
   rls-tests:
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+      UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -71,5 +78,5 @@ jobs:
 
       - run: npm ci
 
-      - name: RLS regression tests
+      - name: RLS + rate limit regression tests
         run: npm test

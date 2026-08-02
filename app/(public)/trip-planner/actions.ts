@@ -11,6 +11,7 @@ import {
 } from "@/lib/email-templates";
 import { tripPlannerSchema, zodFieldErrors, type EnquiryFormState } from "@/lib/enquiry-shared";
 import { captureServerActionError } from "@/lib/monitoring";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function submitTripPlannerRequest(
   _prevState: EnquiryFormState,
@@ -31,6 +32,11 @@ export async function submitTripPlannerRequest(
     return { fieldErrors: zodFieldErrors(parsed.error) };
   }
   const input = parsed.data;
+
+  const { allowed } = await checkRateLimit("trip-planner", await getClientIp());
+  if (!allowed) {
+    return { formError: "You've submitted a few trip requests recently -- please wait a bit before sending another, or reach out on WhatsApp for anything urgent." };
+  }
 
   const db = getSupabaseServiceClient() ?? getSupabasePublicClient();
   if (!db) {

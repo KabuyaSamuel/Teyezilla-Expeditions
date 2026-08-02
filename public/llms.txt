@@ -1,28 +1,37 @@
 # Teyezilla Expeditions
 
 > Teyezilla Expeditions is a premium African travel company offering tailor-made
-> safaris, beach holidays, cultural tours, and desert expeditions across Africa.
+> safaris, signature journeys, and handpicked experiences across Africa, plus fully
+> bespoke private travel for guests who want something built entirely around them.
+
+## How the site is organized
+- Destinations — country-level guides (best time to visit, visas, health & packing)
+- Journeys — curated multi-day itineraries, from single-country signature trips to
+  multi-country expeditions
+- Experiences — single-day and short activities, grouped into six categories: Wildlife
+  & Safari, Beach & Islands, Culture & Heritage, Adventure, Food & Lifestyle, and
+  Cities & Local Life
+- Safari — the dedicated safari hub: safari-specific tours, themes, and a safari guide
+- Collections — hand-curated themes that group journeys and experiences together
+  (e.g. The Wild, The Ocean, The Heritage, The Adventure)
+- Private Travel / Tailor-Made Trips — fully bespoke itineraries built around a guest's
+  own dates, interests, and budget, plus an AI trip planner for a first draft
 
 ## Destinations (open for booking)
-- Kenya — Maasai Mara safaris, Amboseli, Nairobi city and food tours, Mount Kenya
-- Tanzania — Serengeti safaris, Ngorongoro Crater, Mount Kilimanjaro treks
-- Zanzibar — Stone Town, Mnemba Island, beach holidays
-- Egypt — Pyramids of Giza, Nile cruises, Luxor
-- Morocco — Marrakech, Chefchaouen, Sahara desert tours
+Kenya, Tanzania, Zanzibar, Egypt, Morocco, Rwanda, Uganda, South Africa —
+Maasai Mara and Serengeti safaris, Zanzibar beach holidays, the Pyramids and Nile,
+Marrakech and the Sahara, gorilla trekking, and Cape Town and the Garden Route.
 
 ## Destinations (coming soon)
-Rwanda, Uganda, South Africa, Botswana, Zambia, Zimbabwe
-
-## Tour categories
-Safaris, beach holidays, cultural tours, city tours, food tours, desert expeditions,
-tailor-made trips built with an AI trip planner.
+Namibia, Botswana, Zambia, Zimbabwe, Seychelles, Mauritius
 
 ## Booking
 Booking is inquiry-based: visitors send an enquiry through the website (or WhatsApp),
-a travel consultant replies with a personal quote within 24 hours, and payment is
-arranged offline (bank transfer, invoice, or in person). No payment is taken online.
+a travel consultant replies with a personal quote, and payment is arranged offline
+(bank transfer, invoice, or in person). No payment is taken online -- this is
+permanent, not a launch-phase limitation.
 
 ## Contact
 Website: https://www.teyezillaexpeditions.com
-WhatsApp: +254 700 000 000
+WhatsApp: +254 726 584 159
 Email: hello@teyezillaexpeditions.com

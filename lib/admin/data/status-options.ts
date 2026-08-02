@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
 
 export type StatusCategory = "booking_status" | "payment_status";
 export type StatusTone = "success" | "error" | "pending" | "info" | "neutral";
@@ -12,13 +13,13 @@ export interface StatusOption {
   displayOrder: number;
 }
 
-function mapRow(row: Record<string, any>): StatusOption {
+function mapRow(row: Tables<"status_options">): StatusOption {
   return {
     id: row.id,
-    category: row.category,
+    category: row.category as StatusCategory,
     key: row.key,
     label: row.label,
-    tone: row.tone,
+    tone: row.tone as StatusTone,
     displayOrder: row.display_order,
   };
 }

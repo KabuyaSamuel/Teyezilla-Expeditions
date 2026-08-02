@@ -6,6 +6,7 @@ import JourneyCard from "@/components/JourneyCard";
 export const metadata: Metadata = {
   title: "Journeys",
   description: "Curated multi-day journeys across Africa with Teyezilla Expeditions.",
+  alternates: { canonical: "/journeys" },
 };
 
 export const revalidate = 3600;

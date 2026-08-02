@@ -18,6 +18,8 @@ import {
   type EnquiryFormState,
 } from "@/lib/enquiry-shared";
 import { countryCodeForName, generateBookingReference } from "@/lib/country-codes";
+import { captureServerActionError } from "@/lib/monitoring";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 interface ProductRef {
   id: string;
@@ -88,12 +90,18 @@ export async function submitBookingEnquiry(
   }
   const input = parsed.data;
 
+  const { allowed } = await checkRateLimit("booking", await getClientIp());
+  if (!allowed) {
+    return { formError: "You've submitted a few enquiries recently -- please wait a bit before sending another, or reach out on WhatsApp for anything urgent." };
+  }
+
   // Writes go through the service-role client when configured (lets us upsert
   // the customer by email); otherwise fall back to the anon client, which the
   // RLS policies allow to INSERT enquiries but never read/update.
   const service = getSupabaseServiceClient();
   const db = service ?? getSupabasePublicClient();
   if (!db) {
+    captureServerActionError("booking", "Supabase not configured -- both service and public clients unavailable.");
     return { formError: "Our enquiry system is temporarily unavailable. Please email us or reach out on WhatsApp." };
   }
 
@@ -114,7 +122,7 @@ export async function submitBookingEnquiry(
       .select("id")
       .single();
     if (error) {
-      console.warn("[booking] customer upsert failed:", error.message);
+      captureServerActionError("booking", `customer upsert failed: ${error.message}`, { email: input.email });
     } else {
       customerId = data?.id ?? null;
     }
@@ -166,7 +174,7 @@ export async function submitBookingEnquiry(
     const { data, error } = service ? await insertQuery.select("id").maybeSingle() : await insertQuery;
     if (error) {
       if (attempt === 1) {
-        console.warn("[booking] booking insert failed:", error.message);
+        captureServerActionError("booking", `booking insert failed: ${error.message}`, { email: input.email });
         return { formError: "Something went wrong saving your enquiry. Please try again or contact us on WhatsApp." };
       }
     } else {
@@ -200,7 +208,7 @@ export async function submitBookingEnquiry(
     // counts only count the lead once instead of once per table.
     booking_id: bookingId,
   });
-  if (inquiryError) console.warn("[booking] inquiry insert failed:", inquiryError.message);
+  if (inquiryError) captureServerActionError("booking", `inquiry insert failed: ${inquiryError.message}`, { email: input.email });
 
   // 4. Admin notification (fail-soft, never block the submission).
   await createNotification({

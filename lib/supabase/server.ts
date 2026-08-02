@@ -1,25 +1,26 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { env } from "@/lib/env";
 
 // Server-side Supabase client for use in Server Components, Server Actions,
 // and Route Handlers. Reads/writes the auth session via Next.js cookies so
-// the session survives across requests. Returns null (rather than throwing)
-// if env vars aren't set yet, so the rest of the app can fall back to seed
-// data gracefully instead of crashing during local development or CI builds
-// that don't have Supabase configured.
+// the session survives across requests.
+//
+// Deliberately NOT parameterized with <Database> (see types/database.ts):
+// this client is used for nearly every write in the app, and doing so
+// forces every .insert()/.update() call into strict shape-checking
+// against the generated types -- which cascades into ~15 unrelated files
+// with real but out-of-scope mismatches (nullable columns, dynamic insert
+// objects built from index signatures, a Json-vs-ContentBlock[] mismatch
+// in blog posts). Database's Row types are applied directly at individual
+// mapRow() call sites instead -- narrower, safer, matches what this pass
+// is actually for.
 
 export async function getSupabaseServerClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    return null;
-  }
-
   const cookieStore = await cookies();
 
-  return createServerClient(url, anonKey, {
+  return createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -50,14 +51,13 @@ export async function getSupabaseServerClient() {
 // can behave differently in `next build` than in `next dev`), which is the
 // more likely failure mode to guard against.
 export function getSupabaseServiceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !serviceKey) {
-    return null;
-  }
-
-  return createClient(url, serviceKey, {
+  // env.SUPABASE_SERVICE_ROLE_KEY is required (see lib/env.ts) -- this is
+  // exactly the var whose absence caused the Add Staff Member production
+  // incident this validation was added to prevent a repeat of. Importing
+  // this module now throws a clear error immediately if it's missing,
+  // instead of degrading silently until someone hits the one admin action
+  // that needed it.
+  return createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }

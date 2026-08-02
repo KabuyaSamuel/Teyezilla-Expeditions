@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -19,26 +20,26 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.teyezillaexpeditions.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Teyezilla Expeditions | Extraordinary Journeys Across Africa",
+    default: "Teyezilla Expeditions | Extraordinary Journeys. Wild Places. Deeper Connections.",
     template: "%s | Teyezilla Expeditions",
   },
   description:
-    "Discover Africa with Teyezilla Expeditions. Unforgettable safaris in Kenya and Tanzania, Zanzibar beach escapes, the ancient wonders of Egypt, and the vibrant culture of Morocco.",
+    "Discover Africa with Teyezilla Expeditions: signature safaris, multi-country journeys, handpicked experiences, and bespoke private travel across 14 destinations, crafted by locals who know these places best.",
   openGraph: {
-    title: "Teyezilla Expeditions | Extraordinary Journeys Across Africa",
+    title: "Teyezilla Expeditions | Extraordinary Journeys. Wild Places. Deeper Connections.",
     description:
-      "Premium, tailor-made African travel across Kenya, Tanzania, Zanzibar, Egypt, and Morocco.",
+      "Signature safaris, multi-country journeys, and handpicked experiences across Africa. Tailor-made travel with Teyezilla Expeditions.",
     siteName: "Teyezilla Expeditions",
     type: "website",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Teyezilla Expeditions | Extraordinary Journeys Across Africa",
+    title: "Teyezilla Expeditions | Extraordinary Journeys. Wild Places. Deeper Connections.",
     description:
-      "Premium, tailor-made African travel across Kenya, Tanzania, Zanzibar, Egypt, and Morocco.",
+      "Signature safaris, multi-country journeys, and handpicked experiences across Africa. Tailor-made travel with Teyezilla Expeditions.",
     images: ["/og-image.png"],
   },
 };

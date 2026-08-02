@@ -6,6 +6,8 @@ import { getRelatedTours } from "@/lib/tours";
 import { getJourneysByDestination } from "@/lib/journeys";
 import RelatedContent from "@/components/RelatedContent";
 import BlogContentBlocks from "@/components/BlogContentBlocks";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbListJsonLd, absoluteUrl } from "@/lib/jsonld";
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return "";
@@ -56,15 +58,22 @@ export default async function BlogPostPage({ params }: Props) {
     headline: post.title,
     author: { "@type": "Person", name: post.authorName },
     description: post.metaDescription,
+    image: post.heroImage ? [post.heroImage] : undefined,
+    datePublished: post.publishedAt || undefined,
+    mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl(`/blog/${post.slug}`) },
   };
+
+  const breadcrumbJsonLd = breadcrumbListJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog" },
+    { name: post.title, path: `/blog/${post.slug}` },
+  ]);
 
   return (
     <div>
       <article className="section max-w-prose">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
-        />
+        <JsonLd data={blogPostingJsonLd} />
+        <JsonLd data={breadcrumbJsonLd} />
         <h1 className="h1-page">{post.title}</h1>
         <p className="mt-2 text-sm text-foreground/60">
           {publishedLabel}

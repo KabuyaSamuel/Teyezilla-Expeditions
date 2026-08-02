@@ -4,7 +4,8 @@ import { getCollections } from "@/lib/collections";
 
 export const metadata: Metadata = {
   title: "The Teyezilla Collections",
-  description: "Seven curated ways to experience Africa with Teyezilla Expeditions.",
+  description: "Curated collections, each a distinct way to experience Africa with Teyezilla Expeditions.",
+  alternates: { canonical: "/collections" },
 };
 
 export const revalidate = 3600;
@@ -16,7 +17,8 @@ export default async function CollectionsPage() {
     <div className="section">
       <h1 className="h1-page">The Teyezilla Collections</h1>
       <p className="mt-3 max-w-2xl text-foreground/70">
-        Seven ways to experience the magic of Africa, each one hand-curated by our team.
+        {collections.length} curated way{collections.length !== 1 ? "s" : ""} to experience the magic of Africa,
+        each one hand-curated by our team.
       </p>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {collections.map((collection) => (

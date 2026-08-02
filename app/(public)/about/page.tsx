@@ -5,7 +5,8 @@ import { Check } from "lucide-react";
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Teyezilla Expeditions is a premium African travel company founded by Paul Teye, creating authentic, personalized journeys across Kenya and beyond.",
+    "Teyezilla Expeditions is a premium African travel company founded by Paul Teye, creating authentic, personalized safaris and journeys across 14 African destinations.",
+  alternates: { canonical: "/about" },
 };
 
 const WHY_TRAVEL_WITH_US = [

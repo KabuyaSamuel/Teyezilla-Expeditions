@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
 
 export interface BookingGuest {
   id: string;
@@ -9,11 +10,11 @@ export interface BookingGuest {
   nationality: string;
 }
 
-function mapRow(row: Record<string, any>): BookingGuest {
+function mapRow(row: Tables<"booking_guests">): BookingGuest {
   return {
     id: row.id,
     fullName: row.full_name ?? "",
-    ageGroup: row.age_group ?? "adult",
+    ageGroup: (row.age_group ?? "adult") as "adult" | "child",
     dietaryRequirements: row.dietary_requirements ?? "",
     passportNumber: row.passport_number ?? "",
     nationality: row.nationality ?? "",

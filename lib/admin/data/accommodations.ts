@@ -1,4 +1,9 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
+
+type AccommodationRow = Tables<"accommodations"> & {
+  destinations: Pick<Tables<"destinations">, "country_name"> | null;
+};
 
 export interface AdminAccommodation {
   id: string;
@@ -13,7 +18,7 @@ export interface AdminAccommodation {
   displayOrder: number;
 }
 
-function mapRow(row: Record<string, any>): AdminAccommodation {
+function mapRow(row: AccommodationRow): AdminAccommodation {
   return {
     id: row.id,
     destinationId: row.destination_id,

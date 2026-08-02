@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSafariGuideFaqs } from "@/lib/safari";
+import JsonLd from "@/components/JsonLd";
+import { faqPageJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "FAQs",
@@ -11,9 +13,11 @@ export const revalidate = 3600;
 
 export default async function FaqsPage() {
   const faqs = await getSafariGuideFaqs();
+  const faqJsonLd = faqs.length > 0 ? faqPageJsonLd(faqs.map((f) => ({ question: f.question, answer: f.answer }))) : null;
 
   return (
     <div className="section max-w-3xl">
+      {faqJsonLd && <JsonLd data={faqJsonLd} />}
       <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">Support</span>
       <h1 className="mt-3 h1-page">Frequently Asked Questions</h1>
       <p className="mt-4 text-foreground/70">

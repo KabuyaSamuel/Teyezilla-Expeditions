@@ -1,4 +1,5 @@
 import { getSupabasePublicClient } from "@/lib/supabase/public";
+import type { Tables } from "@/types/database";
 
 export interface Accommodation {
   id: string;
@@ -10,7 +11,7 @@ export interface Accommodation {
   tier: "Budget" | "Mid-Range" | "Luxury" | "";
 }
 
-function mapRow(row: Record<string, any>): Accommodation {
+function mapRow(row: Tables<"accommodations">): Accommodation {
   return {
     id: row.id,
     destinationId: row.destination_id,
@@ -18,7 +19,7 @@ function mapRow(row: Record<string, any>): Accommodation {
     slug: row.slug ?? "",
     description: row.description ?? "",
     heroImage: row.hero_image ?? "",
-    tier: row.tier ?? "",
+    tier: (row.tier ?? "") as Accommodation["tier"],
   };
 }
 

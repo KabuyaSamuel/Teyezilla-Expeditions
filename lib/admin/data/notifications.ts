@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
 
 export interface AdminNotification {
   id: string;
@@ -8,13 +9,13 @@ export interface AdminNotification {
   createdAt: string;
 }
 
-function mapRow(row: Record<string, any>): AdminNotification {
+function mapRow(row: Tables<"notifications">): AdminNotification {
   return {
     id: row.id,
-    type: row.type,
+    type: row.type as AdminNotification["type"],
     message: row.message,
     isRead: Boolean(row.is_read),
-    createdAt: row.created_at,
+    createdAt: row.created_at ?? "",
   };
 }
 

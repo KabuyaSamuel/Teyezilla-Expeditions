@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCollectionBySlug, getCollections } from "@/lib/collections";
 import TourCard from "@/components/TourCard";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbListJsonLd, collectionPageJsonLd } from "@/lib/jsonld";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -29,8 +31,23 @@ export default async function CollectionDetailPage({ params }: Props) {
   const collection = await getCollectionBySlug(slug);
   if (!collection) notFound();
 
+  const breadcrumbJsonLd = breadcrumbListJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Collections", path: "/collections" },
+    { name: collection.name, path: `/collections/${collection.slug}` },
+  ]);
+
+  const collectionPageJsonLdData = collectionPageJsonLd({
+    name: collection.name,
+    description: collection.description,
+    path: `/collections/${collection.slug}`,
+    items: collection.tours.map((t) => ({ name: t.title, path: `/tours/${t.slug}` })),
+  });
+
   return (
     <div className="section">
+      <JsonLd data={breadcrumbJsonLd} />
+      <JsonLd data={collectionPageJsonLdData} />
       <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">
         The Teyezilla Collections
       </span>

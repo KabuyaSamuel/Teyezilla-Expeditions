@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
 
 export interface TripPlannerRequest {
   id: string;
@@ -15,7 +16,7 @@ export interface TripPlannerRequest {
   createdAt: string;
 }
 
-function mapRow(row: Record<string, any>): TripPlannerRequest {
+function mapRow(row: Tables<"trip_planner_requests">): TripPlannerRequest {
   return {
     id: row.id,
     customerName: row.customer_name,
@@ -27,8 +28,8 @@ function mapRow(row: Record<string, any>): TripPlannerRequest {
     travelStyle: row.travel_style ?? "",
     luxuryLevel: row.luxury_level ?? "",
     aiSuggestedItinerary: row.ai_suggested_itinerary ?? "",
-    status: row.status,
-    createdAt: row.created_at,
+    status: row.status as TripPlannerRequest["status"],
+    createdAt: row.created_at ?? "",
   };
 }
 

@@ -10,6 +10,8 @@ import {
   type EmailField,
 } from "@/lib/email-templates";
 import { tripPlannerSchema, zodFieldErrors, type EnquiryFormState } from "@/lib/enquiry-shared";
+import { captureServerActionError } from "@/lib/monitoring";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function submitTripPlannerRequest(
   _prevState: EnquiryFormState,
@@ -31,8 +33,14 @@ export async function submitTripPlannerRequest(
   }
   const input = parsed.data;
 
+  const { allowed } = await checkRateLimit("trip-planner", await getClientIp());
+  if (!allowed) {
+    return { formError: "You've submitted a few trip requests recently -- please wait a bit before sending another, or reach out on WhatsApp for anything urgent." };
+  }
+
   const db = getSupabaseServiceClient() ?? getSupabasePublicClient();
   if (!db) {
+    captureServerActionError("trip-planner", "Supabase not configured -- both service and public clients unavailable.");
     return { formError: "The trip planner is temporarily unavailable. Please reach out on WhatsApp instead." };
   }
 
@@ -49,7 +57,7 @@ export async function submitTripPlannerRequest(
     status: "new",
   });
   if (requestError) {
-    console.warn("[trip-planner] request insert failed:", requestError.message);
+    captureServerActionError("trip-planner", `request insert failed: ${requestError.message}`, { email: input.email });
     return { formError: "Something went wrong submitting your trip request. Please try again or contact us on WhatsApp." };
   }
 
@@ -69,7 +77,7 @@ export async function submitTripPlannerRequest(
     message: summary,
     status: "new",
   });
-  if (inquiryError) console.warn("[trip-planner] inquiry insert failed:", inquiryError.message);
+  if (inquiryError) captureServerActionError("trip-planner", `inquiry insert failed: ${inquiryError.message}`, { email: input.email });
 
   await createNotification({
     type: "follow_up",

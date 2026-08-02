@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { StaffRole } from "./permissions";
 
@@ -37,10 +38,21 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     return null;
   }
 
-  return {
+  const session: AdminSession = {
     id: staffRow.id as string,
     name: staffRow.full_name as string,
     email: staffRow.email as string,
     role: staffRow.role as StaffRole,
   };
+
+  // Called from both page renders and individual admin Server Actions
+  // (each its own request), so setting this here -- rather than only in
+  // the dashboard layout -- makes sure an error thrown from an action also
+  // gets attributed to the staff member who triggered it, not just errors
+  // during a page load. No new PII: email/name/role already live in this
+  // session object.
+  Sentry.setUser({ id: session.id, email: session.email, username: session.name });
+  Sentry.setTag("staff_role", session.role);
+
+  return session;
 }

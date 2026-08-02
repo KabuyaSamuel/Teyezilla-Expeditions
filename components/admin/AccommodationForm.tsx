@@ -6,7 +6,7 @@ import { createAccommodation, updateAccommodation, deleteAccommodation } from "@
 import type { Destination } from "@/types";
 
 function isRedirectError(err: unknown): boolean {
-  return !!err && typeof err === "object" && "digest" in err && String((err as any).digest).startsWith("NEXT_REDIRECT");
+  return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
 }
 
 export default function AccommodationForm({

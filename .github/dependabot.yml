@@ -1,0 +1,27 @@
+version: 2
+updates:
+  # npm dependencies (root). Would have surfaced the Next.js security
+  # advisory found via `npm install` earlier automatically, instead of as
+  # a side effect of installing something unrelated.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Minor/patch bumps are usually safe and numerous (this project has
+    # ~15 direct deps plus transitive updates) -- grouping keeps the PR
+    # count down. Majors stay individual since they're the ones actually
+    # worth a real look before merging.
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    open-pull-requests-limit: 10
+
+  # The workflow files themselves (ci.yml, smoke-test.yml, lighthouse.yml)
+  # reference actions/checkout, actions/setup-node, etc. by version --
+  # those need updates too, and it's a separate ecosystem from npm.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

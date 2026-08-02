@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { SITE_URL } from "@/lib/site";
 
 // Shared between the public enquiry forms (client components) and their
 // server actions: zod schemas, select options, and small helpers. Keep this
 // module framework-free so it can be imported from both sides.
 
-export const SITE_URL = "https://www.teyezillaexpeditions.com";
+export { SITE_URL };
 
 export const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "254726584159";
 

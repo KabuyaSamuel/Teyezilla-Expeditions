@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database";
 
 export interface AdminVehicle {
   id: string;
@@ -12,7 +13,7 @@ export interface AdminVehicle {
   displayOrder: number;
 }
 
-function mapRow(row: Record<string, any>): AdminVehicle {
+function mapRow(row: Tables<"vehicles">): AdminVehicle {
   return {
     id: row.id,
     name: row.name,

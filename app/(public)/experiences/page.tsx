@@ -4,7 +4,9 @@ import TourCard from "@/components/TourCard";
 
 export const metadata: Metadata = {
   title: "African Travel Experiences",
-  description: "Food tours, city tours, and cultural experiences across Africa with Teyezilla Expeditions.",
+  description:
+    "Handpicked tours and experiences across Africa, from street food walks and city tours to safaris and cultural immersions, with Teyezilla Expeditions.",
+  alternates: { canonical: "/experiences" },
 };
 
 export const revalidate = 3600;
@@ -15,7 +17,7 @@ export default async function ExperiencesPage() {
     <div className="section">
       <h1 className="h1-page">Experiences</h1>
       <p className="mt-3 max-w-2xl text-foreground/70">
-        From street food in Nairobi to desert camps in the Sahara.
+        From street food in Nairobi to safaris in the Mara and desert camps in the Sahara.
       </p>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {tours.map((tour) => (

@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { getPublishedTours } from "@/lib/tours";
 import { getSafariThemes, getSafariGuideFaqs } from "@/lib/safari";
 import TourCard from "@/components/TourCard";
+import JsonLd from "@/components/JsonLd";
+import { faqPageJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Safari",
   description: "The art of the African safari, perfectly crafted: Wildlife & safari tours with Teyezilla Expeditions.",
+  alternates: { canonical: "/safari" },
 };
 
 export const revalidate = 3600;
@@ -13,9 +16,11 @@ export const revalidate = 3600;
 export default async function SafariPage() {
   const [tours, themes, faqs] = await Promise.all([getPublishedTours(), getSafariThemes(), getSafariGuideFaqs()]);
   const safariTours = tours.filter((t) => t.productType === "safari");
+  const faqJsonLd = faqs.length > 0 ? faqPageJsonLd(faqs.map((f) => ({ question: f.question, answer: f.answer }))) : null;
 
   return (
     <div>
+      {faqJsonLd && <JsonLd data={faqJsonLd} />}
       <div className="section max-w-3xl">
         <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">Safari</span>
         <h1 className="mt-3 h1-page">

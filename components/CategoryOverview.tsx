@@ -30,7 +30,7 @@ const CATEGORIES: Category[] = [
   },
   {
     label: "Collections",
-    description: "Seven ways to experience Africa with Teyezilla.",
+    description: "Curated collections, each a distinct way to experience Africa.",
     href: "/collections",
     image: "https://picsum.photos/seed/category-collections/600/800",
   },

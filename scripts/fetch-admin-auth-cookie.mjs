@@ -29,7 +29,10 @@ if (!email || !password) {
   process.exit(1);
 }
 
-const baseUrl = (process.env.LHCI_BASE_URL || "https://www.teyezillaexpeditions.com").replace(/\/$/, "");
+// TODO: switch back to the custom domain (www.teyezillaexpeditions.com)
+// once it's connected in Vercel -- not live yet, so DNS for it doesn't
+// resolve at all.
+const baseUrl = (process.env.LHCI_BASE_URL || "https://teyezillaexpeditions.vercel.app").replace(/\/$/, "");
 
 function findChrome() {
   if (process.env.CHROME_PATH) return process.env.CHROME_PATH;

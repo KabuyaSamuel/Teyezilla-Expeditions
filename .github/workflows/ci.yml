@@ -17,6 +17,17 @@ name: CI
 # pre-existing @typescript-eslint/no-explicit-any errors scattered across
 # the codebase (none from recent work), so wiring it in now would make this
 # workflow red from its first run. Add it back once that's cleaned up.
+#
+# Dependabot-triggered pull_request runs never receive repo secrets --
+# GitHub withholds them by default so a compromised/malicious dependency
+# bump PR can't exfiltrate a real Supabase service-role key. Without this,
+# every Dependabot PR failed both jobs below identically regardless of what
+# was being bumped (confirmed: a PR that only bumped actions/checkout, no
+# application code, failed the same way). SKIP_ENV_VALIDATION=1 for those
+# runs uses the escape hatch lib/env.ts already documents, so build/
+# typecheck still catch a real breaking dependency bump; rls-tests is
+# skipped outright for them since it needs a live Supabase connection that
+# Dependabot deliberately doesn't get.
 
 on:
   push:
@@ -31,6 +42,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SKIP_ENV_VALIDATION: ${{ github.actor == 'dependabot[bot]' && '1' || '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -62,6 +74,7 @@ jobs:
   # lib/rate-limit.ts), same fail-fast-not-skip pattern.
   rls-tests:
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}

@@ -34,13 +34,17 @@ export async function submitContactMessage(
     return { formError: "Our contact form is temporarily unavailable. Please email us or reach out on WhatsApp." };
   }
 
-  const { error } = await db.from("inquiries").insert({
-    source: "contact_form",
-    customer_name: input.name,
-    customer_email: input.email,
-    message: input.message,
-    status: "new",
-  });
+  const { data: inquiry, error } = await db
+    .from("inquiries")
+    .insert({
+      source: "contact_form",
+      customer_name: input.name,
+      customer_email: input.email,
+      message: input.message,
+      status: "new",
+    })
+    .select("id")
+    .single();
   if (error) {
     captureServerActionError("contact", `inquiry insert failed: ${error.message}`, { email: input.email });
     return { formError: "Something went wrong sending your message. Please try again or contact us on WhatsApp." };
@@ -49,6 +53,8 @@ export async function submitContactMessage(
   await createNotification({
     type: "follow_up",
     message: `New contact form message from ${input.name}.`,
+    relatedType: "inquiry",
+    relatedId: inquiry.id,
   });
 
   await sendAdminNotification({

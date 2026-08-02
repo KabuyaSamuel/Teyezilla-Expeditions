@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import { getNotifications } from "@/lib/admin/data/notifications";
 import { markNotificationRead, markAllNotificationsRead } from "@/lib/admin/actions/notifications";
@@ -36,7 +37,14 @@ export default async function AdminNotificationsPage() {
             <span className="text-xl">{TYPE_ICONS[n.type]}</span>
             <div className="flex-1">
               <p className="text-sm text-foreground">{n.message}</p>
-              <p className="mt-1 text-xs text-foreground/50">{new Date(n.createdAt).toLocaleString()}</p>
+              <div className="mt-1 flex items-center gap-3">
+                <p className="text-xs text-foreground/50">{new Date(n.createdAt).toLocaleString()}</p>
+                {n.href && (
+                  <Link href={n.href} className="text-xs font-medium text-primary hover:underline">
+                    Open →
+                  </Link>
+                )}
+              </div>
             </div>
             <form action={markNotificationRead.bind(null, n.id, !n.isRead)}>
               <button type="submit" className="text-xs font-medium text-primary hover:underline">

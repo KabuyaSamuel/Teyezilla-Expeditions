@@ -7,6 +7,15 @@ export interface AdminNotification {
   message: string;
   isRead: boolean;
   createdAt: string;
+  /** Where "Open" should navigate, when this notification is about a specific booking/inquiry. */
+  href?: string;
+}
+
+function hrefFor(relatedType: string | null, relatedId: string | null): string | undefined {
+  if (!relatedType || !relatedId) return undefined;
+  if (relatedType === "booking") return `/admin/bookings/${relatedId}`;
+  if (relatedType === "inquiry") return `/admin/inquiries/${relatedId}`;
+  return undefined;
 }
 
 function mapRow(row: Tables<"notifications">): AdminNotification {
@@ -16,6 +25,7 @@ function mapRow(row: Tables<"notifications">): AdminNotification {
     message: row.message,
     isRead: Boolean(row.is_read),
     createdAt: row.created_at ?? "",
+    href: hrefFor(row.related_type, row.related_id),
   };
 }
 

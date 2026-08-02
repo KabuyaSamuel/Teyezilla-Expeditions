@@ -40,6 +40,8 @@ export async function updateBookingStatus(id: string, status: string): Promise<v
       await createNotification({
         type: "admin_alert",
         message: `Booking ${booking.bookingReference} for ${booking.productTitle} is now ${status}.`,
+        relatedType: "booking",
+        relatedId: id,
       });
     }
   }
@@ -71,6 +73,8 @@ export async function updatePaymentStatus(id: string, status: string): Promise<v
       await createNotification({
         type: "payment_confirmed",
         message: `Payment confirmed for booking ${booking.bookingReference} (${booking.productTitle}).`,
+        relatedType: "booking",
+        relatedId: id,
       });
     }
   }

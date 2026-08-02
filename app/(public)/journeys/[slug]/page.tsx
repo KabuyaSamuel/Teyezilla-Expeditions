@@ -15,7 +15,6 @@ import ProductPricingTiers from "@/components/ProductPricingTiers";
 import ProductAddons from "@/components/ProductAddons";
 import ProductVehicles from "@/components/ProductVehicles";
 import ProductAccommodations from "@/components/ProductAccommodations";
-import TourCard from "@/components/TourCard";
 import RelatedContent from "@/components/RelatedContent";
 import JsonLd from "@/components/JsonLd";
 import { breadcrumbListJsonLd } from "@/lib/jsonld";
@@ -163,20 +162,6 @@ export default async function JourneyPage({ params }: Props) {
 
             <ProductItinerary days={journey.itinerary} singleDay={false} />
             <ProductHighlights highlights={journey.highlights} />
-
-            {journey.includedTours.length > 0 && (
-              <div>
-                <h2 className="font-heading text-2xl font-bold text-foreground">This Journey Includes</h2>
-                <p className="mt-2 text-foreground/70">
-                  Real, bookable experiences this journey is built from. Explore each one on its own.
-                </p>
-                <div className="mt-6 grid gap-6 sm:grid-cols-2">
-                  {journey.includedTours.map((tour) => (
-                    <TourCard key={tour.id} tour={tour} />
-                  ))}
-                </div>
-              </div>
-            )}
 
             {journey.activities.length > 0 && (
               <div>

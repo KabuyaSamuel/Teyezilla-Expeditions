@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -19,7 +20,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.teyezillaexpeditions.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Teyezilla Expeditions | Extraordinary Journeys Across Africa",
     template: "%s | Teyezilla Expeditions",

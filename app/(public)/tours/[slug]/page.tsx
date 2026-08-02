@@ -151,9 +151,6 @@ export default async function TourPage({ params }: Props) {
             <div>
               <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>
               <p className="mt-3 text-foreground/70">{tour.shortDescription}</p>
-              {tour.overview && (
-                <p className="mt-4 whitespace-pre-line text-foreground/70">{tour.overview}</p>
-              )}
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <a href={bookingHref} className="btn-primary px-5 py-2.5 text-sm">
@@ -180,6 +177,14 @@ export default async function TourPage({ params }: Props) {
             </div>
 
             <ProductFactsGrid facts={facts} />
+
+            {tour.overview && (
+              <div>
+                <h2 className="font-heading text-2xl font-bold text-foreground">The Full Story</h2>
+                <p className="mt-3 whitespace-pre-line text-foreground/70">{tour.overview}</p>
+              </div>
+            )}
+
             <ProductHighlights highlights={tour.highlights} />
 
             {tour.activities.length > 0 && (

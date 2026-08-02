@@ -133,11 +133,8 @@ export default async function JourneyPage({ params }: Props) {
         <div className="mt-8 grid gap-8 lg:grid-cols-3">
           <div className="space-y-10 lg:col-span-2">
             <div>
-              <h2 className="font-heading text-2xl font-bold text-foreground">The Journey</h2>
+              <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>
               <p className="mt-3 text-foreground/70">{journey.shortDescription}</p>
-              {journey.overview && (
-                <p className="mt-4 whitespace-pre-line text-foreground/70">{journey.overview}</p>
-              )}
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <a href={bookingHref} className="btn-primary px-5 py-2.5 text-sm">
@@ -164,6 +161,14 @@ export default async function JourneyPage({ params }: Props) {
             </div>
 
             <ProductFactsGrid facts={facts} />
+
+            {journey.overview && (
+              <div>
+                <h2 className="font-heading text-2xl font-bold text-foreground">The Journey Story</h2>
+                <p className="mt-3 whitespace-pre-line text-foreground/70">{journey.overview}</p>
+              </div>
+            )}
+
             <ProductHighlights highlights={journey.highlights} />
 
             {journey.activities.length > 0 && (

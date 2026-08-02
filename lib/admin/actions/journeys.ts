@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePublicSite } from "@/lib/revalidate";
 import {
   syncPricingTiers,
   syncHighlights,
@@ -23,12 +24,7 @@ import {
 function assertPublishable(input: JourneyInput) {
   if (input.status !== "published") return;
   const missing: string[] = [];
-  if (!input.heroImage) missing.push("hero image");
-  if (!input.shortDescription) missing.push("short description");
-  if (input.destinationIds.length === 0) missing.push("at least one destination");
   if (!input.itinerary.some((d) => d.title && d.description)) missing.push("at least one itinerary day");
-  if (input.highlights.length === 0) missing.push("at least one highlight");
-  if (input.inclusions.length === 0) missing.push("at least one inclusion");
   if (missing.length > 0) {
     throw new Error(`Can't publish yet -- missing: ${missing.join(", ")}.`);
   }
@@ -183,6 +179,7 @@ export async function createJourney(input: JourneyInput): Promise<void> {
 
   revalidatePath("/admin/journeys");
   revalidatePath("/journeys");
+  revalidatePublicSite();
   redirect("/admin/journeys");
 }
 
@@ -198,6 +195,7 @@ export async function updateJourney(id: string, input: JourneyInput): Promise<vo
 
   revalidatePath("/admin/journeys");
   revalidatePath("/journeys");
+  revalidatePublicSite();
   redirect("/admin/journeys");
 }
 
@@ -212,5 +210,6 @@ export async function deleteJourney(id: string): Promise<void> {
 
   revalidatePath("/admin/journeys");
   revalidatePath("/journeys");
+  revalidatePublicSite();
   redirect("/admin/journeys");
 }

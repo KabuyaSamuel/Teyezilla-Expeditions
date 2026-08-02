@@ -15,7 +15,6 @@ import ProductPricingTiers from "@/components/ProductPricingTiers";
 import ProductAddons from "@/components/ProductAddons";
 import ProductVehicles from "@/components/ProductVehicles";
 import ProductAccommodations from "@/components/ProductAccommodations";
-import TourCard from "@/components/TourCard";
 import RelatedContent from "@/components/RelatedContent";
 import JsonLd from "@/components/JsonLd";
 import { breadcrumbListJsonLd } from "@/lib/jsonld";
@@ -134,8 +133,8 @@ export default async function JourneyPage({ params }: Props) {
         <div className="mt-8 grid gap-8 lg:grid-cols-3">
           <div className="space-y-10 lg:col-span-2">
             <div>
-              <h2 className="font-heading text-2xl font-bold text-foreground">The Journey</h2>
-              <p className="mt-3 whitespace-pre-line text-foreground/70">{journey.overview || journey.shortDescription}</p>
+              <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>
+              <p className="mt-3 text-foreground/70">{journey.shortDescription}</p>
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <a href={bookingHref} className="btn-primary px-5 py-2.5 text-sm">
@@ -161,22 +160,16 @@ export default async function JourneyPage({ params }: Props) {
               )}
             </div>
 
-            <ProductItinerary days={journey.itinerary} singleDay={false} />
-            <ProductHighlights highlights={journey.highlights} />
+            <ProductFactsGrid facts={facts} />
 
-            {journey.includedTours.length > 0 && (
+            {journey.overview && (
               <div>
-                <h2 className="font-heading text-2xl font-bold text-foreground">This Journey Includes</h2>
-                <p className="mt-2 text-foreground/70">
-                  Real, bookable experiences this journey is built from. Explore each one on its own.
-                </p>
-                <div className="mt-6 grid gap-6 sm:grid-cols-2">
-                  {journey.includedTours.map((tour) => (
-                    <TourCard key={tour.id} tour={tour} />
-                  ))}
-                </div>
+                <h2 className="font-heading text-2xl font-bold text-foreground">The Journey Story</h2>
+                <p className="mt-3 whitespace-pre-line text-foreground/70">{journey.overview}</p>
               </div>
             )}
+
+            <ProductHighlights highlights={journey.highlights} />
 
             {journey.activities.length > 0 && (
               <div>
@@ -191,9 +184,9 @@ export default async function JourneyPage({ params }: Props) {
               </div>
             )}
 
-            <ProductFactsGrid facts={facts} />
-            <ProductVehicles vehicles={journey.vehicles} />
+            <ProductItinerary days={journey.itinerary} singleDay={false} />
             <ProductAccommodations accommodations={journey.accommodations} />
+            <ProductVehicles vehicles={journey.vehicles} />
             <ProductIncludesExcludes inclusions={journey.inclusions} exclusions={journey.exclusions} />
             <ProductGoodToKnow
               bringList={journey.bringList}

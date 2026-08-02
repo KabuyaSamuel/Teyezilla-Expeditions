@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePublicSite } from "@/lib/revalidate";
 
 export interface ReviewInput {
   authorName: string;
@@ -33,7 +34,7 @@ export async function createReview(input: ReviewInput): Promise<void> {
 
   revalidatePath("/admin/reviews");
   revalidatePath("/reviews");
-  revalidatePath("/");
+  revalidatePublicSite();
   redirect("/admin/reviews");
 }
 
@@ -46,7 +47,7 @@ export async function updateReview(id: string, input: ReviewInput): Promise<void
 
   revalidatePath("/admin/reviews");
   revalidatePath("/reviews");
-  revalidatePath("/");
+  revalidatePublicSite();
   redirect("/admin/reviews");
 }
 
@@ -59,7 +60,7 @@ export async function deleteReview(id: string): Promise<void> {
 
   revalidatePath("/admin/reviews");
   revalidatePath("/reviews");
-  revalidatePath("/");
+  revalidatePublicSite();
   redirect("/admin/reviews");
 }
 
@@ -72,7 +73,7 @@ export async function setReviewApproval(id: string, isApproved: boolean): Promis
 
   revalidatePath("/admin/reviews");
   revalidatePath("/reviews");
-  revalidatePath("/");
+  revalidatePublicSite();
 }
 
 // Only one review can be featured at a time; unfeature the rest first so
@@ -91,7 +92,7 @@ export async function setFeaturedReview(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/reviews");
-  revalidatePath("/");
+  revalidatePublicSite();
 }
 
 export async function unfeatureReview(id: string): Promise<void> {
@@ -102,5 +103,5 @@ export async function unfeatureReview(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/reviews");
-  revalidatePath("/");
+  revalidatePublicSite();
 }

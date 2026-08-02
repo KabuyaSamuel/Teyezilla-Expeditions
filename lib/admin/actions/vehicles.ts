@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePublicSite } from "@/lib/revalidate";
 
 export interface VehicleInput {
   name: string;
@@ -44,6 +45,7 @@ export async function createVehicle(input: VehicleInput): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/vehicles");
+  revalidatePublicSite();
   redirect("/admin/vehicles");
 }
 
@@ -55,6 +57,7 @@ export async function updateVehicle(id: string, input: VehicleInput): Promise<vo
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/vehicles");
+  revalidatePublicSite();
   redirect("/admin/vehicles");
 }
 
@@ -67,5 +70,6 @@ export async function deleteVehicle(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/vehicles");
+  revalidatePublicSite();
   redirect("/admin/vehicles");
 }

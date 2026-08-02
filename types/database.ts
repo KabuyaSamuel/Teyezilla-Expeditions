@@ -2140,6 +2140,7 @@ export type Database = {
           meta_title: string | null
           min_guests: number | null
           og_image: string | null
+          overview: string | null
           pickup_locations: string[] | null
           price_from: number | null
           product_type: string | null
@@ -2180,6 +2181,7 @@ export type Database = {
           meta_title?: string | null
           min_guests?: number | null
           og_image?: string | null
+          overview?: string | null
           pickup_locations?: string[] | null
           price_from?: number | null
           product_type?: string | null
@@ -2220,6 +2222,7 @@ export type Database = {
           meta_title?: string | null
           min_guests?: number | null
           og_image?: string | null
+          overview?: string | null
           pickup_locations?: string[] | null
           price_from?: number | null
           product_type?: string | null

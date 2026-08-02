@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePublicSite } from "@/lib/revalidate";
 
 export interface ActivityInput {
   name: string;
@@ -38,6 +39,7 @@ export async function createActivity(input: ActivityInput): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/activities");
+  revalidatePublicSite();
   redirect("/admin/activities");
 }
 
@@ -49,6 +51,7 @@ export async function updateActivity(id: string, input: ActivityInput): Promise<
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/activities");
+  revalidatePublicSite();
   redirect("/admin/activities");
 }
 
@@ -61,5 +64,6 @@ export async function deleteActivity(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/activities");
+  revalidatePublicSite();
   redirect("/admin/activities");
 }

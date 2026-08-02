@@ -18,6 +18,7 @@ import {
 export type { ItineraryDay, PricingTier, ProductHighlight, ProductAddon };
 
 export interface TourDetail extends Tour, ProductScalars {
+  overview: string;
   inclusions: string[];
   exclusions: string[];
   itinerary: ItineraryDay[];
@@ -118,6 +119,7 @@ export async function getTourBySlug(slug: string): Promise<TourDetail | undefine
   const row = data as any;
   return {
     ...mapRow(row),
+    overview: row.overview ?? "",
     inclusions: row.inclusions ?? [],
     exclusions: row.exclusions ?? [],
     itinerary: row.itinerary ?? [],

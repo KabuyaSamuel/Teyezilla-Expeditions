@@ -176,7 +176,15 @@ export default async function TourPage({ params }: Props) {
               )}
             </div>
 
-            <ProductItinerary days={tour.itinerary} singleDay={tour.durationDays <= 1 || !!tour.durationHours} />
+            <ProductFactsGrid facts={facts} />
+
+            {tour.overview && (
+              <div>
+                <h2 className="font-heading text-2xl font-bold text-foreground">The Full Story</h2>
+                <p className="mt-3 whitespace-pre-line text-foreground/70">{tour.overview}</p>
+              </div>
+            )}
+
             <ProductHighlights highlights={tour.highlights} />
 
             {tour.activities.length > 0 && (
@@ -192,9 +200,9 @@ export default async function TourPage({ params }: Props) {
               </div>
             )}
 
-            <ProductFactsGrid facts={facts} />
-            <ProductVehicles vehicles={tour.vehicles} />
+            <ProductItinerary days={tour.itinerary} singleDay={tour.durationDays <= 1 || !!tour.durationHours} />
             <ProductAccommodations accommodations={tour.accommodations} />
+            <ProductVehicles vehicles={tour.vehicles} />
             <ProductIncludesExcludes inclusions={tour.inclusions} exclusions={tour.exclusions} />
             <ProductGoodToKnow
               bringList={tour.bringList}

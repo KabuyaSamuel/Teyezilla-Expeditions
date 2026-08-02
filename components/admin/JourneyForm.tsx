@@ -256,6 +256,10 @@ export default function JourneyForm({
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Journey Type, Experiences & Safari Themes</h2>
+        <p className="mt-1 text-xs text-foreground/50">
+          These control site navigation and rarely change -- to add a new one, ask your developer, or edit
+          it directly in Supabase &rarr; Table Editor.
+        </p>
         <div className="mt-4 grid gap-6 sm:grid-cols-3">
           <div>
             <p className="text-xs font-medium text-foreground/60">Journey Types</p>

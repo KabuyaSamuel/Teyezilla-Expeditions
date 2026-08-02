@@ -4,12 +4,24 @@
 // smoke-test workflow does the same thing for the same reason: preview
 // deployments should be checked on their own URL, not just production).
 //
-// Assertions are deliberately loose ("warn", not "error") and set as a low
-// floor rather than a target: nobody has actually benchmarked this site's
-// current Lighthouse scores yet, so an aspirational threshold would just
-// make this workflow red on day one for no actionable reason (the same
-// mistake almost made with eslint in ci.yml). Tighten these once real
-// baseline numbers exist.
+// Real baseline, measured directly against production on 2026-08-02
+// (`npx lighthouse <url> --only-categories=performance,accessibility,seo,
+// best-practices`, one run per URL, no averaging):
+//
+//   URL                                                perf  a11y  seo  bp
+//   /                                                    63    92  100 100
+//   /safari                                              94    96  100 100
+//   /journeys                                            85    94  100 100
+//   /destinations                                        82    94  100 100
+//   /journeys/great-kenyan-frontier-expedition            90    96  100 100
+//   /tours/zanzibar-beach-escape                          89    96  100 100
+//
+// The homepage is the clear outlier on performance (hero video carousel);
+// every other page scores 82+. Thresholds below are the worst-page score
+// minus a 5-point margin, so a real regression fails without flagging
+// ordinary run-to-run noise. Performance stays "warn" (a single run isn't
+// averaged, so it's the noisiest metric); accessibility/seo/best-practices
+// are stable enough to "error" on.
 
 // TODO: switch back to the custom domain (www.teyezillaexpeditions.com)
 // once it's connected in Vercel -- not live yet, so DNS for it doesn't
@@ -36,9 +48,10 @@ module.exports = {
     },
     assert: {
       assertions: {
-        "categories:performance": ["warn", { minScore: 0.3 }],
-        "categories:accessibility": ["warn", { minScore: 0.5 }],
-        "categories:seo": ["warn", { minScore: 0.5 }],
+        "categories:performance": ["warn", { minScore: 0.58 }],
+        "categories:accessibility": ["error", { minScore: 0.87 }],
+        "categories:seo": ["error", { minScore: 0.95 }],
+        "categories:best-practices": ["error", { minScore: 0.95 }],
       },
     },
     upload: {

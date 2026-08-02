@@ -3,9 +3,10 @@
 // errors -- anything React catches in the browser that isn't already
 // caught by a Server Action's own try/catch before it ever reaches here.
 import * as Sentry from "@sentry/nextjs";
+import { env } from "@/lib/env";
 
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn: env.NEXT_PUBLIC_SENTRY_DSN,
   tracesSampleRate: 0.1,
   enabled: process.env.NODE_ENV === "production",
 });

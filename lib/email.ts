@@ -1,10 +1,13 @@
 import { Resend } from "resend";
+import { env } from "@/lib/env";
 
 // Transactional email via Resend. Both senders fail soft: a missing API key
 // or a failed send logs a warning and returns { sent: false }; the inquiry
 // landing in the database is the critical path, email is only the
 // notification layer on top, so a mail outage must never error a form
-// submission.
+// submission. RESEND_API_KEY/ADMIN_NOTIFICATION_EMAIL/EMAIL_FROM are all
+// deliberately optional in lib/env.ts's schema -- validating their
+// presence would fight this file's own intentional fail-soft design.
 
 export interface EmailResult {
   sent: boolean;
@@ -18,13 +21,13 @@ interface SendArgs {
 }
 
 async function send({ to, subject, html, text }: SendArgs): Promise<EmailResult> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn("[email] RESEND_API_KEY not set, skipping send:", subject);
     return { sent: false };
   }
 
-  const from = process.env.EMAIL_FROM ?? "Teyezilla Expeditions <noreply@teyezillaexpeditions.com>";
+  const from = env.EMAIL_FROM ?? "Teyezilla Expeditions <noreply@teyezillaexpeditions.com>";
 
   try {
     const resend = new Resend(apiKey);
@@ -69,7 +72,7 @@ export async function sendAdminNotification({
   html: string;
   text?: string;
 }): Promise<EmailResult> {
-  const to = process.env.ADMIN_NOTIFICATION_EMAIL;
+  const to = env.ADMIN_NOTIFICATION_EMAIL;
   if (!to) {
     console.warn("[email] ADMIN_NOTIFICATION_EMAIL not set, skipping admin notification:", subject);
     return { sent: false };

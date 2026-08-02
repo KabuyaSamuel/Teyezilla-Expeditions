@@ -2,13 +2,16 @@ name: CI
 
 # Runs on every push and PR against Dev2/main: typecheck and build, so a
 # broken build/type state gets caught here instead of only being noticed
-# after it's merged (or worse, deployed). Doesn't need any Supabase secrets
-# -- every data-fetching function in this codebase already fails open
-# (returns null/[] with a console.warn) when Supabase env vars aren't set,
-# so the build still succeeds; it just prerenders zero dynamic
-# tour/journey/destination pages instead of the real ones. Add
-# NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY as repo secrets
-# later if you want CI to build against real data.
+# after it's merged (or worse, deployed). Uses the same three Supabase
+# secrets as rls-tests below, both so the build actually exercises real
+# data (real static generation, not an empty-data fallback) and because
+# lib/env.ts (added for env var validation) now treats them as required --
+# without real values here, the build would fail at env validation before
+# ever reaching the "gracefully degrade" fallbacks those lib/supabase/*
+# functions still have for local dev. If a fork/CI run genuinely has no
+# Supabase secrets available, set SKIP_ENV_VALIDATION=1 to opt out of that
+# check (see lib/env.ts) -- everything still degrades gracefully at
+# runtime either way, this only affects whether the build fails fast.
 #
 # `npm run lint` is deliberately not run here: it currently fails with 121
 # pre-existing @typescript-eslint/no-explicit-any errors scattered across
@@ -24,6 +27,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - uses: actions/checkout@v4
 

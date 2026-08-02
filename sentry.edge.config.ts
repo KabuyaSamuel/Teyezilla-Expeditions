@@ -2,9 +2,10 @@
 // middleware). Kept separate from sentry.server.config.ts because the Edge
 // runtime doesn't support all Node APIs the SDK may use.
 import * as Sentry from "@sentry/nextjs";
+import { env } from "@/lib/env";
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN,
+  dsn: env.SENTRY_DSN,
   tracesSampleRate: 0.1,
   enabled: process.env.NODE_ENV === "production",
 });

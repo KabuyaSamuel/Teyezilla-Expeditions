@@ -2,9 +2,10 @@
 // Actions, Route Handlers, RSC rendering). See instrumentation.ts for why
 // this isn't just top-level code in that file.
 import * as Sentry from "@sentry/nextjs";
+import { env } from "@/lib/env";
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN,
+  dsn: env.SENTRY_DSN,
   // Travel booking site, not a high-scale SaaS -- full tracing on every
   // request isn't needed and the free tier has a request budget.
   tracesSampleRate: 0.1,

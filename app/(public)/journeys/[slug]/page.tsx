@@ -163,7 +163,7 @@ export default async function JourneyPage({ params }: Props) {
               )}
             </div>
 
-            <ProductItinerary days={journey.itinerary} singleDay={false} />
+            <ProductFactsGrid facts={facts} />
             <ProductHighlights highlights={journey.highlights} />
 
             {journey.activities.length > 0 && (
@@ -179,9 +179,9 @@ export default async function JourneyPage({ params }: Props) {
               </div>
             )}
 
-            <ProductFactsGrid facts={facts} />
-            <ProductVehicles vehicles={journey.vehicles} />
+            <ProductItinerary days={journey.itinerary} singleDay={false} />
             <ProductAccommodations accommodations={journey.accommodations} />
+            <ProductVehicles vehicles={journey.vehicles} />
             <ProductIncludesExcludes inclusions={journey.inclusions} exclusions={journey.exclusions} />
             <ProductGoodToKnow
               bringList={journey.bringList}

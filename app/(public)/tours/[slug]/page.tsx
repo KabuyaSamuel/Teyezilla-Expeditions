@@ -179,7 +179,7 @@ export default async function TourPage({ params }: Props) {
               )}
             </div>
 
-            <ProductItinerary days={tour.itinerary} singleDay={tour.durationDays <= 1 || !!tour.durationHours} />
+            <ProductFactsGrid facts={facts} />
             <ProductHighlights highlights={tour.highlights} />
 
             {tour.activities.length > 0 && (
@@ -195,9 +195,9 @@ export default async function TourPage({ params }: Props) {
               </div>
             )}
 
-            <ProductFactsGrid facts={facts} />
-            <ProductVehicles vehicles={tour.vehicles} />
+            <ProductItinerary days={tour.itinerary} singleDay={tour.durationDays <= 1 || !!tour.durationHours} />
             <ProductAccommodations accommodations={tour.accommodations} />
+            <ProductVehicles vehicles={tour.vehicles} />
             <ProductIncludesExcludes inclusions={tour.inclusions} exclusions={tour.exclusions} />
             <ProductGoodToKnow
               bringList={tour.bringList}

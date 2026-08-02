@@ -15,6 +15,7 @@ import {
 export type { ItineraryDay };
 
 export interface AdminTourDetail extends Tour, ProductScalars {
+  overview: string;
   inclusions: string[];
   exclusions: string[];
   itinerary: ItineraryDay[];
@@ -38,6 +39,7 @@ function mapRow(row: Record<string, any>): AdminTourDetail {
     categoryLabel: row.category_label ?? "",
     heroImage: row.hero_image ?? "",
     shortDescription: row.short_description ?? "",
+    overview: row.overview ?? "",
     durationDays: Number(row.duration_days ?? 0),
     durationHours: row.duration_hours != null ? Number(row.duration_hours) : null,
     priceFrom: Number(row.price_from ?? 0),

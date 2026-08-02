@@ -134,7 +134,10 @@ export default async function JourneyPage({ params }: Props) {
           <div className="space-y-10 lg:col-span-2">
             <div>
               <h2 className="font-heading text-2xl font-bold text-foreground">The Journey</h2>
-              <p className="mt-3 whitespace-pre-line text-foreground/70">{journey.overview || journey.shortDescription}</p>
+              <p className="mt-3 text-foreground/70">{journey.shortDescription}</p>
+              {journey.overview && (
+                <p className="mt-4 whitespace-pre-line text-foreground/70">{journey.overview}</p>
+              )}
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <a href={bookingHref} className="btn-primary px-5 py-2.5 text-sm">

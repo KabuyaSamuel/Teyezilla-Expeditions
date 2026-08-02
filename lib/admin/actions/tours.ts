@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePublicSite } from "@/lib/revalidate";
 import {
   syncPricingTiers,
   syncHighlights,
@@ -28,6 +29,7 @@ export interface TourInput extends ProductScalarsInput {
   heroImage: string;
   priceFrom: number;
   shortDescription: string;
+  overview: string;
   inclusions: string[];
   exclusions: string[];
   itinerary: { day: number; title: string; description: string }[];
@@ -54,11 +56,7 @@ export interface TourInput extends ProductScalarsInput {
 function assertPublishable(input: TourInput) {
   if (input.status !== "published") return;
   const missing: string[] = [];
-  if (!input.heroImage) missing.push("hero image");
-  if (!input.shortDescription) missing.push("short description");
   if (!input.itinerary.some((d) => d.title && d.description)) missing.push("at least one itinerary day");
-  if (input.highlights.length === 0) missing.push("at least one highlight");
-  if (input.inclusions.length === 0) missing.push("at least one inclusion");
   if (missing.length > 0) {
     throw new Error(`Can't publish yet -- missing: ${missing.join(", ")}.`);
   }
@@ -83,6 +81,7 @@ function toRow(input: TourInput) {
     hero_image: input.heroImage,
     price_from: input.priceFrom,
     short_description: input.shortDescription,
+    overview: input.overview,
     inclusions: input.inclusions,
     exclusions: input.exclusions,
     itinerary: input.itinerary,
@@ -118,7 +117,7 @@ export async function createTour(input: TourInput): Promise<void> {
   await syncTourRelations(supabase, data.id, input);
 
   revalidatePath("/admin/tours");
-  revalidatePath("/");
+  revalidatePublicSite();
   redirect("/admin/tours");
 }
 
@@ -133,7 +132,7 @@ export async function updateTour(id: string, input: TourInput): Promise<void> {
   await syncTourRelations(supabase, id, input);
 
   revalidatePath("/admin/tours");
-  revalidatePath("/");
+  revalidatePublicSite();
   redirect("/admin/tours");
 }
 
@@ -145,6 +144,6 @@ export async function deleteTour(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/tours");
-  revalidatePath("/");
+  revalidatePublicSite();
   redirect("/admin/tours");
 }

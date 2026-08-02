@@ -85,6 +85,7 @@ export default function TourForm({
       priceFrom: Number(formData.get("priceFrom") ?? 0),
       heroImage: String(formData.get("heroImage") ?? ""),
       shortDescription: String(formData.get("shortDescription") ?? ""),
+      overview: String(formData.get("overview") ?? ""),
       inclusions: splitLines(formData.get("inclusions")),
       exclusions: splitLines(formData.get("exclusions")),
       itinerary,
@@ -219,6 +220,10 @@ export default function TourForm({
           <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Short Description</label>
           <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~120–150 characters (keeps card layouts uniform across the site).</p>
           <textarea id="shortDescription" name="shortDescription" defaultValue={existingTour?.shortDescription} rows={3} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div className="mt-4">
+          <label htmlFor="overview" className="text-xs font-medium text-foreground/60">Overview</label>
+          <textarea id="overview" name="overview" defaultValue={existingTour?.overview} rows={4} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       </section>
 
@@ -407,11 +412,7 @@ export default function TourForm({
 
       <PublishChecklist
         items={[
-          { label: "Hero image", done: !!existingTour?.heroImage },
-          { label: "Short description", done: !!existingTour?.shortDescription },
           { label: "At least one itinerary day", done: itinerary.some((d) => d.title && d.description) },
-          { label: "At least one highlight", done: highlights.length > 0 },
-          { label: "At least one inclusion", done: !!existingTour?.inclusions?.length },
         ]}
       />
 

@@ -484,12 +484,7 @@ export default function JourneyForm({
 
       <PublishChecklist
         items={[
-          { label: "Hero image", done: !!existingJourney?.heroImage },
-          { label: "Short description", done: !!existingJourney?.shortDescription },
-          { label: "At least one destination", done: destinationIds.length > 0 },
           { label: "At least one itinerary day", done: itinerary.some((d) => d.title && d.description) },
-          { label: "At least one highlight", done: highlights.length > 0 },
-          { label: "At least one inclusion", done: !!existingJourney?.inclusions?.length },
         ]}
       />
 

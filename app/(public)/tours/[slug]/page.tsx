@@ -141,15 +141,7 @@ export default async function TourPage({ params }: Props) {
       </div>
 
       <div className="section">
-        {/* Answer-first block for AEO/GEO */}
-        <p className="max-w-3xl text-lg font-medium text-foreground">
-          {/^the\s/i.test(tour.title) ? "" : "The "}{tour.title} runs {formatTourDuration(tour)} and
-          starts from {tour.currency} {tour.priceFrom} per person
-          {destination ? ` in ${destination.countryName}` : ""}.
-          {tour.difficulty && ` Difficulty: ${tour.difficulty}.`}
-        </p>
-
-        <div className="mt-8 grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-10 lg:col-span-2">
             <div>
               <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>

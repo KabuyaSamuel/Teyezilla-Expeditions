@@ -1,4 +1,3 @@
-import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database";
 
 export interface TripPlannerRequest {
@@ -16,7 +15,7 @@ export interface TripPlannerRequest {
   createdAt: string;
 }
 
-function mapRow(row: Tables<"trip_planner_requests">): TripPlannerRequest {
+export function mapTripPlannerRequestRow(row: Tables<"trip_planner_requests">): TripPlannerRequest {
   return {
     id: row.id,
     customerName: row.customer_name,
@@ -31,24 +30,4 @@ function mapRow(row: Tables<"trip_planner_requests">): TripPlannerRequest {
     status: row.status as TripPlannerRequest["status"],
     createdAt: row.created_at ?? "",
   };
-}
-
-export async function getTripPlannerRequests(): Promise<TripPlannerRequest[]> {
-  const supabase = await getSupabaseServerClient();
-  if (!supabase) {
-    console.warn("[trip-planner] Supabase not configured, returning no requests.");
-    return [];
-  }
-
-  const { data, error } = await supabase
-    .from("trip_planner_requests")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error || !data) {
-    console.warn("[trip-planner] Supabase query failed:", error?.message);
-    return [];
-  }
-
-  return data.map(mapRow);
 }

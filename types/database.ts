@@ -796,6 +796,7 @@ export type Database = {
           staff_reply: string | null
           status: string | null
           tour_id: string | null
+          trip_planner_request_id: string | null
         }
         Insert: {
           assigned_staff_id?: string | null
@@ -812,6 +813,7 @@ export type Database = {
           staff_reply?: string | null
           status?: string | null
           tour_id?: string | null
+          trip_planner_request_id?: string | null
         }
         Update: {
           assigned_staff_id?: string | null
@@ -828,6 +830,7 @@ export type Database = {
           staff_reply?: string | null
           status?: string | null
           tour_id?: string | null
+          trip_planner_request_id?: string | null
         }
         Relationships: [
           {
@@ -849,6 +852,13 @@ export type Database = {
             columns: ["tour_id"]
             isOneToOne: false
             referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inquiries_trip_planner_request_id_fkey"
+            columns: ["trip_planner_request_id"]
+            isOneToOne: false
+            referencedRelation: "trip_planner_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -1501,6 +1511,8 @@ export type Database = {
           id: string
           is_read: boolean | null
           message: string
+          related_id: string | null
+          related_type: string | null
           type: string | null
         }
         Insert: {
@@ -1508,6 +1520,8 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message: string
+          related_id?: string | null
+          related_type?: string | null
           type?: string | null
         }
         Update: {
@@ -1515,6 +1529,8 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message?: string
+          related_id?: string | null
+          related_type?: string | null
           type?: string | null
         }
         Relationships: []

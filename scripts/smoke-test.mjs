@@ -12,7 +12,11 @@
 //   node scripts/smoke-test.mjs [baseUrl]
 //   SMOKE_TEST_URL=https://... node scripts/smoke-test.mjs
 
-const baseUrl = (process.argv[2] || process.env.SMOKE_TEST_URL || "https://www.teyezillaexpeditions.com").replace(/\/$/, "");
+// TODO: switch back to the custom domain (www.teyezillaexpeditions.com)
+// once it's connected in Vercel -- it isn't live yet, so DNS for it
+// doesn't resolve and every check here fails with "fetch failed"/Chrome
+// interstitial errors that have nothing to do with the app itself.
+const baseUrl = (process.argv[2] || process.env.SMOKE_TEST_URL || "https://teyezillaexpeditions.vercel.app").replace(/\/$/, "");
 
 // Server-render error markers Next.js/React actually emit in production,
 // distinct from any ordinary page content that happens to mention "error"

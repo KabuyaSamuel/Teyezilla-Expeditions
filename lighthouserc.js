@@ -11,7 +11,10 @@
 // mistake almost made with eslint in ci.yml). Tighten these once real
 // baseline numbers exist.
 
-const baseUrl = (process.env.LHCI_BASE_URL || "https://www.teyezillaexpeditions.com").replace(/\/$/, "");
+// TODO: switch back to the custom domain (www.teyezillaexpeditions.com)
+// once it's connected in Vercel -- not live yet, so DNS for it doesn't
+// resolve at all.
+const baseUrl = (process.env.LHCI_BASE_URL || "https://teyezillaexpeditions.vercel.app").replace(/\/$/, "");
 
 module.exports = {
   ci: {

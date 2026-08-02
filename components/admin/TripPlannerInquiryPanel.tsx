@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   saveTripPlannerItinerary,
   convertTripPlannerToBooking,
+  generateTripPlannerDraft,
 } from "@/lib/admin/actions/trip-planner";
 
 export interface TripPlannerParams {
@@ -32,6 +33,20 @@ export default function TripPlannerInquiryPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  async function handleGenerateDraft() {
+    setBusy(true);
+    setError(null);
+    setSaved(false);
+    try {
+      const draft = await generateTripPlannerDraft(request.id);
+      setItinerary(draft);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate a draft.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleSave() {
     setBusy(true);
@@ -78,7 +93,7 @@ export default function TripPlannerInquiryPanel({
 
       <div className="mt-4">
         <label htmlFor={`itinerary-${request.id}`} className="text-xs font-medium text-foreground/50">
-          AI-Suggested Itinerary
+          Suggested Itinerary
         </label>
         <textarea
           id={`itinerary-${request.id}`}
@@ -96,6 +111,9 @@ export default function TripPlannerInquiryPanel({
       {saved && <p className="mt-2 text-sm text-primary">Itinerary saved.</p>}
 
       <div className="mt-3 flex flex-wrap gap-3">
+        <button type="button" onClick={handleGenerateDraft} disabled={busy} className="btn-outline px-4 py-2 text-xs disabled:opacity-40">
+          {busy ? "Working…" : "Generate Draft"}
+        </button>
         <button type="button" onClick={handleSave} disabled={busy} className="btn-outline px-4 py-2 text-xs disabled:opacity-40">
           {busy ? "Working…" : "Save Edits"}
         </button>

@@ -4,6 +4,31 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { countryCodeForName, generateBookingReference } from "@/lib/country-codes";
+import { generateSuggestedItinerary } from "@/lib/admin/trip-planner-engine";
+
+// Returns a draft only -- doesn't persist it. Staff review/edit the result
+// in the textarea and hit "Save Edits" (saveTripPlannerItinerary below) to
+// actually write it, same as if they'd typed it by hand.
+export async function generateTripPlannerDraft(requestId: string): Promise<string> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) throw new Error("Supabase not configured.");
+
+  const { data: request, error } = await supabase
+    .from("trip_planner_requests")
+    .select("destination, days, travelers, travel_style, luxury_level, budget_usd")
+    .eq("id", requestId)
+    .maybeSingle();
+  if (error || !request) throw new Error(error?.message ?? "Trip planner request not found.");
+
+  return generateSuggestedItinerary({
+    destination: request.destination ?? "",
+    days: Number(request.days ?? 0),
+    travelers: Number(request.travelers ?? 0),
+    travelStyle: request.travel_style ?? "",
+    luxuryLevel: request.luxury_level ?? "",
+    budgetUsd: Number(request.budget_usd ?? 0),
+  });
+}
 
 export async function saveTripPlannerItinerary(requestId: string, itinerary: string): Promise<void> {
   const supabase = await getSupabaseServerClient();

@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import type { PricingTier } from "@/lib/productShared";
 
@@ -8,6 +11,13 @@ export default function ProductPricingTiers({
   tiers: PricingTier[];
   bookingHref: string;
 }) {
+  // Middle tier is highlighted by default (typically the recommended
+  // option); hovering another tier moves the highlight there instead,
+  // reverting once the cursor leaves.
+  const defaultHighlight = 1;
+  const [hovered, setHovered] = useState<number | null>(null);
+  const highlighted = hovered ?? defaultHighlight;
+
   if (tiers.length === 0) return null;
 
   return (
@@ -17,7 +27,11 @@ export default function ProductPricingTiers({
         {tiers.map((tier, i) => (
           <div
             key={tier.id}
-            className={`card flex flex-col p-6 ${i === 1 ? "border-2 border-accent" : ""}`}
+            onMouseEnter={() => setHovered(i)}
+            onMouseLeave={() => setHovered(null)}
+            className={`card flex flex-col p-6 transition-colors duration-200 ${
+              i === highlighted ? "border-2 border-accent" : ""
+            }`}
           >
             {tier.tagline && (
               <span className="text-xs font-semibold uppercase tracking-wide text-accent">{tier.tagline}</span>

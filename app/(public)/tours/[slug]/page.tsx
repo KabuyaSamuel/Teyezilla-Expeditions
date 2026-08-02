@@ -84,7 +84,9 @@ export default async function TourPage({ params }: Props) {
       question: `How much does the ${tour.title} cost?`,
       answer: `The ${tour.title} starts from ${tour.currency} ${tour.priceFrom} per person for ${formatTourDuration(tour)}.`,
     },
-    { question: `How difficult is the ${tour.title}?`, answer: `This tour is rated ${tour.difficulty}.` },
+    ...(tour.difficulty
+      ? [{ question: `How difficult is the ${tour.title}?`, answer: `This tour is rated ${tour.difficulty}.` }]
+      : []),
   ]);
 
   const breadcrumbJsonLd = breadcrumbListJsonLd(
@@ -141,9 +143,10 @@ export default async function TourPage({ params }: Props) {
       <div className="section">
         {/* Answer-first block for AEO/GEO */}
         <p className="max-w-3xl text-lg font-medium text-foreground">
-          The {tour.title} runs {formatTourDuration(tour)} and
+          {/^the\s/i.test(tour.title) ? "" : "The "}{tour.title} runs {formatTourDuration(tour)} and
           starts from {tour.currency} {tour.priceFrom} per person
-          {destination ? ` in ${destination.countryName}` : ""}. Difficulty: {tour.difficulty}.
+          {destination ? ` in ${destination.countryName}` : ""}.
+          {tour.difficulty && ` Difficulty: ${tour.difficulty}.`}
         </p>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-3">
@@ -180,7 +183,7 @@ export default async function TourPage({ params }: Props) {
 
             {tour.overview && (
               <div>
-                <h2 className="font-heading text-2xl font-bold text-foreground">The Full Story</h2>
+                <h2 className="font-heading text-2xl font-bold text-foreground">The Journey Story</h2>
                 <p className="mt-3 whitespace-pre-line text-foreground/70">{tour.overview}</p>
               </div>
             )}
@@ -211,7 +214,7 @@ export default async function TourPage({ params }: Props) {
             />
             <ProductTeyezillaMoment text={tour.teyezillaMoment} />
             <ProductPricingTiers tiers={tour.pricingTiers} bookingHref={bookingHref} />
-            <ProductAddons addons={tour.addons} />
+            <ProductAddons addons={tour.addons} bookingHref={bookingHref} />
 
             {tour.featuredInJourneys.length > 0 && (
               <div className="card p-6">
@@ -244,12 +247,14 @@ export default async function TourPage({ params }: Props) {
                     Starts from {tour.currency} {tour.priceFrom} per person for {formatTourDuration(tour)}.
                   </p>
                 </div>
-                <div>
-                  <h3 className="font-heading font-semibold text-foreground">
-                    How difficult is this tour?
-                  </h3>
-                  <p className="mt-1 text-sm text-foreground/70">Rated {tour.difficulty}.</p>
-                </div>
+                {tour.difficulty && (
+                  <div>
+                    <h3 className="font-heading font-semibold text-foreground">
+                      How difficult is this tour?
+                    </h3>
+                    <p className="mt-1 text-sm text-foreground/70">Rated {tour.difficulty}.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

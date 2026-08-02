@@ -195,7 +195,7 @@ export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyD
     durationDays: Number(row.duration_days ?? 0),
     priceFrom: Number(row.price_from ?? 0),
     currency: row.currency ?? "USD",
-    difficulty: row.difficulty ?? "Easy",
+    difficulty: row.difficulty ?? "",
     inclusions: row.inclusions ?? [],
     exclusions: row.exclusions ?? [],
     itinerary: row.itinerary ?? [],

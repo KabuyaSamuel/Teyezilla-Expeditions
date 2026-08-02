@@ -49,19 +49,6 @@ export interface TourInput extends ProductScalarsInput {
   accommodationIds: string[];
 }
 
-// Soft-enforces the same readiness bar shown as a checklist in TourForm --
-// this is the actual gate (the checklist is just a UI hint), so a status of
-// "published" can't be reached via a direct API call with missing content
-// either.
-function assertPublishable(input: TourInput) {
-  if (input.status !== "published") return;
-  const missing: string[] = [];
-  if (!input.itinerary.some((d) => d.title && d.description)) missing.push("at least one itinerary day");
-  if (missing.length > 0) {
-    throw new Error(`Can't publish yet -- missing: ${missing.join(", ")}.`);
-  }
-}
-
 function slugify(title: string): string {
   return title
     .toLowerCase()
@@ -107,7 +94,6 @@ async function syncTourRelations(supabase: any, tourId: string, input: TourInput
 }
 
 export async function createTour(input: TourInput): Promise<void> {
-  assertPublishable(input);
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
@@ -122,7 +108,6 @@ export async function createTour(input: TourInput): Promise<void> {
 }
 
 export async function updateTour(id: string, input: TourInput): Promise<void> {
-  assertPublishable(input);
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 

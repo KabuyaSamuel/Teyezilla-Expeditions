@@ -125,9 +125,9 @@ export default async function JourneyPage({ params }: Props) {
 
       <div className="section">
         <p className="max-w-3xl text-lg font-medium text-foreground">
-          The {journey.title} runs {journey.durationDays} days and starts from {journey.currency}{" "}
+          {/^the\s/i.test(journey.title) ? "" : "The "}{journey.title} runs {journey.durationDays} days and starts from {journey.currency}{" "}
           {journey.priceFrom.toLocaleString()} per person across {destinationNames || "Africa"}.
-          Difficulty: {journey.difficulty}.
+          {journey.difficulty && ` Difficulty: ${journey.difficulty}.`}
         </p>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-3">
@@ -195,7 +195,7 @@ export default async function JourneyPage({ params }: Props) {
             />
             <ProductTeyezillaMoment text={journey.teyezillaMoment} />
             <ProductPricingTiers tiers={journey.pricingTiers} bookingHref={bookingHref} />
-            <ProductAddons addons={journey.addons} />
+            <ProductAddons addons={journey.addons} bookingHref={bookingHref} />
           </div>
 
           <aside className="card sticky top-24 h-fit p-6">

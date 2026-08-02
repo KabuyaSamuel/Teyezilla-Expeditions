@@ -17,7 +17,6 @@ import ActivitiesPicker from "./ActivitiesPicker";
 import ExperienceTypesPicker from "./ExperienceTypesPicker";
 import VehiclesPicker from "./VehiclesPicker";
 import AccommodationsPicker from "./AccommodationsPicker";
-import PublishChecklist from "./PublishChecklist";
 
 export default function TourForm({
   existingTour,
@@ -67,7 +66,7 @@ export default function TourForm({
       slug: existingTour?.slug ?? "",
       destinationId: String(formData.get("destinationId") ?? ""),
       productType: String(formData.get("productType") ?? "experience"),
-      difficulty: String(formData.get("difficulty") ?? "Easy"),
+      difficulty: String(formData.get("difficulty") ?? ""),
       durationDays: Number(formData.get("durationDays") ?? 0),
       durationHours: formData.get("durationHours") ? Number(formData.get("durationHours")) : null,
       priceFrom: Number(formData.get("priceFrom") ?? 0),
@@ -170,8 +169,9 @@ export default function TourForm({
             </select>
           </div>
           <div>
-            <label htmlFor="difficulty" className="text-xs font-medium text-foreground/60">Difficulty</label>
-            <select id="difficulty" name="difficulty" defaultValue={existingTour?.difficulty ?? "Easy"} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <label htmlFor="difficulty" className="text-xs font-medium text-foreground/60">Difficulty (optional)</label>
+            <select id="difficulty" name="difficulty" defaultValue={existingTour?.difficulty ?? ""} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+              <option value="">Not set</option>
               <option>Easy</option>
               <option>Moderate</option>
               <option>Challenging</option>
@@ -205,12 +205,12 @@ export default function TourForm({
           <input id="heroImage" name="heroImage" defaultValue={existingTour?.heroImage} placeholder="https://..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div className="mt-4">
-          <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Short Description</label>
+          <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Overview</label>
           <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~120–150 characters (keeps card layouts uniform across the site).</p>
           <textarea id="shortDescription" name="shortDescription" defaultValue={existingTour?.shortDescription} rows={3} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div className="mt-4">
-          <label htmlFor="overview" className="text-xs font-medium text-foreground/60">Overview</label>
+          <label htmlFor="overview" className="text-xs font-medium text-foreground/60">Journey Story (Full Description)</label>
           <textarea id="overview" name="overview" defaultValue={existingTour?.overview} rows={4} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       </section>
@@ -335,12 +335,6 @@ export default function TourForm({
           Open Media Library
         </a>
       </section>
-
-      <PublishChecklist
-        items={[
-          { label: "At least one itinerary day", done: itinerary.some((d) => d.title && d.description) },
-        ]}
-      />
 
       <section className="card flex flex-wrap items-center justify-between gap-4 p-6">
         <div className="flex items-center gap-3">

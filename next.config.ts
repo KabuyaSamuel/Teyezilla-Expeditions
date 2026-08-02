@@ -9,11 +9,15 @@ const nextConfig: NextConfig = {
   images: {
     // TEMP: picsum.photos serves placeholder images until real destination
     // and tour photography is added to /public/images or Supabase Storage.
-    // upload.wikimedia.org serves real (CC BY-SA licensed, credited in
-    // HeroCarousel.tsx) Kenyan wildlife photos standing in for the hero
-    // carousel until Teyezilla supplies its own photography. The Supabase
-    // hostname serves real uploads from the Media Library (Storage).
-    // Remove the first two once real image URLs are used everywhere.
+    // upload.wikimedia.org serves one real, CC BY 2.0 licensed photo
+    // (credited in components/WhyChoose.tsx) standing in for that section
+    // until Teyezilla supplies its own. The homepage hero itself is a
+    // Mixkit stock video, not an Image (see components/HeroCarousel.tsx) --
+    // it doesn't need an entry here since next/image isn't involved. The
+    // Supabase hostname serves real uploads from the Media Library
+    // (Storage), already used for some journeys/blog posts.
+    // Remove the first two once real image URLs are used everywhere. See
+    // docs/replacing-placeholder-images.md.
     remotePatterns: [
       {
         protocol: "https",

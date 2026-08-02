@@ -22,6 +22,10 @@ export default function WhyChoose({
     <section className="section grid gap-12 lg:grid-cols-2 lg:items-center">
       <ScrollReveal className="relative">
         <div className="relative h-[420px] w-full overflow-hidden rounded-xl2 shadow-card">
+          {/* TEMP placeholder until real Teyezilla photography is available.
+              "Kenya safari.jpg" by Flickr user DEMOSH (Nairobi, Kenya),
+              CC BY 2.0: https://creativecommons.org/licenses/by/2.0 --
+              https://commons.wikimedia.org/wiki/File:Kenya_safari.jpg */}
           <Image
             src="https://upload.wikimedia.org/wikipedia/commons/4/41/Kenya_safari.jpg"
             alt="Safari vehicle with travelers watching wildebeest cross the road in the Maasai Mara, Kenya"

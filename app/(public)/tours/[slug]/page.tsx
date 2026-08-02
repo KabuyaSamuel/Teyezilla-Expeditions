@@ -126,7 +126,9 @@ export default async function TourPage({ params }: Props) {
       <JsonLd data={breadcrumbJsonLd} />
 
       <div className="relative h-[380px] w-full">
-        <Image src={tour.heroImage} alt={tour.title} fill priority sizes="100vw" className="object-cover" />
+        {tour.heroImage && (
+          <Image src={tour.heroImage} alt={tour.title} fill priority sizes="100vw" className="object-cover" />
+        )}
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 flex items-end">
           <div className="mx-auto w-full max-w-7xl px-6 pb-10">

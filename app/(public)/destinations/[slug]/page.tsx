@@ -67,14 +67,16 @@ export default async function DestinationPage({ params }: Props) {
       <JsonLd data={faqJsonLd} />
 
       <div className="relative h-[420px] w-full">
-        <Image
-          src={destination.heroImage}
-          alt={`${destination.countryName} safari and travel`}
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+        {destination.heroImage && (
+          <Image
+            src={destination.heroImage}
+            alt={`${destination.countryName} safari and travel`}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        )}
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 flex items-end">
           <div className="mx-auto w-full max-w-7xl px-6 pb-10">

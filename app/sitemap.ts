@@ -53,7 +53,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/booking-information",
     "/cancellation-policy",
     "/collections",
-    "/concierge",
     "/contact",
     "/destinations",
     "/experiences",

@@ -50,7 +50,6 @@ const EXPLORE_LINKS = [
 const TRAVEL_WITH_US_LINKS = [
   { label: "Private Travel", href: "/private-travel" },
   { label: "Bespoke Journeys", href: "/tailor-made-trips" },
-  { label: "Concierge", href: "/concierge" },
   { label: "About Teyezilla", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];

@@ -57,7 +57,6 @@ export default function NavbarClient({
     { label: "Collections", href: "/collections", dropdown: collectionLinks },
     { label: "Safari", href: "/safari", dropdown: safariLinks },
     { label: "Bespoke", href: "/tailor-made-trips" },
-    { label: "Concierge", href: "/concierge" },
     { label: "Journal", href: "/blog" },
   ];
 

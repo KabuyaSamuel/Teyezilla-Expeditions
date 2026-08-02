@@ -214,6 +214,8 @@ export async function submitBookingEnquiry(
   await createNotification({
     type: "new_booking",
     message: `New enquiry for ${product.title} (${bookingReference}) from ${input.fullName}.`,
+    relatedType: bookingId ? "booking" : undefined,
+    relatedId: bookingId ?? undefined,
   });
 
   // 5. Emails (fail-soft, never block the submission).

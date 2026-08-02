@@ -17,13 +17,19 @@ import type { AdminNotification } from "@/lib/admin/data/notifications";
 export async function createNotification(input: {
   type: AdminNotification["type"];
   message: string;
+  relatedType?: "booking" | "inquiry";
+  relatedId?: string;
 }): Promise<void> {
   try {
     const supabase = getSupabaseServiceClient();
     if (!supabase) return;
-    const { error } = await supabase
-      .from("notifications")
-      .insert({ type: input.type, message: input.message, is_read: false });
+    const { error } = await supabase.from("notifications").insert({
+      type: input.type,
+      message: input.message,
+      is_read: false,
+      related_type: input.relatedType ?? null,
+      related_id: input.relatedId ?? null,
+    });
     if (error) console.warn("[notifications] insert failed:", error.message);
   } catch (err) {
     console.warn("[notifications] insert threw:", err instanceof Error ? err.message : err);

@@ -44,18 +44,22 @@ export async function submitTripPlannerRequest(
     return { formError: "The trip planner is temporarily unavailable. Please reach out on WhatsApp instead." };
   }
 
-  const { error: requestError } = await db.from("trip_planner_requests").insert({
-    customer_name: input.name,
-    customer_email: input.email,
-    destination: input.destination,
-    budget_usd: input.budgetUsd ?? null,
-    days: input.days,
-    travelers: input.travelers,
-    travel_style: input.travelStyle,
-    luxury_level: input.luxuryLevel || null,
-    extras: input.extras.length > 0 ? input.extras : null,
-    status: "new",
-  });
+  const { data: request, error: requestError } = await db
+    .from("trip_planner_requests")
+    .insert({
+      customer_name: input.name,
+      customer_email: input.email,
+      destination: input.destination,
+      budget_usd: input.budgetUsd ?? null,
+      days: input.days,
+      travelers: input.travelers,
+      travel_style: input.travelStyle,
+      luxury_level: input.luxuryLevel || null,
+      extras: input.extras.length > 0 ? input.extras : null,
+      status: "new",
+    })
+    .select("id")
+    .single();
   if (requestError) {
     captureServerActionError("trip-planner", `request insert failed: ${requestError.message}`, { email: input.email });
     return { formError: "Something went wrong submitting your trip request. Please try again or contact us on WhatsApp." };
@@ -70,18 +74,25 @@ export async function submitTripPlannerRequest(
     .filter(Boolean)
     .join("\n");
 
-  const { error: inquiryError } = await db.from("inquiries").insert({
-    source: "ai_trip_planner",
-    customer_name: input.name,
-    customer_email: input.email,
-    message: summary,
-    status: "new",
-  });
+  const { data: inquiry, error: inquiryError } = await db
+    .from("inquiries")
+    .insert({
+      source: "ai_trip_planner",
+      customer_name: input.name,
+      customer_email: input.email,
+      message: summary,
+      status: "new",
+      trip_planner_request_id: request.id,
+    })
+    .select("id")
+    .single();
   if (inquiryError) captureServerActionError("trip-planner", `inquiry insert failed: ${inquiryError.message}`, { email: input.email });
 
   await createNotification({
     type: "follow_up",
     message: `New trip planner request from ${input.name} for ${input.destination}.`,
+    relatedType: inquiry ? "inquiry" : undefined,
+    relatedId: inquiry?.id,
   });
 
   const fields: EmailField[] = [

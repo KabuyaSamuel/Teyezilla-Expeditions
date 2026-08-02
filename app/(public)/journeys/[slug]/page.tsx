@@ -124,13 +124,7 @@ export default async function JourneyPage({ params }: Props) {
       </div>
 
       <div className="section">
-        <p className="max-w-3xl text-lg font-medium text-foreground">
-          {/^the\s/i.test(journey.title) ? "" : "The "}{journey.title} runs {journey.durationDays} days and starts from {journey.currency}{" "}
-          {journey.priceFrom.toLocaleString()} per person across {destinationNames || "Africa"}.
-          {journey.difficulty && ` Difficulty: ${journey.difficulty}.`}
-        </p>
-
-        <div className="mt-8 grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-10 lg:col-span-2">
             <div>
               <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>

@@ -57,7 +57,6 @@ export default function NavbarClient({
     { label: "Collections", href: "/collections", dropdown: collectionLinks },
     { label: "Safari", href: "/safari", dropdown: safariLinks },
     { label: "Bespoke", href: "/tailor-made-trips" },
-    { label: "Concierge", href: "/concierge" },
     { label: "Journal", href: "/blog" },
   ];
 
@@ -134,15 +133,23 @@ export default function NavbarClient({
             mobile menu below -- widened to use the extra room instead of
             rendering it identically to a 375px phone (see md: classes there).
 
-            lg:ml-6/gap-4 (not the xl:ml-32/gap-6 values) at exactly 1024px:
+            lg:ml-6/gap-4 (not the xl:ml-40/gap-6 values) at exactly 1024px:
             measured live, the full row (logo + items + icons + CTA) needs
             ~1093px, which the xl-tier spacing alone doesn't leave room for
             at 1024px -- the CTA button rendered with its right edge past
             the viewport, with no scrollbar to reach it since the header is
             fixed-position (overflow there doesn't extend document scrollWidth,
             so a generic overflow-x audit won't catch this the way it would
-            for normal in-flow content). */}
-        <nav className="hidden items-center gap-4 lg:ml-6 lg:flex xl:ml-32 xl:gap-6">
+            for normal in-flow content).
+
+            xl:ml-40 (not xl:ml-32): dropping the Concierge nav item left a
+            ~108px gap between the last item and the search/phone/CTA block
+            at every viewport >=1280px (the row is capped by max-w-7xl, so
+            that gap doesn't grow with a wider screen) -- measured live and
+            nudged right by 32px to close some of it while still leaving the
+            two groups visually separated, not touching lg:ml-6 since 1024px
+            has near-zero slack per the note above. */}
+        <nav className="hidden items-center gap-4 lg:ml-6 lg:flex xl:ml-40 xl:gap-6">
           {NAV_ITEMS.map((item) =>
             item.groups && item.groups.length > 0 ? (
               <div

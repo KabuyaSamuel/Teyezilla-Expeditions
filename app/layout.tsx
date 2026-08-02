@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+// import { GoogleAnalytics } from "@next/third-parties/google";
 import { SITE_URL } from "@/lib/site";
+// import { env } from "@/lib/env";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -64,6 +66,10 @@ export default function RootLayout({
         {children}
         <Analytics />
         <SpeedInsights />
+        {/* Uncomment once NEXT_PUBLIC_GA_MEASUREMENT_ID is set and the domain is connected. */}
+        {/* {env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics gaId={env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        )} */}
       </body>
     </html>
   );

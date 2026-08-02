@@ -34,7 +34,7 @@ export interface Tour extends SEOFields {
   durationHours: number | null;
   priceFrom: number;
   currency: string;
-  difficulty: "Easy" | "Moderate" | "Challenging";
+  difficulty: "" | "Easy" | "Moderate" | "Challenging";
   featured: boolean;
   status: "draft" | "published";
 }

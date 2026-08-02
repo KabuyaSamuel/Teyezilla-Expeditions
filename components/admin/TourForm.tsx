@@ -66,7 +66,7 @@ export default function TourForm({
       slug: existingTour?.slug ?? "",
       destinationId: String(formData.get("destinationId") ?? ""),
       productType: String(formData.get("productType") ?? "experience"),
-      difficulty: String(formData.get("difficulty") ?? "Easy"),
+      difficulty: String(formData.get("difficulty") ?? ""),
       durationDays: Number(formData.get("durationDays") ?? 0),
       durationHours: formData.get("durationHours") ? Number(formData.get("durationHours")) : null,
       priceFrom: Number(formData.get("priceFrom") ?? 0),
@@ -169,8 +169,9 @@ export default function TourForm({
             </select>
           </div>
           <div>
-            <label htmlFor="difficulty" className="text-xs font-medium text-foreground/60">Difficulty</label>
-            <select id="difficulty" name="difficulty" defaultValue={existingTour?.difficulty ?? "Easy"} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <label htmlFor="difficulty" className="text-xs font-medium text-foreground/60">Difficulty (optional)</label>
+            <select id="difficulty" name="difficulty" defaultValue={existingTour?.difficulty ?? ""} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+              <option value="">Not set</option>
               <option>Easy</option>
               <option>Moderate</option>
               <option>Challenging</option>

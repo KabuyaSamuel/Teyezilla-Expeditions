@@ -27,7 +27,7 @@ function mapTourRow(row: Record<string, unknown>): Tour {
     durationHours: row.duration_hours != null ? Number(row.duration_hours) : null,
     priceFrom: Number(row.price_from ?? 0),
     currency: (row.currency as string) ?? "USD",
-    difficulty: (row.difficulty as Tour["difficulty"]) ?? "Easy",
+    difficulty: (row.difficulty as Tour["difficulty"]) ?? "",
     featured: Boolean(row.featured),
     status: (row.status as Tour["status"]) ?? "draft",
     metaTitle: (row.meta_title as string) ?? "",

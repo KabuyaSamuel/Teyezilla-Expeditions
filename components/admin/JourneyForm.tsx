@@ -100,7 +100,7 @@ export default function JourneyForm({
       durationDays: Number(formData.get("durationDays") ?? 0),
       priceFrom: Number(formData.get("priceFrom") ?? 0),
       currency: String(formData.get("currency") ?? "USD"),
-      difficulty: String(formData.get("difficulty") ?? "Easy"),
+      difficulty: String(formData.get("difficulty") ?? ""),
       inclusions: splitLines(formData.get("inclusions")),
       exclusions: splitLines(formData.get("exclusions")),
       itinerary,
@@ -187,8 +187,9 @@ export default function JourneyForm({
             </select>
           </div>
           <div>
-            <label htmlFor="difficulty" className="text-xs font-medium text-foreground/60">Difficulty</label>
-            <select id="difficulty" name="difficulty" defaultValue={existingJourney?.difficulty ?? "Easy"} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <label htmlFor="difficulty" className="text-xs font-medium text-foreground/60">Difficulty (optional)</label>
+            <select id="difficulty" name="difficulty" defaultValue={existingJourney?.difficulty ?? ""} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+              <option value="">Not set</option>
               <option>Easy</option>
               <option>Moderate</option>
               <option>Challenging</option>

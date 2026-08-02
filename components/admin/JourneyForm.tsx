@@ -11,6 +11,7 @@ import type { AdminAccommodation } from "@/lib/admin/data/accommodations";
 import type { AdminJourneyDetail, ItineraryDay } from "@/lib/admin/data/journeys";
 import type { PricingTierInput, HighlightInput, AddonInput } from "@/lib/admin/actions/productShared";
 import { createJourney, updateJourney, deleteJourney } from "@/lib/admin/actions/journeys";
+import ItineraryEditor from "./ItineraryEditor";
 import PricingTiersEditor from "./PricingTiersEditor";
 import HighlightsEditor from "./HighlightsEditor";
 import AddonsEditor from "./AddonsEditor";
@@ -77,19 +78,6 @@ export default function JourneyForm({
     if (!next.includes(primaryDestinationId)) {
       setPrimaryDestinationId(next[0] ?? "");
     }
-  }
-
-  function addItineraryDay() {
-    setItinerary((prev) => [...prev, { day: prev.length + 1, title: "", description: "" }]);
-  }
-
-  function updateItineraryDay(index: number, field: keyof ItineraryDay, value: string) {
-    setItinerary((prev) => prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)));
-  }
-
-  function updateItineraryMeals(index: number, value: string) {
-    const meals = value.split(",").map((s) => s.trim()).filter(Boolean);
-    setItinerary((prev) => prev.map((d, i) => (i === index ? { ...d, meals } : d)));
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -321,69 +309,7 @@ export default function JourneyForm({
         </div>
       </section>
 
-      <section className="card p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg font-semibold text-foreground">Itinerary Builder</h2>
-          <button type="button" onClick={addItineraryDay} className="text-sm font-medium text-primary hover:underline">
-            + Add Day
-          </button>
-        </div>
-        <div className="mt-4 space-y-4">
-          {itinerary.map((d, i) => (
-            <div key={i} className="rounded-xl bg-secondary/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Day {d.day}</p>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <input
-                  value={d.fromLocation ?? ""}
-                  onChange={(e) => updateItineraryDay(i, "fromLocation", e.target.value)}
-                  placeholder="From (optional)"
-                  className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <input
-                  value={d.toLocation ?? ""}
-                  onChange={(e) => updateItineraryDay(i, "toLocation", e.target.value)}
-                  placeholder="To (optional)"
-                  className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <input
-                value={d.title}
-                onChange={(e) => updateItineraryDay(i, "title", e.target.value)}
-                placeholder="Day title"
-                className="mt-2 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <textarea
-                value={d.description}
-                onChange={(e) => updateItineraryDay(i, "description", e.target.value)}
-                placeholder="What happens this day"
-                rows={2}
-                className="mt-2 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <textarea
-                value={d.teyezillaMoment ?? ""}
-                onChange={(e) => updateItineraryDay(i, "teyezillaMoment", e.target.value)}
-                placeholder="Teyezilla Moment (optional highlighted callout)"
-                rows={2}
-                className="mt-2 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <input
-                  value={d.overnight ?? ""}
-                  onChange={(e) => updateItineraryDay(i, "overnight", e.target.value)}
-                  placeholder="Overnight (optional)"
-                  className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <input
-                  defaultValue={d.meals?.join(", ") ?? ""}
-                  onChange={(e) => updateItineraryMeals(i, e.target.value)}
-                  placeholder="Meals, comma-separated (e.g. Breakfast, Lunch, Dinner)"
-                  className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <ItineraryEditor itinerary={itinerary} onChange={setItinerary} />
 
       <PricingTiersEditor tiers={pricingTiers} onChange={setPricingTiers} />
       <AddonsEditor addons={addons} onChange={setAddons} />

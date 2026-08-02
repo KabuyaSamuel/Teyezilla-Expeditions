@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePublicSite } from "@/lib/revalidate";
 
 export interface AccommodationInput {
   destinationId: string;
@@ -44,6 +45,7 @@ export async function createAccommodation(input: AccommodationInput): Promise<vo
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/accommodations");
+  revalidatePublicSite();
   redirect("/admin/accommodations");
 }
 
@@ -55,6 +57,7 @@ export async function updateAccommodation(id: string, input: AccommodationInput)
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/accommodations");
+  revalidatePublicSite();
   redirect("/admin/accommodations");
 }
 
@@ -67,5 +70,6 @@ export async function deleteAccommodation(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/accommodations");
+  revalidatePublicSite();
   redirect("/admin/accommodations");
 }

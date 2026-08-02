@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePublicSite } from "@/lib/revalidate";
 
 export interface DestinationInput {
   countryName: string;
@@ -45,7 +46,7 @@ export async function createDestination(input: DestinationInput): Promise<void> 
 
   revalidatePath("/admin/destinations");
   revalidatePath("/destinations");
-  revalidatePath("/");
+  revalidatePublicSite();
   redirect("/admin/destinations");
 }
 
@@ -58,7 +59,7 @@ export async function updateDestination(id: string, input: DestinationInput): Pr
 
   revalidatePath("/admin/destinations");
   revalidatePath("/destinations");
-  revalidatePath("/");
+  revalidatePublicSite();
   redirect("/admin/destinations");
 }
 
@@ -71,6 +72,6 @@ export async function deleteDestination(id: string): Promise<void> {
 
   revalidatePath("/admin/destinations");
   revalidatePath("/destinations");
-  revalidatePath("/");
+  revalidatePublicSite();
   redirect("/admin/destinations");
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePublicSite } from "@/lib/revalidate";
 import type { ContentBlock } from "@/lib/blogBlocks";
 
 export interface BlogPostInput {
@@ -63,6 +64,7 @@ export async function createBlogPost(input: BlogPostInput): Promise<void> {
 
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
+  revalidatePublicSite();
   redirect("/admin/blog");
 }
 
@@ -75,6 +77,7 @@ export async function updateBlogPost(id: string, input: BlogPostInput): Promise<
 
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
+  revalidatePublicSite();
   redirect("/admin/blog");
 }
 
@@ -87,5 +90,6 @@ export async function deleteBlogPost(id: string): Promise<void> {
 
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
+  revalidatePublicSite();
   redirect("/admin/blog");
 }

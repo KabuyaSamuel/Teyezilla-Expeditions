@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePublicSite } from "@/lib/revalidate";
 
 export interface CollectionInput {
   name: string;
@@ -71,6 +72,7 @@ export async function createCollection(input: CollectionInput): Promise<void> {
 
   revalidatePath("/admin/collections");
   revalidatePath("/collections");
+  revalidatePublicSite();
   redirect("/admin/collections");
 }
 
@@ -85,6 +87,7 @@ export async function updateCollection(id: string, input: CollectionInput): Prom
 
   revalidatePath("/admin/collections");
   revalidatePath("/collections");
+  revalidatePublicSite();
   redirect("/admin/collections");
 }
 
@@ -98,5 +101,6 @@ export async function deleteCollection(id: string): Promise<void> {
 
   revalidatePath("/admin/collections");
   revalidatePath("/collections");
+  revalidatePublicSite();
   redirect("/admin/collections");
 }

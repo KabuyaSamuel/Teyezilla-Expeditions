@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePublicSite } from "@/lib/revalidate";
 
 export async function updateSiteSetting(formData: FormData): Promise<void> {
   const key = formData.get("key");
@@ -21,7 +22,7 @@ export async function updateSiteSetting(formData: FormData): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/settings");
-  revalidatePath("/");
+  revalidatePublicSite();
 }
 
 export async function updateSiteSettings(formData: FormData): Promise<void> {
@@ -37,5 +38,5 @@ export async function updateSiteSettings(formData: FormData): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/settings");
-  revalidatePath("/");
+  revalidatePublicSite();
 }

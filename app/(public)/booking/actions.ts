@@ -18,6 +18,7 @@ import {
   type EnquiryFormState,
 } from "@/lib/enquiry-shared";
 import { countryCodeForName, generateBookingReference } from "@/lib/country-codes";
+import { captureServerActionError } from "@/lib/monitoring";
 
 interface ProductRef {
   id: string;
@@ -94,6 +95,7 @@ export async function submitBookingEnquiry(
   const service = getSupabaseServiceClient();
   const db = service ?? getSupabasePublicClient();
   if (!db) {
+    captureServerActionError("booking", "Supabase not configured -- both service and public clients unavailable.");
     return { formError: "Our enquiry system is temporarily unavailable. Please email us or reach out on WhatsApp." };
   }
 
@@ -114,7 +116,7 @@ export async function submitBookingEnquiry(
       .select("id")
       .single();
     if (error) {
-      console.warn("[booking] customer upsert failed:", error.message);
+      captureServerActionError("booking", `customer upsert failed: ${error.message}`, { email: input.email });
     } else {
       customerId = data?.id ?? null;
     }
@@ -166,7 +168,7 @@ export async function submitBookingEnquiry(
     const { data, error } = service ? await insertQuery.select("id").maybeSingle() : await insertQuery;
     if (error) {
       if (attempt === 1) {
-        console.warn("[booking] booking insert failed:", error.message);
+        captureServerActionError("booking", `booking insert failed: ${error.message}`, { email: input.email });
         return { formError: "Something went wrong saving your enquiry. Please try again or contact us on WhatsApp." };
       }
     } else {
@@ -200,7 +202,7 @@ export async function submitBookingEnquiry(
     // counts only count the lead once instead of once per table.
     booking_id: bookingId,
   });
-  if (inquiryError) console.warn("[booking] inquiry insert failed:", inquiryError.message);
+  if (inquiryError) captureServerActionError("booking", `inquiry insert failed: ${inquiryError.message}`, { email: input.email });
 
   // 4. Admin notification (fail-soft, never block the submission).
   await createNotification({

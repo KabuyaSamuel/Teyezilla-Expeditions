@@ -6,6 +6,7 @@ import { createNotification } from "@/lib/admin/actions/notifications";
 import { sendAdminNotification, sendCustomerConfirmation } from "@/lib/email";
 import { adminEnquiryEmail, customerContactConfirmationEmail } from "@/lib/email-templates";
 import { contactSchema, zodFieldErrors, type EnquiryFormState } from "@/lib/enquiry-shared";
+import { captureServerActionError } from "@/lib/monitoring";
 
 export async function submitContactMessage(
   _prevState: EnquiryFormState,
@@ -23,6 +24,7 @@ export async function submitContactMessage(
 
   const db = getSupabaseServiceClient() ?? getSupabasePublicClient();
   if (!db) {
+    captureServerActionError("contact", "Supabase not configured -- both service and public clients unavailable.");
     return { formError: "Our contact form is temporarily unavailable. Please email us or reach out on WhatsApp." };
   }
 
@@ -34,7 +36,7 @@ export async function submitContactMessage(
     status: "new",
   });
   if (error) {
-    console.warn("[contact] inquiry insert failed:", error.message);
+    captureServerActionError("contact", `inquiry insert failed: ${error.message}`, { email: input.email });
     return { formError: "Something went wrong sending your message. Please try again or contact us on WhatsApp." };
   }
 

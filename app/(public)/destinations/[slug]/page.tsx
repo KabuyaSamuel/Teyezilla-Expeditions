@@ -8,6 +8,8 @@ import { getJourneysByDestination } from "@/lib/journeys";
 import { getRelatedBlogPosts } from "@/lib/blog";
 import TourCard from "@/components/TourCard";
 import RelatedContent from "@/components/RelatedContent";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbListJsonLd, faqPageJsonLd } from "@/lib/jsonld";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -48,43 +50,21 @@ export default async function DestinationPage({ params }: Props) {
     getRelatedBlogPosts(destination.id, undefined, 3),
   ]);
 
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "/" },
-      { "@type": "ListItem", position: 2, name: "Destinations", item: "/destinations" },
-      { "@type": "ListItem", position: 3, name: destination.countryName, item: `/destinations/${destination.slug}` },
-    ],
-  };
+  const breadcrumbJsonLd = breadcrumbListJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Destinations", path: "/destinations" },
+    { name: destination.countryName, path: `/destinations/${destination.slug}` },
+  ]);
 
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: `What is the best time to visit ${destination.countryName}?`,
-        acceptedAnswer: { "@type": "Answer", text: destination.bestTimeToVisit },
-      },
-      {
-        "@type": "Question",
-        name: `Do I need a visa to visit ${destination.countryName}?`,
-        acceptedAnswer: { "@type": "Answer", text: destination.visaInfo },
-      },
-    ],
-  };
+  const faqJsonLd = faqPageJsonLd([
+    { question: `What is the best time to visit ${destination.countryName}?`, answer: destination.bestTimeToVisit },
+    { question: `Do I need a visa to visit ${destination.countryName}?`, answer: destination.visaInfo },
+  ]);
 
   return (
     <div>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      <JsonLd data={breadcrumbJsonLd} />
+      <JsonLd data={faqJsonLd} />
 
       <div className="relative h-[420px] w-full">
         <Image

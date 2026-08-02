@@ -17,6 +17,8 @@ import ProductVehicles from "@/components/ProductVehicles";
 import ProductAccommodations from "@/components/ProductAccommodations";
 import TourCard from "@/components/TourCard";
 import RelatedContent from "@/components/RelatedContent";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbListJsonLd } from "@/lib/jsonld";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -93,12 +95,16 @@ export default async function JourneyPage({ params }: Props) {
     { label: "Languages", value: journey.languages.join(", ") },
   ];
 
+  const breadcrumbJsonLd = breadcrumbListJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Journeys", path: "/journeys" },
+    { name: journey.title, path: `/journeys/${journey.slug}` },
+  ]);
+
   return (
     <div>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(touristTripJsonLd) }}
-      />
+      <JsonLd data={touristTripJsonLd} />
+      <JsonLd data={breadcrumbJsonLd} />
 
       <div className="relative h-[380px] w-full">
         {journey.heroImage && (

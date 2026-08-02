@@ -19,6 +19,8 @@ import ProductAddons from "@/components/ProductAddons";
 import ProductVehicles from "@/components/ProductVehicles";
 import ProductAccommodations from "@/components/ProductAccommodations";
 import RelatedContent from "@/components/RelatedContent";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbListJsonLd, faqPageJsonLd } from "@/lib/jsonld";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -77,25 +79,27 @@ export default async function TourPage({ params }: Props) {
     },
   };
 
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: `How much does the ${tour.title} cost?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `The ${tour.title} starts from ${tour.currency} ${tour.priceFrom} per person for ${formatTourDuration(tour)}.`,
-        },
-      },
-      {
-        "@type": "Question",
-        name: `How difficult is the ${tour.title}?`,
-        acceptedAnswer: { "@type": "Answer", text: `This tour is rated ${tour.difficulty}.` },
-      },
-    ],
-  };
+  const faqJsonLd = faqPageJsonLd([
+    {
+      question: `How much does the ${tour.title} cost?`,
+      answer: `The ${tour.title} starts from ${tour.currency} ${tour.priceFrom} per person for ${formatTourDuration(tour)}.`,
+    },
+    { question: `How difficult is the ${tour.title}?`, answer: `This tour is rated ${tour.difficulty}.` },
+  ]);
+
+  const breadcrumbJsonLd = breadcrumbListJsonLd(
+    destination
+      ? [
+          { name: "Home", path: "/" },
+          { name: "Destinations", path: "/destinations" },
+          { name: destination.countryName, path: `/destinations/${destination.slug}` },
+          { name: tour.title, path: `/tours/${tour.slug}` },
+        ]
+      : [
+          { name: "Home", path: "/" },
+          { name: tour.title, path: `/tours/${tour.slug}` },
+        ]
+  );
 
   const facts = [
     { label: "Duration", value: formatTourDuration(tour) },
@@ -115,14 +119,9 @@ export default async function TourPage({ params }: Props) {
 
   return (
     <div>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(touristTripJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      <JsonLd data={touristTripJsonLd} />
+      <JsonLd data={faqJsonLd} />
+      <JsonLd data={breadcrumbJsonLd} />
 
       <div className="relative h-[380px] w-full">
         <Image src={tour.heroImage} alt={tour.title} fill priority sizes="100vw" className="object-cover" />

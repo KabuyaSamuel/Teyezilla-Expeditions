@@ -19,8 +19,11 @@ export default function TourPicker({
     <section className="card p-6">
       <h2 className="font-heading text-lg font-semibold text-foreground">Included Tours & Experiences</h2>
       <p className="mt-1 text-xs text-foreground/50">
-        Link the real tours/safaris/experiences this journey is built from. Shown on the public
-        journey page as "This Journey Includes," each with its own View Tour link.
+        Link the real tours/safaris/experiences this journey is built from. Add new ones in{" "}
+        <a href="/admin/tours" className="text-primary hover:underline">
+          Tour Management
+        </a>
+        .
       </p>
       {tours.length === 0 ? (
         <p className="mt-3 text-sm text-foreground/50">No published tours yet.</p>

@@ -62,7 +62,9 @@ function toRow(input: TourInput) {
     title: input.title,
     slug: input.slug || slugify(input.title),
     destination_id: input.destinationId,
-    difficulty: input.difficulty,
+    // The DB column has a check constraint allowing only Easy/Moderate/
+    // Challenging or NULL -- "" (unset in the form) isn't a valid value.
+    difficulty: input.difficulty || null,
     duration_days: input.durationDays,
     duration_hours: input.durationHours,
     hero_image: input.heroImage,

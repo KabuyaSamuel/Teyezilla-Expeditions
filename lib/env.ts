@@ -51,7 +51,10 @@ export const env = createEnv({
 
     // Phase 4, not yet wired into any code path.
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().optional(),
+    // Commented out in app/layout.tsx until this is set and the domain is
+    // connected -- see the <GoogleAnalytics> block there.
     NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string().optional(),
+    // Not wired -- GA4 is loaded directly, not through a GTM container.
     NEXT_PUBLIC_GTM_ID: z.string().optional(),
   },
   // Next.js inlines NEXT_PUBLIC_* at build time via static analysis, which

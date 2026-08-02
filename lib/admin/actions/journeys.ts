@@ -70,7 +70,9 @@ function toRow(input: JourneyInput) {
     duration_days: input.durationDays,
     price_from: input.priceFrom,
     currency: input.currency,
-    difficulty: input.difficulty,
+    // The DB column has a check constraint allowing only Easy/Moderate/
+    // Challenging or NULL -- "" (unset in the form) isn't a valid value.
+    difficulty: input.difficulty || null,
     inclusions: input.inclusions,
     exclusions: input.exclusions,
     itinerary: input.itinerary,

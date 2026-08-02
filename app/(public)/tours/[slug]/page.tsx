@@ -180,7 +180,7 @@ export default async function TourPage({ params }: Props) {
 
             {tour.overview && (
               <div>
-                <h2 className="font-heading text-2xl font-bold text-foreground">The Full Story</h2>
+                <h2 className="font-heading text-2xl font-bold text-foreground">The Journey Story</h2>
                 <p className="mt-3 whitespace-pre-line text-foreground/70">{tour.overview}</p>
               </div>
             )}

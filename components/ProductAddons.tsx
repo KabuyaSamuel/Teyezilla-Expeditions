@@ -7,6 +7,10 @@ function formatDayRange(addon: ProductAddon): string {
   return "";
 }
 
+function hrefForAddon(bookingHref: string, addonId: string): string {
+  return `${bookingHref}${bookingHref.includes("?") ? "&" : "?"}addon=${addonId}`;
+}
+
 export default function ProductAddons({ addons, bookingHref }: { addons: ProductAddon[]; bookingHref: string }) {
   const upsells = addons.filter((a) => a.kind === "addon");
   const extensions = addons.filter((a) => a.kind === "extension");
@@ -29,7 +33,7 @@ export default function ProductAddons({ addons, bookingHref }: { addons: Product
                       {a.currency} {a.price.toLocaleString()}
                     </p>
                   )}
-                  <Link href={bookingHref} className="btn-outline mt-3 block text-center text-sm">
+                  <Link href={hrefForAddon(bookingHref, a.id)} className="btn-outline mt-3 block text-center text-sm">
                     {a.ctaLabel || `Add ${a.title}`}
                   </Link>
                 </div>

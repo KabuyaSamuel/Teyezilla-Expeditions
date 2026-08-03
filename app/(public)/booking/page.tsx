@@ -44,11 +44,16 @@ function applyTierOverride<T extends { pricingTiers: { id: string; tierName: str
 export default async function BookingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tour?: string; journey?: string; tier?: string }>;
+  searchParams: Promise<{ tour?: string; journey?: string; tier?: string; addon?: string }>;
 }) {
-  const { tour: tourSlug, journey: journeySlug, tier: tierId } = await searchParams;
+  const { tour: tourSlug, journey: journeySlug, tier: tierId, addon: addonId } = await searchParams;
 
   let product: SummaryProduct | undefined;
+  // The starting-from price, unaffected by any tier override -- used as the
+  // booking form's baseline so switching tiers there always has a true
+  // "from" price to fall back to.
+  let basePriceFrom: number | undefined;
+  let pricingTiers: { id: string; tierName: string; price: number; currency: string }[] = [];
   if (tourSlug) {
     const tour = await getTourBySlug(tourSlug);
     if (tour) {
@@ -65,6 +70,8 @@ export default async function BookingPage({
         tour,
         tierId
       );
+      basePriceFrom = tour.priceFrom;
+      pricingTiers = tour.pricingTiers;
     }
   } else if (journeySlug) {
     const journey = await getJourneyBySlug(journeySlug);
@@ -82,6 +89,8 @@ export default async function BookingPage({
         journey,
         tierId
       );
+      basePriceFrom = journey.priceFrom;
+      pricingTiers = journey.pricingTiers;
     }
   }
 
@@ -157,13 +166,15 @@ export default async function BookingPage({
                 slug: product.slug,
                 title: product.title,
                 kind: product.kind,
-                priceFrom: product.priceFrom,
+                priceFrom: basePriceFrom ?? product.priceFrom,
                 currency: product.currency,
                 addons: addonsBySlug[product.slug] ?? [],
+                pricingTiers: pricingTiers,
                 tierId: product.tierId,
               }
             : undefined
         }
+        preselectedAddonId={addonId}
         options={options}
       />
 

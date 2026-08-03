@@ -8,6 +8,7 @@ import GuestRoster from "@/components/admin/GuestRoster";
 import { getBookingById } from "@/lib/admin/data/bookings";
 import { getCustomerById } from "@/lib/admin/data/customers";
 import { getInquiryByBookingId } from "@/lib/admin/data/inquiries";
+import { getInquiryReplies } from "@/lib/admin/data/inquiry-replies";
 import { getBookingGuests } from "@/lib/admin/data/booking-guests";
 import { addBookingGuest, removeBookingGuest } from "@/lib/admin/actions/booking-guests";
 import { getStatusOptions } from "@/lib/admin/data/status-options";
@@ -33,6 +34,7 @@ export default async function BookingDetailPage({
     getInquiryByBookingId(id),
     getBookingGuests(id),
   ]);
+  const linkedInquiryReplies = linkedInquiry ? await getInquiryReplies(linkedInquiry.id) : [];
   // Loyalty redemption is a write to a customer's point balance; restrict it
   // to the roles the loyalty programme is scoped to (see permissions.ts).
   const canRedeemLoyalty = session?.role === "admin" || session?.role === "manager";
@@ -99,7 +101,7 @@ export default async function BookingDetailPage({
                 <InquiryReplyForm
                   id={linkedInquiry.id}
                   status={linkedInquiry.status}
-                  existingReply={linkedInquiry.staffReply}
+                  replies={linkedInquiryReplies}
                   customerEmail={linkedInquiry.customerEmail}
                   customerPhone={linkedInquiry.customerPhone}
                   source={linkedInquiry.source}

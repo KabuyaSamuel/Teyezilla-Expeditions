@@ -205,3 +205,22 @@ export function customerQuoteEmail({
     `
   );
 }
+
+// ---------- Staff reply (Inquiry Management) ----------
+
+export function staffReplyEmail({
+  customerName,
+  message,
+}: {
+  customerName: string;
+  message: string;
+}): string {
+  return layout(
+    "A Reply From Our Team",
+    `
+    <p style="margin:0 0 12px;">Dear ${escapeHtml(customerName)},</p>
+    <p style="margin:0 0 12px;white-space:pre-line;">${escapeHtml(message)}</p>
+    <p style="margin:16px 0 0;">Warm regards,<br/>The Teyezilla Expeditions Team</p>
+    `
+  );
+}

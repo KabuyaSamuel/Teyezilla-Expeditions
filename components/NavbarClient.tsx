@@ -45,6 +45,11 @@ export default function NavbarClient({
   const [hovered, setHovered] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openMobileSection, setOpenMobileSection] = useState<string | null>(null);
+  // Mobile-only: sections with grouped sub-links (currently just Destinations,
+  // whose sub-continent groups can flatten into a long list) start truncated
+  // to 3 links with a "View more" toggle. Desktop keeps its own per-group
+  // slice (line ~184) untouched.
+  const [expandedMobileGroups, setExpandedMobileGroups] = useState<Record<string, boolean>>({});
   const navRef = useRef<HTMLDivElement>(null);
 
   const isHome = pathname === "/";
@@ -71,6 +76,7 @@ export default function NavbarClient({
     setMenuOpen(false);
     setOpenDropdown(null);
     setOpenMobileSection(null);
+    setExpandedMobileGroups({});
   }, [pathname]);
 
   // MobileTabBar's Search/Menu buttons live outside this component (they're
@@ -303,9 +309,15 @@ export default function NavbarClient({
               section is expanded, so tablet width (768-1023px) doesn't sit
               on an unused right half the way a plain phone-width column would. */}
           {NAV_ITEMS.map((item) => {
+            // A destination can appear in more than one sub-continent group
+            // (e.g. an island group and its parent region); dedupe by href
+            // so the flattened mobile list doesn't repeat it or collide on
+            // React key.
             const flatLinks: DropdownLink[] = item.groups
-              ? item.groups.flatMap((g) => g.links)
+              ? Array.from(new Map(item.groups.flatMap((g) => g.links).map((l) => [l.href, l])).values())
               : item.dropdown ?? [];
+            const showAll = expandedMobileGroups[item.label] ?? false;
+            const visibleLinks = !showAll ? flatLinks.slice(0, 3) : flatLinks;
 
             return flatLinks.length > 0 ? (
               <div key={item.href}>
@@ -323,7 +335,7 @@ export default function NavbarClient({
                 </button>
                 {openMobileSection === item.label && (
                   <div className="ml-3 grid grid-cols-1 gap-1 border-l border-secondary/30 pl-3 pb-2 md:grid-cols-2 md:gap-x-6">
-                    {flatLinks.map((link) => (
+                    {visibleLinks.map((link) => (
                       <Link
                         key={link.href}
                         href={link.href}
@@ -333,6 +345,17 @@ export default function NavbarClient({
                         {link.label}
                       </Link>
                     ))}
+                    {!showAll && flatLinks.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedMobileGroups((v) => ({ ...v, [item.label]: true }))
+                        }
+                        className="py-1.5 text-left text-sm font-semibold text-primary"
+                      >
+                        View more
+                      </button>
+                    )}
                     <Link
                       href={item.href}
                       onClick={() => setMenuOpen(false)}

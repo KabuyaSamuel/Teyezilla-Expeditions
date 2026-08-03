@@ -23,6 +23,7 @@ export default function InquiryReplyForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<string | null>(null);
+  const [emailFailed, setEmailFailed] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -47,7 +48,12 @@ export default function InquiryReplyForm({
       setError(result.error);
       return;
     }
-    setConfirmation(result.emailSent ? "Reply sent to the customer by email." : "Reply saved (not emailed -- email sending isn't configured).");
+    setEmailFailed(!result.emailSent);
+    setConfirmation(
+      result.emailSent
+        ? "Reply sent to the customer by email."
+        : `Reply saved, but the email failed: ${result.emailFailureReason ?? "unknown error"}.`
+    );
     setReply("");
   }
 
@@ -74,7 +80,9 @@ export default function InquiryReplyForm({
 
       <form onSubmit={handleSubmit} className="space-y-3">
         {error && <p className="text-sm text-error">{error}</p>}
-        {confirmation && <p className="text-sm text-success">{confirmation}</p>}
+        {confirmation && (
+          <p className={`text-sm ${emailFailed ? "text-error" : "text-success"}`}>{confirmation}</p>
+        )}
         <textarea
           name="reply"
           value={reply}

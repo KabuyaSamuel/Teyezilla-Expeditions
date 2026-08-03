@@ -39,6 +39,7 @@ export interface SendInquiryReplyResult {
   error?: string;
   success?: boolean;
   emailSent?: boolean;
+  emailFailureReason?: string;
 }
 
 // Returns a result instead of throwing: a thrown Error's message gets
@@ -63,7 +64,7 @@ export async function sendInquiryReply(id: string, currentStatus: string, formDa
     .maybeSingle();
   if (inquiryError || !inquiry) return { error: inquiryError?.message ?? "Inquiry not found." };
 
-  const { sent } = await sendCustomerConfirmation({
+  const { sent, reason } = await sendCustomerConfirmation({
     to: inquiry.customer_email,
     subject: "A reply from Teyezilla Expeditions",
     html: staffReplyEmail({ customerName: inquiry.customer_name ?? "", message: reply }),
@@ -85,5 +86,5 @@ export async function sendInquiryReply(id: string, currentStatus: string, formDa
   revalidatePath(`/admin/inquiries/${id}`);
   revalidatePath("/admin/bookings");
 
-  return { success: true, emailSent: sent };
+  return { success: true, emailSent: sent, emailFailureReason: sent ? undefined : reason };
 }

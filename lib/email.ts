@@ -11,6 +11,12 @@ import { env } from "@/lib/env";
 
 export interface EmailResult {
   sent: boolean;
+  // Human-readable cause of a failed send, distinguishing "not configured"
+  // from a real Resend API error (e.g. unverified domain) or a thrown
+  // exception -- these used to all collapse into the same generic message,
+  // which made "why didn't this email send" undebuggable without reading
+  // server logs.
+  reason?: string;
 }
 
 interface SendArgs {
@@ -24,7 +30,7 @@ async function send({ to, subject, html, text }: SendArgs): Promise<EmailResult>
   const apiKey = env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn("[email] RESEND_API_KEY not set, skipping send:", subject);
-    return { sent: false };
+    return { sent: false, reason: "Email sending is not configured (missing API key)." };
   }
 
   const from = env.EMAIL_FROM ?? "Teyezilla Expeditions <noreply@teyezillaexpeditions.com>";
@@ -40,12 +46,13 @@ async function send({ to, subject, html, text }: SendArgs): Promise<EmailResult>
     });
     if (error) {
       console.warn("[email] Resend send failed:", error.message);
-      return { sent: false };
+      return { sent: false, reason: error.message };
     }
     return { sent: true };
   } catch (err) {
-    console.warn("[email] Resend send threw:", err instanceof Error ? err.message : err);
-    return { sent: false };
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.warn("[email] Resend send threw:", message);
+    return { sent: false, reason: message };
   }
 }
 
@@ -75,7 +82,7 @@ export async function sendAdminNotification({
   const to = env.ADMIN_NOTIFICATION_EMAIL;
   if (!to) {
     console.warn("[email] ADMIN_NOTIFICATION_EMAIL not set, skipping admin notification:", subject);
-    return { sent: false };
+    return { sent: false, reason: "Admin notification email address is not configured." };
   }
   return send({ to, subject, html, text });
 }

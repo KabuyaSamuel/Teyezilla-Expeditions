@@ -61,6 +61,10 @@ export default function BookingActions({
 
   async function handleSendQuote() {
     const amount = Number(quoteAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setError("Enter a quoted amount greater than zero.");
+      return;
+    }
     await run(async () => {
       const { emailSent } = await sendQuote(id, amount, quoteMessage.trim(), redeemPointsNum || undefined);
       setQuoteOpen(false);
@@ -189,7 +193,7 @@ export default function BookingActions({
             <button
               type="button"
               onClick={handleSendQuote}
-              disabled={busy || !quoteAmount}
+              disabled={busy || !quoteAmount || Number(quoteAmount) <= 0}
               className="btn-primary px-5 py-2 text-sm disabled:opacity-40"
             >
               {busy ? "Sending…" : "Save & Email Quote"}

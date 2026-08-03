@@ -863,6 +863,48 @@ export type Database = {
           },
         ]
       }
+      inquiry_replies: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          inquiry_id: string
+          message: string
+          sent_via_email: boolean
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          inquiry_id: string
+          message: string
+          sent_via_email?: boolean
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          inquiry_id?: string
+          message?: string
+          sent_via_email?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inquiry_replies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inquiry_replies_inquiry_id_fkey"
+            columns: ["inquiry_id"]
+            isOneToOne: false
+            referencedRelation: "inquiries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journey_accommodations: {
         Row: {
           accommodation_id: string

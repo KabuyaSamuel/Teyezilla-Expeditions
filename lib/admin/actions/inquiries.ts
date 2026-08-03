@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { sendCustomerConfirmation } from "@/lib/email";
+import { staffReplyEmail } from "@/lib/email-templates";
 
 export async function updateInquiryStatus(id: string, formData: FormData): Promise<void> {
   const status = String(formData.get("status") ?? "");
@@ -33,25 +35,55 @@ export async function assignInquiry(id: string, formData: FormData): Promise<voi
   revalidatePath(`/admin/inquiries/${id}`);
 }
 
-// Records the reply and advances the inquiry to "quoted" if it's still
-// "new"/"in_progress"; no email/WhatsApp API is wired up yet (Phase 4), so
-// this is the record of what was sent; the actual send happens via the
-// mailto:/wa.me link the reply page opens alongside it.
-export async function sendInquiryReply(id: string, currentStatus: string, formData: FormData): Promise<void> {
+export interface SendInquiryReplyResult {
+  error?: string;
+  success?: boolean;
+  emailSent?: boolean;
+}
+
+// Returns a result instead of throwing: a thrown Error's message gets
+// redacted by Next.js in production ("An error occurred in the Server
+// Components render...", digest only, no actual text) since a Server
+// Action's rejection is treated the same as an unexpected crash -- there's
+// no way for a caller to show a useful message from that. Records the
+// reply as a new row in inquiry_replies (a thread, not a single
+// overwritten field), sends it to the customer via Resend when configured,
+// and advances the inquiry to "quoted" if it's still "new"/"in_progress".
+export async function sendInquiryReply(id: string, currentStatus: string, formData: FormData): Promise<SendInquiryReplyResult> {
   const reply = String(formData.get("reply") ?? "").trim();
-  if (!reply) throw new Error("Write a reply before sending.");
+  if (!reply) return { error: "Write a reply before sending." };
 
   const supabase = await getSupabaseServerClient();
-  if (!supabase) throw new Error("Supabase not configured.");
+  if (!supabase) return { error: "Supabase not configured." };
+
+  const { data: inquiry, error: inquiryError } = await supabase
+    .from("inquiries")
+    .select("customer_name, customer_email")
+    .eq("id", id)
+    .maybeSingle();
+  if (inquiryError || !inquiry) return { error: inquiryError?.message ?? "Inquiry not found." };
+
+  const { sent } = await sendCustomerConfirmation({
+    to: inquiry.customer_email,
+    subject: "A reply from Teyezilla Expeditions",
+    html: staffReplyEmail({ customerName: inquiry.customer_name ?? "", message: reply }),
+  });
+
+  const { error: replyError } = await supabase
+    .from("inquiry_replies")
+    .insert({ inquiry_id: id, message: reply, sent_via_email: sent });
+  if (replyError) return { error: replyError.message };
 
   const nextStatus = currentStatus === "new" || currentStatus === "in_progress" ? "quoted" : currentStatus;
-
   const { error } = await supabase
     .from("inquiries")
     .update({ staff_reply: reply, replied_at: new Date().toISOString(), status: nextStatus })
     .eq("id", id);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   revalidatePath("/admin/inquiries");
   revalidatePath(`/admin/inquiries/${id}`);
+  revalidatePath("/admin/bookings");
+
+  return { success: true, emailSent: sent };
 }

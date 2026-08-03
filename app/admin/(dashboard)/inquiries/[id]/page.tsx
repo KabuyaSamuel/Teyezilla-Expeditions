@@ -6,6 +6,7 @@ import InquiryControls from "@/components/admin/InquiryControls";
 import InquiryReplyForm from "@/components/admin/InquiryReplyForm";
 import TripPlannerInquiryPanel from "@/components/admin/TripPlannerInquiryPanel";
 import { getInquiryById } from "@/lib/admin/data/inquiries";
+import { getInquiryReplies } from "@/lib/admin/data/inquiry-replies";
 import { getStaffMembers } from "@/lib/admin/data/staff";
 import { inquiryStatusTone } from "@/lib/admin/status-tone";
 
@@ -24,6 +25,7 @@ export default async function InquiryDetailPage({
   const { id } = await params;
   const [inquiry, staff] = await Promise.all([getInquiryById(id), getStaffMembers()]);
   if (!inquiry) notFound();
+  const replies = await getInquiryReplies(id);
 
   return (
     <div>
@@ -84,7 +86,7 @@ export default async function InquiryDetailPage({
             <InquiryReplyForm
               id={inquiry.id}
               status={inquiry.status}
-              existingReply={inquiry.staffReply}
+              replies={replies}
               customerEmail={inquiry.customerEmail}
               customerPhone={inquiry.customerPhone}
               source={inquiry.source}

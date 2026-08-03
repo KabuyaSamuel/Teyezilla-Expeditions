@@ -2,77 +2,106 @@
 
 import { useState } from "react";
 import { sendInquiryReply } from "@/lib/admin/actions/inquiries";
+import type { InquiryReply } from "@/lib/admin/data/inquiry-replies";
 
 export default function InquiryReplyForm({
   id,
   status,
-  existingReply,
+  replies,
   customerEmail,
   customerPhone,
   source,
 }: {
   id: string;
   status: string;
-  existingReply?: string;
+  replies: InquiryReply[];
   customerEmail: string;
   customerPhone: string;
   source: string;
 }) {
-  const [reply, setReply] = useState(existingReply ?? "");
+  const [reply, setReply] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [confirmation, setConfirmation] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    setSaving(true);
-    setSaved(false);
-    try {
-      await sendInquiryReply(id, status, new FormData(e.currentTarget));
-      setSaved(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save reply.");
-    } finally {
-      setSaving(false);
+    setConfirmation(null);
+
+    // Checked here, before calling the server action, rather than relying
+    // on the action's own validation error to reach the user -- Next.js
+    // redacts thrown Server Action errors in production, so a message like
+    // "Write a reply before sending." would show up as an opaque generic
+    // error instead. See sendInquiryReply's own comment for the full story.
+    if (!reply.trim()) {
+      setError("Write a reply before sending.");
+      return;
     }
+
+    setSaving(true);
+    const result = await sendInquiryReply(id, status, new FormData(e.currentTarget));
+    setSaving(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setConfirmation(result.emailSent ? "Reply sent to the customer by email." : "Reply saved (not emailed -- email sending isn't configured).");
+    setReply("");
   }
 
   const canSendViaWhatsapp = source === "whatsapp" && !!customerPhone;
-  const sendHref = canSendViaWhatsapp
+  const whatsappHref = canSendViaWhatsapp
     ? `https://wa.me/${customerPhone.replace(/[^\d]/g, "")}?text=${encodeURIComponent(reply)}`
-    : `mailto:${customerEmail}?subject=${encodeURIComponent("Re: your enquiry with Teyezilla Expeditions")}&body=${encodeURIComponent(reply)}`;
+    : undefined;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      {error && <p className="text-sm text-error">{error}</p>}
-      {saved && <p className="text-sm text-success">Reply saved.</p>}
-      <textarea
-        name="reply"
-        value={reply}
-        onChange={(e) => setReply(e.target.value)}
-        rows={5}
-        placeholder="Write your reply..."
-        className="w-full rounded-2xl border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-      />
-      <div className="flex flex-wrap gap-3">
-        <button type="submit" disabled={saving} className="btn-primary text-sm disabled:opacity-50">
-          {saving ? "Saving…" : "Save Reply"}
-        </button>
-        <a
-          href={sendHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-outline text-sm"
-        >
-          {canSendViaWhatsapp ? "Send via WhatsApp" : "Send via Email"}
-        </a>
-      </div>
-      {source === "whatsapp" && !customerPhone && (
-        <p className="text-xs text-foreground/50">
-          No phone number on file for this inquiry. Falling back to email.
-        </p>
+    <div className="space-y-4">
+      {replies.length > 0 && (
+        <div className="space-y-2">
+          {replies.map((r) => (
+            <div key={r.id} className="rounded-2xl border border-secondary/30 bg-secondary/5 p-3">
+              <p className="whitespace-pre-line text-sm text-foreground/80">{r.message}</p>
+              <p className="mt-1.5 text-xs text-foreground/50">
+                {new Date(r.createdAt).toLocaleString()}
+                {r.sentViaEmail ? " · Sent by email" : " · Not emailed"}
+              </p>
+            </div>
+          ))}
+        </div>
       )}
-    </form>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        {error && <p className="text-sm text-error">{error}</p>}
+        {confirmation && <p className="text-sm text-success">{confirmation}</p>}
+        <textarea
+          name="reply"
+          value={reply}
+          onChange={(e) => {
+            setReply(e.target.value);
+            setError(null);
+          }}
+          rows={5}
+          placeholder="Write your reply..."
+          className="w-full rounded-2xl border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+        <div className="flex flex-wrap gap-3">
+          <button type="submit" disabled={saving} className="btn-primary text-sm disabled:opacity-50">
+            {saving ? "Sending…" : "Send Reply"}
+          </button>
+          {canSendViaWhatsapp && (
+            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="btn-outline text-sm">
+              Open in WhatsApp
+            </a>
+          )}
+        </div>
+        {source === "whatsapp" && !customerPhone && (
+          <p className="text-xs text-foreground/50">
+            No phone number on file for this inquiry -- &ldquo;Send Reply&rdquo; will email {customerEmail || "the customer"} instead.
+          </p>
+        )}
+      </form>
+    </div>
   );
 }

@@ -10,6 +10,7 @@ import { getActivities } from "@/lib/activities";
 import { getExperienceTypes } from "@/lib/experienceTypes";
 import { getAdminVehicles } from "@/lib/admin/data/vehicles";
 import { getAdminAccommodations } from "@/lib/admin/data/accommodations";
+import { getMediaItems } from "@/lib/admin/data/media";
 
 export default async function EditTourPage({
   params,
@@ -17,13 +18,14 @@ export default async function EditTourPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [tour, destinations, activities, experienceTypes, vehicles, accommodations] = await Promise.all([
+  const [tour, destinations, activities, experienceTypes, vehicles, accommodations, mediaItems] = await Promise.all([
     getAdminTourBySlug(slug),
     getDestinations(),
     getActivities(),
     getExperienceTypes(),
     getAdminVehicles(),
     getAdminAccommodations(),
+    getMediaItems(),
   ]);
   if (!tour) notFound();
 
@@ -39,6 +41,7 @@ export default async function EditTourPage({
         experienceTypes={experienceTypes}
         vehicles={vehicles}
         accommodations={accommodations}
+        mediaItems={mediaItems}
       />
       <div className="mt-8">
         <AvailabilityCalendar

@@ -5,14 +5,16 @@ import { getActivities } from "@/lib/activities";
 import { getExperienceTypes } from "@/lib/experienceTypes";
 import { getAdminVehicles } from "@/lib/admin/data/vehicles";
 import { getAdminAccommodations } from "@/lib/admin/data/accommodations";
+import { getMediaItems } from "@/lib/admin/data/media";
 
 export default async function NewTourPage() {
-  const [destinations, activities, experienceTypes, vehicles, accommodations] = await Promise.all([
+  const [destinations, activities, experienceTypes, vehicles, accommodations, mediaItems] = await Promise.all([
     getDestinations(),
     getActivities(),
     getExperienceTypes(),
     getAdminVehicles(),
     getAdminAccommodations(),
+    getMediaItems(),
   ]);
 
   return (
@@ -24,6 +26,7 @@ export default async function NewTourPage() {
         experienceTypes={experienceTypes}
         vehicles={vehicles}
         accommodations={accommodations}
+        mediaItems={mediaItems}
       />
     </div>
   );

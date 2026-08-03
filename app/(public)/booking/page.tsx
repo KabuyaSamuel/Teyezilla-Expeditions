@@ -3,6 +3,7 @@ import Image from "next/image";
 import BookingEnquiryForm, { type ProductOption } from "@/components/BookingEnquiryForm";
 import { getTours, getTourBySlug } from "@/lib/tours";
 import { getJourneys, getJourneyBySlug } from "@/lib/journeys";
+import { getBookableAddonsBySlug } from "@/lib/productShared";
 import { whatsappLink } from "@/lib/enquiry-shared";
 
 export const metadata: Metadata = {
@@ -57,6 +58,8 @@ export default async function BookingPage({
     }
   }
 
+  const addonsBySlug = await getBookableAddonsBySlug();
+
   // No (or unrecognized) pre-fill: offer the full published catalogue.
   let options: ProductOption[] = [];
   if (!product) {
@@ -64,8 +67,22 @@ export default async function BookingPage({
     options = [
       ...tours
         .filter((t) => t.status === "published")
-        .map((t): ProductOption => ({ slug: t.slug, title: t.title, kind: "tour" })),
-      ...journeys.map((j): ProductOption => ({ slug: j.slug, title: j.title, kind: "journey" })),
+        .map((t): ProductOption => ({
+          slug: t.slug,
+          title: t.title,
+          kind: "tour",
+          priceFrom: t.priceFrom,
+          currency: t.currency,
+          addons: addonsBySlug[t.slug] ?? [],
+        })),
+      ...journeys.map((j): ProductOption => ({
+        slug: j.slug,
+        title: j.title,
+        kind: "journey",
+        priceFrom: j.priceFrom,
+        currency: j.currency,
+        addons: addonsBySlug[j.slug] ?? [],
+      })),
     ];
   }
 
@@ -103,7 +120,18 @@ export default async function BookingPage({
       )}
 
       <BookingEnquiryForm
-        preselected={product ? { slug: product.slug, title: product.title, kind: product.kind } : undefined}
+        preselected={
+          product
+            ? {
+                slug: product.slug,
+                title: product.title,
+                kind: product.kind,
+                priceFrom: product.priceFrom,
+                currency: product.currency,
+                addons: addonsBySlug[product.slug] ?? [],
+              }
+            : undefined
+        }
         options={options}
       />
 

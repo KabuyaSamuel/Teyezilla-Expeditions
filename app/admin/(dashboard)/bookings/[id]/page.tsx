@@ -76,6 +76,21 @@ export default async function BookingDetailPage({
             <div><dt className="text-foreground/50">Booking Status</dt><dd><Badge tone={bookingTone}>{booking.bookingStatus}</Badge></dd></div>
           </dl>
 
+          {(booking.basePrice > 0 || booking.addons.length > 0) && (
+            <div className="mt-6 rounded-2xl border border-secondary/20 bg-secondary/5 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
+                Requested at Enquiry Time
+              </p>
+              <dl className="mt-2 space-y-1 text-sm">
+                <div className="flex justify-between"><dt className="text-foreground/60">Base price</dt><dd className="font-medium text-foreground">{booking.currency} {booking.basePrice.toLocaleString()}</dd></div>
+                {booking.addons.map((a, i) => (
+                  <div key={i} className="flex justify-between"><dt className="text-foreground/60">+ {a.title}</dt><dd className="font-medium text-foreground">{a.currency} {a.price.toLocaleString()}</dd></div>
+                ))}
+                <div className="flex justify-between border-t border-secondary/20 pt-1"><dt className="font-medium text-foreground">Requested total</dt><dd className="font-heading font-bold text-accent">{booking.currency} {(booking.basePrice + booking.addonsTotal).toLocaleString()}</dd></div>
+              </dl>
+            </div>
+          )}
+
           {booking.specialRequests && (
             <>
               <h2 className="mt-8 font-heading text-lg font-semibold text-foreground">Special Requests</h2>
@@ -125,6 +140,7 @@ export default async function BookingDetailPage({
               bookingStatus={booking.bookingStatus}
               paymentStatus={booking.paymentStatus}
               currency={booking.currency}
+              requestedTotal={booking.basePrice + booking.addonsTotal}
               bookingStatusOptions={bookingStatusOptions}
               paymentStatusOptions={paymentStatusOptions}
               customerLoyaltyBalance={customer?.loyaltyPoints}

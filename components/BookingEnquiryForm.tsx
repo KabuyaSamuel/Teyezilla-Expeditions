@@ -1,13 +1,24 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { submitBookingEnquiry } from "@/app/(public)/booking/actions";
 import { BUDGET_RANGES, COUNTRIES, REFERRAL_SOURCES, type EnquiryFormState } from "@/lib/enquiry-shared";
+
+export interface BookableAddonOption {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  currency: string;
+}
 
 export interface ProductOption {
   slug: string;
   title: string;
   kind: "tour" | "journey";
+  priceFrom: number;
+  currency: string;
+  addons: BookableAddonOption[];
 }
 
 const inputClass =
@@ -38,6 +49,7 @@ export default function BookingEnquiryForm({
   const [selection, setSelection] = useState(
     preselected ? `${preselected.kind}:${preselected.slug}` : ""
   );
+  const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
   const [fields, setFields] = useState({
     fullName: "",
     email: "",
@@ -58,10 +70,32 @@ export default function BookingEnquiryForm({
   const errors = state.fieldErrors ?? {};
   const [selKind, selSlug] = selection.split(":");
 
+  const allOptions = preselected ? [preselected, ...options] : options;
+  const selectedProduct = useMemo(
+    () => allOptions.find((o) => o.kind === selKind && o.slug === selSlug),
+    [allOptions, selKind, selSlug]
+  );
+  const availableAddons = selectedProduct?.addons ?? [];
+
+  function toggleAddon(id: string) {
+    setSelectedAddonIds((ids) => (ids.includes(id) ? ids.filter((v) => v !== id) : [...ids, id]));
+  }
+
+  function handleSelectionChange(value: string) {
+    setSelection(value);
+    setSelectedAddonIds([]);
+  }
+
+  const addonsTotal = availableAddons
+    .filter((a) => selectedAddonIds.includes(a.id))
+    .reduce((sum, a) => sum + a.price, 0);
+  const estimatedTotal = (selectedProduct?.priceFrom ?? 0) + addonsTotal;
+
   return (
     <form action={formAction} onReset={(e) => e.preventDefault()} className="mt-8 space-y-5" noValidate>
       <input type="hidden" name="tourSlug" value={selKind === "tour" ? selSlug : ""} />
       <input type="hidden" name="journeySlug" value={selKind === "journey" ? selSlug : ""} />
+      <input type="hidden" name="addonIds" value={selectedAddonIds.join(",")} />
 
       {!preselected && (
         <div>
@@ -71,7 +105,7 @@ export default function BookingEnquiryForm({
           <select
             id="product"
             value={selection}
-            onChange={(e) => setSelection(e.target.value)}
+            onChange={(e) => handleSelectionChange(e.target.value)}
             className={inputClass}
           >
             <option value="">Choose a tour or journey…</option>
@@ -284,6 +318,55 @@ export default function BookingEnquiryForm({
           className={areaClass}
         />
       </div>
+
+      {availableAddons.length > 0 && (
+        <div>
+          <p className="mb-1 block px-2 text-sm font-medium text-foreground">
+            Make it your own (optional)
+          </p>
+          <p className="mb-2 px-2 text-xs text-foreground/50">
+            Add any extras you&apos;d like included in your quote. Pick as many as you want.
+          </p>
+          <div className="space-y-2">
+            {availableAddons.map((addon) => (
+              <label
+                key={addon.id}
+                className="flex items-start gap-3 rounded-2xl border border-secondary/40 px-4 py-3 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 accent-primary"
+                  checked={selectedAddonIds.includes(addon.id)}
+                  onChange={() => toggleAddon(addon.id)}
+                />
+                <span className="flex-1">
+                  <span className="font-medium text-foreground">{addon.title}</span>
+                  {addon.description && <span className="mt-0.5 block text-foreground/60">{addon.description}</span>}
+                </span>
+                <span className="whitespace-nowrap font-semibold text-primary">
+                  {addon.currency} {addon.price.toLocaleString()}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {selectedProduct && (
+        <div className="rounded-2xl bg-secondary/10 px-5 py-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-foreground/60">
+              {selectedProduct.title} (from, per person){addonsTotal > 0 ? " + add-ons" : ""}
+            </span>
+            <span className="font-heading text-lg font-bold text-accent">
+              {selectedProduct.currency} {estimatedTotal.toLocaleString()}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-foreground/50">
+            Estimated starting total, per person -- our team confirms your final quote based on dates, group size, and availability.
+          </p>
+        </div>
+      )}
 
       {state.formError && (
         <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{state.formError}</p>

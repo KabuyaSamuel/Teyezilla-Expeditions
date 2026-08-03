@@ -15,6 +15,9 @@ interface EnquirySummary {
   children: number | null;
   budgetRange: string | null;
   productTitle: string;
+  totalAmount: number;
+  currency: string;
+  addons: { title: string; price: number }[];
 }
 
 // Anonymous visitors can't read the bookings table (insert-only RLS), so the
@@ -26,7 +29,9 @@ async function getEnquiry(reference: string): Promise<EnquirySummary | null> {
 
   const { data, error } = await supabase
     .from("bookings")
-    .select("travel_date, flexible_dates, adults, children, budget_range, tour:tours(title), journey:journeys(title)")
+    .select(
+      "id, travel_date, flexible_dates, adults, children, budget_range, total_amount, currency, tour:tours(title), journey:journeys(title), booking_addons(title, price)"
+    )
     .eq("booking_reference", reference)
     .maybeSingle();
 
@@ -44,6 +49,12 @@ async function getEnquiry(reference: string): Promise<EnquirySummary | null> {
     children: data.children,
     budgetRange: data.budget_range,
     productTitle: tour?.title ?? journey?.title ?? "your chosen journey",
+    totalAmount: Number(data.total_amount ?? 0),
+    currency: data.currency ?? "USD",
+    addons: (data.booking_addons ?? []).map((a: { title: string; price: number }) => ({
+      title: a.title,
+      price: Number(a.price),
+    })),
   };
 }
 
@@ -94,6 +105,22 @@ export default async function BookingConfirmationPage({
                 <dd className="font-medium text-foreground">{enquiry.budgetRange}</dd>
               </div>
             )}
+            {enquiry.addons.length > 0 && (
+              <div className="flex justify-between gap-4">
+                <dt className="text-foreground/50">Add-ons requested</dt>
+                <dd className="text-right font-medium text-foreground">
+                  {enquiry.addons.map((a) => a.title).join(", ")}
+                </dd>
+              </div>
+            )}
+            {enquiry.totalAmount > 0 && (
+              <div className="flex justify-between gap-4 border-t border-secondary/10 pt-2">
+                <dt className="text-foreground/50">Estimated total (starting)</dt>
+                <dd className="font-heading font-bold text-accent">
+                  {enquiry.currency} {enquiry.totalAmount.toLocaleString()}
+                </dd>
+              </div>
+            )}
           </dl>
         )}
       </div>
@@ -109,7 +136,13 @@ export default async function BookingConfirmationPage({
 
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         <a
-          href={whatsappLink(`Hi! I just sent enquiry ${reference}. I'd love to chat about it.`)}
+          href={whatsappLink(
+            enquiry && enquiry.totalAmount > 0
+              ? `Hi! I just sent enquiry ${reference}${
+                  enquiry.addons.length > 0 ? ` with add-ons: ${enquiry.addons.map((a) => a.title).join(", ")}` : ""
+                }. Estimated total: ${enquiry.currency} ${enquiry.totalAmount.toLocaleString()}. I'd love to chat about it.`
+              : `Hi! I just sent enquiry ${reference}. I'd love to chat about it.`
+          )}
           target="_blank"
           rel="noopener noreferrer"
           className="btn-primary"

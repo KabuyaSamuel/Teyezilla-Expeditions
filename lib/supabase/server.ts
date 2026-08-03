@@ -18,6 +18,14 @@ import { env } from "@/lib/env";
 // is actually for.
 
 export async function getSupabaseServerClient() {
+  // Same reasoning as getSupabasePublicClient's guard (lib/supabase/public.ts):
+  // required per lib/env.ts, but that check is skippable via
+  // SKIP_ENV_VALIDATION, so these can genuinely be empty at runtime in a
+  // CI run with no repository secrets. Every caller already checks
+  // `if (!supabase)`, so return null instead of letting createServerClient
+  // fail in some less obvious way once it actually issues a request.
+  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null;
+
   const cookieStore = await cookies();
 
   return createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {

@@ -28,3 +28,15 @@ export function parseString(
   const value = Array.isArray(raw) ? raw[0] : raw;
   return value || undefined;
 }
+
+// "" (unset, "All") is distinct from "false" (explicitly filtered to
+// not-featured) -- undefined means don't filter at all.
+export function parseBoolean(
+  searchParams: Record<string, string | string[] | undefined>,
+  key: string
+): boolean | undefined {
+  const value = parseString(searchParams, key);
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return undefined;
+}

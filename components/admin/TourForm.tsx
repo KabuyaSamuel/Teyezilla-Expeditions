@@ -8,6 +8,7 @@ import type { AdminVehicle } from "@/lib/admin/data/vehicles";
 import type { AdminAccommodation } from "@/lib/admin/data/accommodations";
 import type { AdminTourDetail, ItineraryDay } from "@/lib/admin/data/tours";
 import type { PricingTierInput, HighlightInput, AddonInput } from "@/lib/admin/actions/productShared";
+import type { MediaItem } from "@/lib/admin/data/media";
 import { createTour, updateTour, deleteTour } from "@/lib/admin/actions/tours";
 import ItineraryEditor from "./ItineraryEditor";
 import PricingTiersEditor from "./PricingTiersEditor";
@@ -17,6 +18,7 @@ import ActivitiesPicker from "./ActivitiesPicker";
 import ExperienceTypesPicker from "./ExperienceTypesPicker";
 import VehiclesPicker from "./VehiclesPicker";
 import AccommodationsPicker from "./AccommodationsPicker";
+import MediaPickerField from "./MediaPickerField";
 
 export default function TourForm({
   existingTour,
@@ -25,6 +27,7 @@ export default function TourForm({
   experienceTypes,
   vehicles,
   accommodations,
+  mediaItems,
 }: {
   existingTour?: AdminTourDetail;
   destinations: Destination[];
@@ -32,9 +35,11 @@ export default function TourForm({
   experienceTypes: ExperienceType[];
   vehicles: AdminVehicle[];
   accommodations: AdminAccommodation[];
+  mediaItems: MediaItem[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [heroImage, setHeroImage] = useState(existingTour?.heroImage ?? "");
   const [itinerary, setItinerary] = useState<ItineraryDay[]>(
     existingTour?.itinerary?.length ? existingTour.itinerary : [{ day: 1, title: "", description: "" }]
   );
@@ -70,7 +75,8 @@ export default function TourForm({
       durationDays: Number(formData.get("durationDays") ?? 0),
       durationHours: formData.get("durationHours") ? Number(formData.get("durationHours")) : null,
       priceFrom: Number(formData.get("priceFrom") ?? 0),
-      heroImage: String(formData.get("heroImage") ?? ""),
+      heroImage,
+      tagline: String(formData.get("tagline") ?? ""),
       shortDescription: String(formData.get("shortDescription") ?? ""),
       overview: String(formData.get("overview") ?? ""),
       inclusions: splitLines(formData.get("inclusions")),
@@ -201,13 +207,17 @@ export default function TourForm({
           </div>
         </div>
         <div className="mt-4">
-          <label htmlFor="heroImage" className="text-xs font-medium text-foreground/60">Hero Image URL</label>
-          <input id="heroImage" name="heroImage" defaultValue={existingTour?.heroImage} placeholder="https://..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <MediaPickerField id="heroImage" name="heroImage" label="Hero Image URL" value={heroImage} onChange={setHeroImage} mediaItems={mediaItems} />
+        </div>
+        <div className="mt-4">
+          <label htmlFor="tagline" className="text-xs font-medium text-foreground/60">Tagline</label>
+          <p className="mt-0.5 text-[11px] text-foreground/40">Short and punchy -- this is what shows on the card, not the Overview below.</p>
+          <input id="tagline" name="tagline" maxLength={80} defaultValue={existingTour?.tagline} placeholder="e.g. Track the big five across endless plains" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div className="mt-4">
           <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Overview</label>
-          <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~120–150 characters (keeps card layouts uniform across the site).</p>
-          <textarea id="shortDescription" name="shortDescription" defaultValue={existingTour?.shortDescription} rows={3} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <p className="mt-0.5 text-[11px] text-foreground/40">Shown on the detail page, not the card -- 250 characters max.</p>
+          <textarea id="shortDescription" name="shortDescription" maxLength={250} defaultValue={existingTour?.shortDescription} rows={3} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div className="mt-4">
           <label htmlFor="overview" className="text-xs font-medium text-foreground/60">Journey Story (Full Description)</label>
@@ -324,16 +334,6 @@ export default function TourForm({
             <input id="ogImage" name="ogImage" defaultValue={existingTour?.ogImage} placeholder="https://..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
-      </section>
-
-      <section className="card p-6">
-        <h2 className="font-heading text-lg font-semibold text-foreground">Media</h2>
-        <p className="mt-1 text-xs text-foreground/50">
-          Select from the Media Library, or upload new assets there first.
-        </p>
-        <a href="/admin/media" className="btn-outline mt-3 inline-block text-sm">
-          Open Media Library
-        </a>
       </section>
 
       <section className="card flex flex-wrap items-center justify-between gap-4 p-6">

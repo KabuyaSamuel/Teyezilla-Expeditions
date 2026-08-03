@@ -20,6 +20,7 @@ export interface Destination extends SEOFields {
   packingList: string;
   insuranceInfo: string;
   isLaunchDestination: boolean;
+  featured: boolean;
 }
 
 export interface Tour extends SEOFields {
@@ -29,6 +30,7 @@ export interface Tour extends SEOFields {
   categoryLabel: string;
   productType: string;
   heroImage: string;
+  tagline: string;
   shortDescription: string;
   durationDays: number;
   durationHours: number | null;

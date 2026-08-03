@@ -30,6 +30,7 @@ export interface AdminJourneyDetail extends ProductScalars {
   slug: string;
   title: string;
   heroImage: string;
+  tagline: string;
   shortDescription: string;
   overview: string;
   durationDays: number;
@@ -114,6 +115,7 @@ export interface AdminJourneysQuery {
   sortBy?: "created_at" | "title" | "price_from";
   sortDir?: "asc" | "desc";
   destinationId?: string;
+  featured?: boolean;
 }
 
 export async function getAdminJourneysPaginated(
@@ -137,6 +139,7 @@ export async function getAdminJourneysPaginated(
   let q = supabase.from("journeys").select(select, { count: "exact" });
   if (query.search) q = q.ilike("title", `%${query.search}%`);
   if (query.destinationId) q = q.eq("journey_destinations.destination_id", query.destinationId);
+  if (query.featured !== undefined) q = q.eq("featured", query.featured);
   q = q.order(query.sortBy ?? "created_at", { ascending: query.sortDir === "asc" });
 
   const from = (query.page - 1) * query.pageSize;
@@ -190,6 +193,7 @@ export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyD
     slug: row.slug,
     title: row.title,
     heroImage: row.hero_image ?? "",
+    tagline: row.tagline ?? "",
     shortDescription: row.short_description ?? "",
     overview: row.overview ?? "",
     durationDays: Number(row.duration_days ?? 0),

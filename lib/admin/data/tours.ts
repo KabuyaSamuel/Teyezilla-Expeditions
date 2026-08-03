@@ -38,6 +38,7 @@ function mapRow(row: Record<string, any>): AdminTourDetail {
     title: row.title,
     categoryLabel: row.category_label ?? "",
     heroImage: row.hero_image ?? "",
+    tagline: row.tagline ?? "",
     shortDescription: row.short_description ?? "",
     overview: row.overview ?? "",
     durationDays: Number(row.duration_days ?? 0),
@@ -68,7 +69,7 @@ function mapRow(row: Record<string, any>): AdminTourDetail {
 
 const LIST_SELECT = `
   id, slug, destination_id, title, category_label, product_type, hero_image,
-  short_description, duration_days, duration_hours, price_from, currency,
+  tagline, short_description, duration_days, duration_hours, price_from, currency,
   difficulty, featured, status, meta_title, meta_description, og_image
 `;
 
@@ -81,6 +82,7 @@ function mapListRow(row: any): Tour {
     categoryLabel: row.category_label ?? "",
     productType: row.product_type ?? "experience",
     heroImage: row.hero_image ?? "",
+    tagline: row.tagline ?? "",
     shortDescription: row.short_description ?? "",
     durationDays: Number(row.duration_days ?? 0),
     durationHours: row.duration_hours != null ? Number(row.duration_hours) : null,
@@ -128,6 +130,7 @@ export interface AdminToursQuery {
   sortBy?: "created_at" | "title" | "price_from";
   sortDir?: "asc" | "desc";
   destinationId?: string;
+  featured?: boolean;
 }
 
 export async function getAdminToursPaginated(query: AdminToursQuery): Promise<{ items: Tour[]; total: number }> {
@@ -140,6 +143,7 @@ export async function getAdminToursPaginated(query: AdminToursQuery): Promise<{ 
   let q = supabase.from("tours").select(LIST_SELECT, { count: "exact" });
   if (query.search) q = q.ilike("title", `%${query.search}%`);
   if (query.destinationId) q = q.eq("destination_id", query.destinationId);
+  if (query.featured !== undefined) q = q.eq("featured", query.featured);
   q = q.order(query.sortBy ?? "created_at", { ascending: query.sortDir === "asc" });
 
   const from = (query.page - 1) * query.pageSize;

@@ -14,6 +14,7 @@ export interface DestinationInput {
   bestTimeToVisit: string;
   visaInfo: string;
   isLaunchDestination: boolean;
+  featured: boolean;
 }
 
 function slugify(name: string): string {
@@ -34,6 +35,7 @@ function toRow(input: DestinationInput) {
     best_time_to_visit: input.bestTimeToVisit,
     visa_info: input.visaInfo,
     is_launch_destination: input.isLaunchDestination,
+    featured: input.featured,
   };
 }
 

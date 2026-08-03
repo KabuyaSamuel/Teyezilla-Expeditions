@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getPublishedTours } from "@/lib/tours";
-import { getSafariThemes, getSafariGuideFaqs } from "@/lib/safari";
+import { getSafariThemes, getSafariGuideFaqs, getTourIdsBySafariThemeSlug } from "@/lib/safari";
 import TourCard from "@/components/TourCard";
 import JsonLd from "@/components/JsonLd";
 import { faqPageJsonLd } from "@/lib/jsonld";
@@ -13,9 +14,22 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600;
 
-export default async function SafariPage() {
-  const [tours, themes, faqs] = await Promise.all([getPublishedTours(), getSafariThemes(), getSafariGuideFaqs()]);
-  const safariTours = tours.filter((t) => t.productType === "safari");
+export default async function SafariPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ theme?: string }>;
+}) {
+  const { theme } = await searchParams;
+  const [tours, themes, faqs, themeTourIds] = await Promise.all([
+    getPublishedTours(),
+    getSafariThemes(),
+    getSafariGuideFaqs(),
+    theme ? getTourIdsBySafariThemeSlug(theme) : Promise.resolve<string[] | null>(null),
+  ]);
+  const selectedTheme = theme ? themes.find((t) => t.slug === theme) : undefined;
+  const safariTours = tours
+    .filter((t) => t.productType === "safari")
+    .filter((t) => !themeTourIds || themeTourIds.includes(t.id));
   const faqJsonLd = faqs.length > 0 ? faqPageJsonLd(faqs.map((f) => ({ question: f.question, answer: f.answer }))) : null;
 
   return (
@@ -32,31 +46,48 @@ export default async function SafariPage() {
         </p>
       </div>
 
-      <div className="bg-secondary/10">
+      <div id="signature-safari" className="bg-secondary/10">
         <div className="section">
           <h2 className="font-heading text-2xl font-bold text-foreground">Signature Safari</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {themes.map((theme) => (
-              <div key={theme.id} className="card p-5">
-                <h3 className="font-heading text-base font-semibold text-foreground">{theme.name}</h3>
-                <p className="mt-2 text-sm text-foreground/70">{theme.description}</p>
-              </div>
+            {themes.map((t) => (
+              <Link
+                key={t.id}
+                href={t.slug === theme ? "/safari#signature-safari" : `/safari?theme=${t.slug}#signature-safari`}
+                className={`card p-5 transition-colors ${t.slug === theme ? "border-2 border-primary" : ""}`}
+              >
+                <h3 className="font-heading text-base font-semibold text-foreground">{t.name}</h3>
+                <p className="mt-2 text-sm text-foreground/70">{t.description}</p>
+              </Link>
             ))}
           </div>
         </div>
       </div>
 
       <div className="section">
-        <h2 className="font-heading text-2xl font-bold text-foreground">Safari Tours</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-heading text-2xl font-bold text-foreground">
+            {selectedTheme ? `${selectedTheme.name} Safari Tours` : "Safari Tours"}
+          </h2>
+          {selectedTheme && (
+            <Link href="/safari#signature-safari" className="text-sm font-medium text-primary hover:underline">
+              Clear filter ×
+            </Link>
+          )}
+        </div>
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {safariTours.map((tour) => (
             <TourCard key={tour.id} tour={tour} />
           ))}
-          {safariTours.length === 0 && <p className="text-sm text-foreground/50">No safari tours published yet.</p>}
+          {safariTours.length === 0 && (
+            <p className="text-sm text-foreground/50">
+              {selectedTheme ? `No tours tagged under "${selectedTheme.name}" yet.` : "No safari tours published yet."}
+            </p>
+          )}
         </div>
       </div>
 
-      <div className="bg-secondary/10">
+      <div id="safari-guide" className="bg-secondary/10">
         <div className="section max-w-3xl">
           <h2 className="font-heading text-2xl font-bold text-foreground">Safari Guide</h2>
           <div className="mt-6 space-y-4">

@@ -149,20 +149,6 @@ export default async function TourPage({ params }: Props) {
               <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>
               <p className="mt-3 text-foreground/70">{tour.shortDescription}</p>
 
-              <div className="mt-5 flex flex-wrap gap-3">
-                <a href={bookingHref} className="btn-primary px-5 py-2.5 text-sm">
-                  Enquire Now
-                </a>
-                <a
-                  href={whatsappHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-outline px-5 py-2.5 text-sm"
-                >
-                  Book Now: WhatsApp a Travel Expert
-                </a>
-              </div>
-
               {tour.cancellationPolicy && (
                 <div className="mt-5 rounded-2xl border border-secondary/30 bg-secondary/10 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
@@ -174,6 +160,20 @@ export default async function TourPage({ params }: Props) {
             </div>
 
             <ProductFactsGrid facts={facts} />
+
+            <div className="flex flex-wrap gap-3">
+              <a href={bookingHref} className="btn-primary px-5 py-2.5 text-sm">
+                Enquire Now
+              </a>
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-outline px-5 py-2.5 text-sm"
+              >
+                Book Now
+              </a>
+            </div>
 
             {tour.overview && (
               <div>
@@ -270,7 +270,7 @@ export default async function TourPage({ params }: Props) {
               rel="noopener noreferrer"
               className="btn-outline mt-3 block text-center"
             >
-              Book Now: WhatsApp a Travel Expert
+              Book Now
             </a>
           </aside>
         </div>

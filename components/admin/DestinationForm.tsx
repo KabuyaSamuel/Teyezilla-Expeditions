@@ -28,6 +28,7 @@ export default function DestinationForm({ existingDestination }: { existingDesti
       bestTimeToVisit: String(formData.get("bestTimeToVisit") ?? ""),
       visaInfo: String(formData.get("visaInfo") ?? ""),
       isLaunchDestination: formData.get("isLaunchDestination") === "on",
+      featured: formData.get("featured") === "on",
     };
 
     try {
@@ -124,9 +125,14 @@ export default function DestinationForm({ existingDestination }: { existingDesti
       </section>
 
       <section className="card flex flex-wrap items-center justify-between gap-4 p-6">
-        <label htmlFor="isLaunchDestination" className="flex items-center gap-2 text-sm">
-          <input id="isLaunchDestination" name="isLaunchDestination" type="checkbox" defaultChecked={existingDestination?.isLaunchDestination} /> Live (open for booking)
-        </label>
+        <div className="flex flex-wrap items-center gap-4">
+          <label htmlFor="isLaunchDestination" className="flex items-center gap-2 text-sm">
+            <input id="isLaunchDestination" name="isLaunchDestination" type="checkbox" defaultChecked={existingDestination?.isLaunchDestination} /> Live (open for booking)
+          </label>
+          <label htmlFor="featured" className="flex items-center gap-2 text-sm">
+            <input id="featured" name="featured" type="checkbox" defaultChecked={existingDestination?.featured} /> Featured on homepage
+          </label>
+        </div>
         <div className="flex flex-wrap gap-3">
           {existingDestination && (
             <button type="button" onClick={handleDelete} disabled={saving} className="rounded-full border-2 border-error px-5 py-2 text-sm font-medium text-error hover:bg-error hover:text-white transition-colors disabled:opacity-50">

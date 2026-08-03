@@ -7,7 +7,7 @@ import Pagination from "@/components/admin/Pagination";
 import { getAdminJourneysPaginated } from "@/lib/admin/data/journeys";
 import { getDestinations } from "@/lib/destinations";
 import { contentStatusTone } from "@/lib/admin/status-tone";
-import { ADMIN_LIST_PAGE_SIZE, parsePage, parseSort, parseString } from "@/lib/admin/list-query";
+import { ADMIN_LIST_PAGE_SIZE, parsePage, parseSort, parseString, parseBoolean } from "@/lib/admin/list-query";
 
 const SORT_OPTIONS = [
   { value: "created_at_desc", label: "Newest First" },
@@ -27,10 +27,11 @@ export default async function AdminJourneysPage({
   const page = parsePage(params);
   const search = parseString(params, "q");
   const destinationId = parseString(params, "country");
+  const featured = parseBoolean(params, "featured");
   const { sortBy, sortDir } = parseSort<"created_at" | "title" | "price_from">(params, "created_at_desc");
 
   const [{ items: journeys, total }, destinations] = await Promise.all([
-    getAdminJourneysPaginated({ page, pageSize: ADMIN_LIST_PAGE_SIZE, search, sortBy, sortDir, destinationId }),
+    getAdminJourneysPaginated({ page, pageSize: ADMIN_LIST_PAGE_SIZE, search, sortBy, sortDir, destinationId, featured }),
     getDestinations(),
   ]);
 
@@ -50,6 +51,7 @@ export default async function AdminJourneysPage({
         searchPlaceholder="Search journeys by name…"
         sortOptions={SORT_OPTIONS}
         countries={destinations.map((d) => ({ id: d.id, label: d.countryName }))}
+        showFeaturedFilter
       />
 
       <ResponsiveTable
@@ -83,7 +85,7 @@ export default async function AdminJourneysPage({
 
       <Pagination
         basePath="/admin/journeys"
-        currentParams={{ q: search, sort: `${sortBy}_${sortDir}`, country: destinationId }}
+        currentParams={{ q: search, sort: `${sortBy}_${sortDir}`, country: destinationId, featured: featured === undefined ? undefined : String(featured) }}
         page={page}
         pageSize={ADMIN_LIST_PAGE_SIZE}
         total={total}

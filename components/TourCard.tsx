@@ -32,7 +32,7 @@ export default function TourCard({ tour }: { tour: Tour }) {
             {tour.title}
           </h3>
         </Link>
-        <p className="mt-2 text-sm text-foreground/70">{tour.shortDescription}</p>
+        <p className="mt-2 text-sm text-foreground/70">{tour.tagline || tour.shortDescription}</p>
         <div className="mt-auto pt-4">
           <div className="flex items-center justify-between text-sm text-foreground/60">
             <span>{formatTourDuration(tour)}</span>

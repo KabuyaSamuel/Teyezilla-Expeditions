@@ -11,7 +11,7 @@ import WhyChoose from "@/components/WhyChoose";
 import StatsBar from "@/components/StatsBar";
 import ReviewCard from "@/components/ReviewCard";
 import ScrollReveal from "@/components/ScrollReveal";
-import { getDestinations } from "@/lib/destinations";
+import { getDestinations, getFeaturedDestinations } from "@/lib/destinations";
 import { getRegionsWithDestinations, type RegionWithDestinations } from "@/lib/regions";
 import { getFeaturedTours } from "@/lib/tours";
 import { getFeaturedJourneys, getJourneys } from "@/lib/journeys";
@@ -54,10 +54,11 @@ function pickBalancedDestinations(
 }
 
 export default async function HomePage() {
-  const [destinations, regions, featuredTours, featuredJourneysAll, journeysAll, reviews, featuredReview, happyTravelersCount] =
+  const [destinations, regions, featuredDestinationsAll, featuredTours, featuredJourneysAll, journeysAll, reviews, featuredReview, happyTravelersCount] =
     await Promise.all([
       getDestinations(),
       getRegionsWithDestinations(),
+      getFeaturedDestinations(),
       getFeaturedTours(),
       getFeaturedJourneys(),
       getJourneys(),
@@ -66,7 +67,13 @@ export default async function HomePage() {
       getSiteSetting("happy_travelers_count"),
     ]);
 
-  const featuredDestinations = pickBalancedDestinations(destinations, regions, FEATURED_DESTINATIONS_COUNT);
+  // Manually-curated (destinations.featured) takes priority; fall back to
+  // the balanced round-robin pick if fewer than the target count are
+  // marked featured, same fallback pattern as featuredJourneys below.
+  const featuredDestinations =
+    featuredDestinationsAll.length >= FEATURED_DESTINATIONS_COUNT
+      ? featuredDestinationsAll.slice(0, FEATURED_DESTINATIONS_COUNT)
+      : pickBalancedDestinations(destinations, regions, FEATURED_DESTINATIONS_COUNT);
   const featuredExperiences = featuredTours.slice(0, FEATURED_EXPERIENCES_COUNT);
   // Fall back to the general journeys list if fewer than the target count are
   // marked featured, so the section isn't sparse while the catalogue is small.

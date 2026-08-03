@@ -7,7 +7,7 @@ import Pagination from "@/components/admin/Pagination";
 import { getAdminToursPaginated } from "@/lib/admin/data/tours";
 import { getDestinations } from "@/lib/destinations";
 import { contentStatusTone } from "@/lib/admin/status-tone";
-import { ADMIN_LIST_PAGE_SIZE, parsePage, parseSort, parseString } from "@/lib/admin/list-query";
+import { ADMIN_LIST_PAGE_SIZE, parsePage, parseSort, parseString, parseBoolean } from "@/lib/admin/list-query";
 
 const SORT_OPTIONS = [
   { value: "created_at_desc", label: "Newest First" },
@@ -27,10 +27,11 @@ export default async function AdminToursPage({
   const page = parsePage(params);
   const search = parseString(params, "q");
   const destinationId = parseString(params, "country");
+  const featured = parseBoolean(params, "featured");
   const { sortBy, sortDir } = parseSort<"created_at" | "title" | "price_from">(params, "created_at_desc");
 
   const [{ items: tours, total }, destinations] = await Promise.all([
-    getAdminToursPaginated({ page, pageSize: ADMIN_LIST_PAGE_SIZE, search, sortBy, sortDir, destinationId }),
+    getAdminToursPaginated({ page, pageSize: ADMIN_LIST_PAGE_SIZE, search, sortBy, sortDir, destinationId, featured }),
     getDestinations(),
   ]);
   const destinationName = (id: string) => destinations.find((d) => d.id === id)?.countryName ?? "-";
@@ -51,6 +52,7 @@ export default async function AdminToursPage({
         searchPlaceholder="Search tours by name…"
         sortOptions={SORT_OPTIONS}
         countries={destinations.map((d) => ({ id: d.id, label: d.countryName }))}
+        showFeaturedFilter
       />
 
       <ResponsiveTable
@@ -86,7 +88,7 @@ export default async function AdminToursPage({
 
       <Pagination
         basePath="/admin/tours"
-        currentParams={{ q: search, sort: `${sortBy}_${sortDir}`, country: destinationId }}
+        currentParams={{ q: search, sort: `${sortBy}_${sortDir}`, country: destinationId, featured: featured === undefined ? undefined : String(featured) }}
         page={page}
         pageSize={ADMIN_LIST_PAGE_SIZE}
         total={total}

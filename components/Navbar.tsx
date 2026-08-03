@@ -18,10 +18,13 @@ export default async function Navbar() {
     .filter((r) => r.destinations.length > 0)
     .map((r) => ({
       label: r.name,
-      links: r.destinations.slice(0, 5).map((d) => ({ label: d.countryName, href: `/destinations/${d.slug}` })),
+      links: r.destinations.slice(0, 3).map((d) => ({ label: d.countryName, href: `/destinations/${d.slug}` })),
     }));
 
-  const journeyLinks = journeyTypes.map((t) => ({ label: t.name, href: `/journeys?type=${t.slug}` }));
+  // /journeys filters by journeyTypes.includes(type), which holds type
+  // *names* (see app/(public)/journeys/page.tsx's own filter buttons) --
+  // linking by slug here silently matched nothing.
+  const journeyLinks = journeyTypes.map((t) => ({ label: t.name, href: `/journeys?type=${encodeURIComponent(t.name)}` }));
   const experienceLinks = experienceTypes.map((t) => ({ label: t.name, href: `/experiences/${t.slug}` }));
   const collectionLinks = collections.map((c) => ({ label: c.name, href: `/collections/${c.slug}` }));
   const safariLinks = [

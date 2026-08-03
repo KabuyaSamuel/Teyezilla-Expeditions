@@ -29,6 +29,7 @@ export interface Journey {
   slug: string;
   title: string;
   heroImage: string;
+  tagline: string;
   shortDescription: string;
   durationDays: number;
   priceFrom: number;
@@ -68,6 +69,7 @@ function mapTourRow(row: Record<string, unknown>): Tour {
     categoryLabel: (row.category_label as string) ?? "",
     productType: (row.product_type as string) ?? "experience",
     heroImage: (row.hero_image as string) ?? "",
+    tagline: (row.tagline as string) ?? "",
     shortDescription: (row.short_description as string) ?? "",
     durationDays: Number(row.duration_days ?? 0),
     durationHours: row.duration_hours != null ? Number(row.duration_hours) : null,
@@ -88,6 +90,7 @@ function mapRow(row: Record<string, any>): Journey {
     slug: row.slug,
     title: row.title,
     heroImage: row.hero_image ?? "",
+    tagline: row.tagline ?? "",
     shortDescription: row.short_description ?? "",
     durationDays: Number(row.duration_days ?? 0),
     priceFrom: Number(row.price_from ?? 0),
@@ -107,7 +110,7 @@ function mapRow(row: Record<string, any>): Journey {
 }
 
 const SELECT = `
-  id, slug, title, hero_image, short_description, duration_days, price_from, currency, featured,
+  id, slug, title, hero_image, tagline, short_description, duration_days, price_from, currency, featured,
   journey_destinations(destination_id, destinations(country_name, slug)),
   journey_journey_types(journey_types(name))
 `;

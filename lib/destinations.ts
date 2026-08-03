@@ -16,6 +16,7 @@ function mapRow(row: Record<string, unknown>): Destination {
     packingList: (row.packing_list as string) ?? "",
     insuranceInfo: (row.insurance_info as string) ?? "",
     isLaunchDestination: Boolean(row.is_launch_destination),
+    featured: Boolean(row.featured),
     metaTitle: (row.meta_title as string) ?? "",
     metaDescription: (row.meta_description as string) ?? "",
     ogImage: (row.og_image as string) ?? "",
@@ -48,6 +49,7 @@ export interface DestinationsQuery {
   search?: string;
   sortBy?: "created_at" | "country_name";
   sortDir?: "asc" | "desc";
+  featured?: boolean;
 }
 
 export async function getDestinationsPaginated(
@@ -61,6 +63,7 @@ export async function getDestinationsPaginated(
 
   let q = supabase.from("destinations").select("*", { count: "exact" });
   if (query.search) q = q.ilike("country_name", `%${query.search}%`);
+  if (query.featured !== undefined) q = q.eq("featured", query.featured);
   q = q.order(query.sortBy ?? "created_at", { ascending: query.sortDir === "asc" });
 
   const from = (query.page - 1) * query.pageSize;
@@ -77,6 +80,11 @@ export async function getDestinationsPaginated(
 export async function getLaunchDestinations(): Promise<Destination[]> {
   const all = await getDestinations();
   return all.filter((d) => d.isLaunchDestination);
+}
+
+export async function getFeaturedDestinations(): Promise<Destination[]> {
+  const all = await getDestinations();
+  return all.filter((d) => d.featured);
 }
 
 export async function getDestinationBySlug(slug: string): Promise<Destination | undefined> {

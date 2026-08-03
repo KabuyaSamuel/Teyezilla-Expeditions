@@ -10,6 +10,7 @@ import type { AdminVehicle } from "@/lib/admin/data/vehicles";
 import type { AdminAccommodation } from "@/lib/admin/data/accommodations";
 import type { AdminJourneyDetail, ItineraryDay } from "@/lib/admin/data/journeys";
 import type { PricingTierInput, HighlightInput, AddonInput } from "@/lib/admin/actions/productShared";
+import type { MediaItem } from "@/lib/admin/data/media";
 import { createJourney, updateJourney, deleteJourney } from "@/lib/admin/actions/journeys";
 import ItineraryEditor from "./ItineraryEditor";
 import PricingTiersEditor from "./PricingTiersEditor";
@@ -19,6 +20,7 @@ import ActivitiesPicker from "./ActivitiesPicker";
 import VehiclesPicker from "./VehiclesPicker";
 import AccommodationsPicker from "./AccommodationsPicker";
 import TourPicker from "./TourPicker";
+import MediaPickerField from "./MediaPickerField";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -34,6 +36,7 @@ export default function JourneyForm({
   vehicles,
   accommodations,
   tours,
+  mediaItems,
 }: {
   existingJourney?: AdminJourneyDetail;
   destinations: Destination[];
@@ -44,9 +47,11 @@ export default function JourneyForm({
   vehicles: AdminVehicle[];
   accommodations: AdminAccommodation[];
   tours: Tour[];
+  mediaItems: MediaItem[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [heroImage, setHeroImage] = useState(existingJourney?.heroImage ?? "");
   const [itinerary, setItinerary] = useState<ItineraryDay[]>(
     existingJourney?.itinerary?.length ? existingJourney.itinerary : [{ day: 1, title: "", description: "" }]
   );
@@ -93,7 +98,8 @@ export default function JourneyForm({
     const input = {
       title: String(formData.get("title") ?? ""),
       slug: existingJourney?.slug ?? "",
-      heroImage: String(formData.get("heroImage") ?? ""),
+      heroImage,
+      tagline: String(formData.get("tagline") ?? ""),
       shortDescription: String(formData.get("shortDescription") ?? ""),
       overview: String(formData.get("overview") ?? ""),
       productType: String(formData.get("productType") ?? "signature_journey"),
@@ -176,8 +182,7 @@ export default function JourneyForm({
             <input id="title" name="title" required defaultValue={existingJourney?.title} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
-            <label htmlFor="heroImage" className="text-xs font-medium text-foreground/60">Hero Image URL</label>
-            <input id="heroImage" name="heroImage" defaultValue={existingJourney?.heroImage} placeholder="https://..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <MediaPickerField id="heroImage" name="heroImage" label="Hero Image URL" value={heroImage} onChange={setHeroImage} mediaItems={mediaItems} />
           </div>
           <div>
             <label htmlFor="productType" className="text-xs font-medium text-foreground/60">Product Type</label>
@@ -213,9 +218,14 @@ export default function JourneyForm({
           </div>
         </div>
         <div className="mt-4">
+          <label htmlFor="tagline" className="text-xs font-medium text-foreground/60">Tagline</label>
+          <p className="mt-0.5 text-[11px] text-foreground/40">Short and punchy -- this is what shows on the card, not the Overview below.</p>
+          <input id="tagline" name="tagline" maxLength={80} defaultValue={existingJourney?.tagline} placeholder="e.g. A multi-country expedition across East Africa" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div className="mt-4">
           <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Overview</label>
-          <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~120–150 characters (keeps card layouts uniform across the site).</p>
-          <textarea id="shortDescription" name="shortDescription" defaultValue={existingJourney?.shortDescription} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <p className="mt-0.5 text-[11px] text-foreground/40">Shown on the detail page, not the card -- 250 characters max.</p>
+          <textarea id="shortDescription" name="shortDescription" maxLength={250} defaultValue={existingJourney?.shortDescription} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div className="mt-4">
           <label htmlFor="overview" className="text-xs font-medium text-foreground/60">Journey Story (Full Description)</label>
@@ -404,12 +414,6 @@ export default function JourneyForm({
             <input id="ogImage" name="ogImage" defaultValue={existingJourney?.ogImage} placeholder="https://..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
-      </section>
-
-      <section className="card p-6">
-        <h2 className="font-heading text-lg font-semibold text-foreground">Media</h2>
-        <p className="mt-1 text-xs text-foreground/50">Select from the Media Library, or upload new assets there first.</p>
-        <a href="/admin/media" className="btn-outline mt-3 inline-block text-sm">Open Media Library</a>
       </section>
 
       <section className="card flex flex-wrap items-center justify-between gap-4 p-6">

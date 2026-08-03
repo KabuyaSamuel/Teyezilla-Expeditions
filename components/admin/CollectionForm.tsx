@@ -4,7 +4,9 @@ import { useState } from "react";
 import type { Tour } from "@/types";
 import type { AdminJourneyListItem } from "@/lib/admin/data/journeys";
 import type { AdminCollectionDetail } from "@/lib/admin/data/collections";
+import type { MediaItem } from "@/lib/admin/data/media";
 import { createCollection, updateCollection, deleteCollection } from "@/lib/admin/actions/collections";
+import MediaPickerField from "./MediaPickerField";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -14,13 +16,16 @@ export default function CollectionForm({
   existingCollection,
   tours,
   journeys,
+  mediaItems,
 }: {
   existingCollection?: AdminCollectionDetail;
   tours: Tour[];
   journeys: AdminJourneyListItem[];
+  mediaItems: MediaItem[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [heroImage, setHeroImage] = useState(existingCollection?.heroImage ?? "");
   const [tourIds, setTourIds] = useState<string[]>(existingCollection?.tourIds ?? []);
   const [journeyIds, setJourneyIds] = useState<string[]>(existingCollection?.journeyIds ?? []);
 
@@ -38,7 +43,7 @@ export default function CollectionForm({
       name: String(formData.get("name") ?? ""),
       slug: existingCollection?.slug ?? "",
       description: String(formData.get("description") ?? ""),
-      heroImage: String(formData.get("heroImage") ?? ""),
+      heroImage,
       status: String(formData.get("status") ?? "draft"),
       tourIds,
       journeyIds,
@@ -82,8 +87,7 @@ export default function CollectionForm({
             <input id="name" name="name" required defaultValue={existingCollection?.name} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
-            <label htmlFor="heroImage" className="text-xs font-medium text-foreground/60">Hero Image URL</label>
-            <input id="heroImage" name="heroImage" defaultValue={existingCollection?.heroImage} placeholder="https://..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <MediaPickerField id="heroImage" name="heroImage" label="Hero Image URL" value={heroImage} onChange={setHeroImage} mediaItems={mediaItems} />
           </div>
         </div>
         <div className="mt-4">
@@ -118,12 +122,6 @@ export default function CollectionForm({
             ))}
           </div>
         )}
-      </section>
-
-      <section className="card p-6">
-        <h2 className="font-heading text-lg font-semibold text-foreground">Media</h2>
-        <p className="mt-1 text-xs text-foreground/50">Select from the Media Library, or upload new assets there first.</p>
-        <a href="/admin/media" className="btn-outline mt-3 inline-block text-sm">Open Media Library</a>
       </section>
 
       <section className="card flex flex-wrap items-center justify-between gap-4 p-6">

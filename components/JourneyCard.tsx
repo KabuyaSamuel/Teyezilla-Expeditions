@@ -31,7 +31,7 @@ export default function JourneyCard({ journey }: { journey: Journey }) {
             {journey.title}
           </h3>
         </Link>
-        <p className="mt-2 text-sm text-foreground/70">{journey.shortDescription}</p>
+        <p className="mt-2 text-sm text-foreground/70">{journey.tagline || journey.shortDescription}</p>
         <div className="mt-auto pt-4">
           <div className="flex items-center justify-between text-sm text-foreground/60">
             <span>{journey.durationDays} day{journey.durationDays !== 1 ? "s" : ""}</span>

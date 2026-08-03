@@ -13,6 +13,7 @@ import { getActivities } from "@/lib/activities";
 import { getTours } from "@/lib/tours";
 import { getAdminVehicles } from "@/lib/admin/data/vehicles";
 import { getAdminAccommodations } from "@/lib/admin/data/accommodations";
+import { getMediaItems } from "@/lib/admin/data/media";
 
 export default async function EditJourneyPage({
   params,
@@ -20,7 +21,7 @@ export default async function EditJourneyPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [journey, destinations, journeyTypes, experienceTypes, safariThemes, activities, tours, vehicles, accommodations] =
+  const [journey, destinations, journeyTypes, experienceTypes, safariThemes, activities, tours, vehicles, accommodations, mediaItems] =
     await Promise.all([
       getAdminJourneyBySlug(slug),
       getDestinations(),
@@ -31,6 +32,7 @@ export default async function EditJourneyPage({
       getTours(),
       getAdminVehicles(),
       getAdminAccommodations(),
+      getMediaItems(),
     ]);
   if (!journey) notFound();
 
@@ -49,6 +51,7 @@ export default async function EditJourneyPage({
         tours={tours}
         vehicles={vehicles}
         accommodations={accommodations}
+        mediaItems={mediaItems}
       />
       <div className="mt-8">
         <AvailabilityCalendar

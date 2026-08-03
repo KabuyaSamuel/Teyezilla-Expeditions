@@ -16,10 +16,12 @@ export default function AdminListToolbar({
   searchPlaceholder = "Search by name…",
   sortOptions,
   countries,
+  showFeaturedFilter,
 }: {
   searchPlaceholder?: string;
   sortOptions: SortOption[];
   countries?: { id: string; label: string }[];
+  showFeaturedFilter?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -70,6 +72,18 @@ export default function AdminListToolbar({
           {countries.map((c) => (
             <option key={c.id} value={c.id}>{c.label}</option>
           ))}
+        </select>
+      )}
+
+      {showFeaturedFilter && (
+        <select
+          defaultValue={searchParams.get("featured") ?? ""}
+          onChange={(e) => updateParams({ featured: e.target.value })}
+          className="rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="">All (Featured or Not)</option>
+          <option value="true">Featured Only</option>
+          <option value="false">Not Featured</option>
         </select>
       )}
     </div>

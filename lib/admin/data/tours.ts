@@ -130,6 +130,7 @@ export interface AdminToursQuery {
   sortBy?: "created_at" | "title" | "price_from";
   sortDir?: "asc" | "desc";
   destinationId?: string;
+  featured?: boolean;
 }
 
 export async function getAdminToursPaginated(query: AdminToursQuery): Promise<{ items: Tour[]; total: number }> {
@@ -142,6 +143,7 @@ export async function getAdminToursPaginated(query: AdminToursQuery): Promise<{ 
   let q = supabase.from("tours").select(LIST_SELECT, { count: "exact" });
   if (query.search) q = q.ilike("title", `%${query.search}%`);
   if (query.destinationId) q = q.eq("destination_id", query.destinationId);
+  if (query.featured !== undefined) q = q.eq("featured", query.featured);
   q = q.order(query.sortBy ?? "created_at", { ascending: query.sortDir === "asc" });
 
   const from = (query.page - 1) * query.pageSize;

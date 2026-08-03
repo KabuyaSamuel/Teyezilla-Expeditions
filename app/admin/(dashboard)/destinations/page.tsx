@@ -5,7 +5,7 @@ import ResponsiveTable, { MobileCardField, MobileCardHeader } from "@/components
 import AdminListToolbar from "@/components/admin/AdminListToolbar";
 import Pagination from "@/components/admin/Pagination";
 import { getDestinationsPaginated } from "@/lib/destinations";
-import { ADMIN_LIST_PAGE_SIZE, parsePage, parseSort, parseString } from "@/lib/admin/list-query";
+import { ADMIN_LIST_PAGE_SIZE, parsePage, parseSort, parseString, parseBoolean } from "@/lib/admin/list-query";
 
 const SORT_OPTIONS = [
   { value: "created_at_desc", label: "Newest First" },
@@ -22,6 +22,7 @@ export default async function AdminDestinationsPage({
   const params = await searchParams;
   const page = parsePage(params);
   const search = parseString(params, "q");
+  const featured = parseBoolean(params, "featured");
   const { sortBy, sortDir } = parseSort<"created_at" | "country_name">(params, "created_at_desc");
 
   const { items: destinations, total } = await getDestinationsPaginated({
@@ -30,6 +31,7 @@ export default async function AdminDestinationsPage({
     search,
     sortBy,
     sortDir,
+    featured,
   });
 
   return (
@@ -43,7 +45,7 @@ export default async function AdminDestinationsPage({
           </Link>
         }
       />
-      <AdminListToolbar searchPlaceholder="Search destinations by name…" sortOptions={SORT_OPTIONS} />
+      <AdminListToolbar searchPlaceholder="Search destinations by name…" sortOptions={SORT_OPTIONS} showFeaturedFilter />
       <ResponsiveTable
         rows={destinations}
         keyField={(d) => d.id}
@@ -77,7 +79,7 @@ export default async function AdminDestinationsPage({
       />
       <Pagination
         basePath="/admin/destinations"
-        currentParams={{ q: search, sort: `${sortBy}_${sortDir}` }}
+        currentParams={{ q: search, sort: `${sortBy}_${sortDir}`, featured: featured === undefined ? undefined : String(featured) }}
         page={page}
         pageSize={ADMIN_LIST_PAGE_SIZE}
         total={total}

@@ -49,6 +49,7 @@ export interface DestinationsQuery {
   search?: string;
   sortBy?: "created_at" | "country_name";
   sortDir?: "asc" | "desc";
+  featured?: boolean;
 }
 
 export async function getDestinationsPaginated(
@@ -62,6 +63,7 @@ export async function getDestinationsPaginated(
 
   let q = supabase.from("destinations").select("*", { count: "exact" });
   if (query.search) q = q.ilike("country_name", `%${query.search}%`);
+  if (query.featured !== undefined) q = q.eq("featured", query.featured);
   q = q.order(query.sortBy ?? "created_at", { ascending: query.sortDir === "asc" });
 
   const from = (query.page - 1) * query.pageSize;

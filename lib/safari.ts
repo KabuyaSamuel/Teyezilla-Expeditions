@@ -8,6 +8,28 @@ export interface SafariTheme {
   description: string;
 }
 
+// tour_safari_themes join table -> tour IDs tagged under a given theme.
+// Used to actually filter the Safari page's tour grid when a specific
+// theme is selected (e.g. from the navbar's Safari dropdown) -- the theme
+// cards themselves previously had no filtering behavior at all, just an
+// anchor scroll to the section.
+export async function getTourIdsBySafariThemeSlug(slug: string): Promise<string[]> {
+  const supabase = getSupabasePublicClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("tour_safari_themes")
+    .select("tour_id, safari_themes!inner(slug)")
+    .eq("safari_themes.slug", slug);
+
+  if (error || !data) {
+    console.warn("[safari] Supabase query failed:", error?.message);
+    return [];
+  }
+
+  return (data as unknown as { tour_id: string }[]).map((row) => row.tour_id);
+}
+
 export interface Faq {
   id: string;
   question: string;

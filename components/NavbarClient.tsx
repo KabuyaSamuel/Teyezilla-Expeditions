@@ -181,7 +181,7 @@ export default function NavbarClient({
                             {group.label}
                           </p>
                           <div className="flex flex-col gap-1">
-                            {group.links.map((link) => (
+                            {group.links.slice(0, 3).map((link) => (
                               <Link
                                 key={link.href}
                                 href={link.href}
@@ -229,7 +229,7 @@ export default function NavbarClient({
                 {openDropdown === item.label && (
                   <div className="absolute left-1/2 top-full z-10 w-56 -translate-x-1/2 pt-3">
                     <div className="rounded-2xl bg-white p-2 text-left shadow-cardHover">
-                      {item.dropdown.map((link) => (
+                      {item.dropdown.slice(0, 3).map((link) => (
                         <Link
                           key={link.href}
                           href={link.href}

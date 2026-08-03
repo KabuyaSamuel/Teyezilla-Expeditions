@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/PageHeader";
 import JourneyForm from "@/components/admin/JourneyForm";
 import AvailabilityCalendar from "@/components/admin/AvailabilityCalendar";
-import { getAdminJourneyBySlug } from "@/lib/admin/data/journeys";
+import { getAdminJourneyBySlug, getAdminJourneys } from "@/lib/admin/data/journeys";
+import { getAdminBlogPosts } from "@/lib/admin/data/blog";
 import { getJourneyAvailability } from "@/lib/admin/data/availability";
 import { addJourneyAvailabilityDate, removeJourneyAvailabilityDate } from "@/lib/admin/actions/availability";
 import { getDestinations } from "@/lib/destinations";
@@ -21,7 +22,7 @@ export default async function EditJourneyPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [journey, destinations, journeyTypes, experienceTypes, safariThemes, activities, tours, vehicles, accommodations, mediaItems] =
+  const [journey, destinations, journeyTypes, experienceTypes, safariThemes, activities, tours, vehicles, accommodations, mediaItems, allJourneys, blogPosts] =
     await Promise.all([
       getAdminJourneyBySlug(slug),
       getDestinations(),
@@ -33,8 +34,12 @@ export default async function EditJourneyPage({
       getAdminVehicles(),
       getAdminAccommodations(),
       getMediaItems(),
+      getAdminJourneys(),
+      getAdminBlogPosts(),
     ]);
   if (!journey) notFound();
+
+  const otherJourneys = allJourneys.filter((j) => j.id !== journey.id);
 
   const availability = await getJourneyAvailability(journey.id);
 
@@ -52,6 +57,8 @@ export default async function EditJourneyPage({
         vehicles={vehicles}
         accommodations={accommodations}
         mediaItems={mediaItems}
+        otherJourneys={otherJourneys}
+        blogPosts={blogPosts}
       />
       <div className="mt-8">
         <AvailabilityCalendar

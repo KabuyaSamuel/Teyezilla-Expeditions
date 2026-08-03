@@ -71,6 +71,28 @@ export async function getRelatedBlogPosts(
   return data.map(mapRow);
 }
 
+// Powers staff-curated "Bring This to Life" picks -- returns published
+// posts in the same order as `ids` (the junction table's display_order).
+export async function getBlogPostsByIds(ids: string[]): Promise<BlogPost[]> {
+  if (ids.length === 0) return [];
+  const supabase = getSupabasePublicClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("status", "published")
+    .in("id", ids);
+
+  if (error || !data) {
+    if (error) console.warn("[blog] Posts-by-id query failed:", error.message);
+    return [];
+  }
+
+  const byId = new Map(data.map(mapRow).map((p) => [p.id, p]));
+  return ids.map((id) => byId.get(id)).filter((p): p is BlogPost => Boolean(p));
+}
+
 export async function getPublishedBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
   const supabase = getSupabasePublicClient();
   if (!supabase) {

@@ -59,6 +59,9 @@ export interface AdminJourneyDetail extends ProductScalars {
   vehicleIds: string[];
   accommodationIds: string[];
   tourIds: string[];
+  relatedJourneyIds: string[];
+  relatedTourIds: string[];
+  relatedBlogPostIds: string[];
 }
 
 const LIST_SELECT = `
@@ -165,7 +168,10 @@ const DETAIL_SELECT = `
   journey_activities(activity_id),
   journey_vehicles(vehicle_id),
   journey_accommodations(accommodation_id),
-  journey_tours(tour_id)
+  journey_tours(tour_id),
+  journey_related_journeys!journey_related_journeys_journey_id_fkey(related_journey_id, display_order),
+  journey_related_tours(tour_id, display_order),
+  journey_related_blog_posts(blog_post_id, display_order)
 `;
 
 export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyDetail | undefined> {
@@ -223,5 +229,14 @@ export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyD
     vehicleIds: (row.journey_vehicles ?? []).map((v: any) => v.vehicle_id),
     accommodationIds: (row.journey_accommodations ?? []).map((a: any) => a.accommodation_id),
     tourIds: (row.journey_tours ?? []).map((t: any) => t.tour_id),
+    relatedJourneyIds: [...(row.journey_related_journeys ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.related_journey_id),
+    relatedTourIds: [...(row.journey_related_tours ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.tour_id),
+    relatedBlogPostIds: [...(row.journey_related_blog_posts ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.blog_post_id),
   };
 }

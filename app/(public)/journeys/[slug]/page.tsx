@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { getJourneys, getJourneyBySlug, getJourneysByDestination } from "@/lib/journeys";
-import { getRelatedTours } from "@/lib/tours";
-import { getRelatedBlogPosts } from "@/lib/blog";
+import { getJourneys, getJourneyBySlug, getJourneysByDestination, getJourneysByIds } from "@/lib/journeys";
+import { getRelatedTours, getToursByIds } from "@/lib/tours";
+import { getRelatedBlogPosts, getBlogPostsByIds } from "@/lib/blog";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 import ProductItinerary from "@/components/ProductItinerary";
 import ProductHighlights from "@/components/ProductHighlights";
@@ -55,14 +55,32 @@ export default async function JourneyPage({ params }: Props) {
   const destinationNames = journey.destinations.map((d) => d.countryName).join(" · ");
   const primaryDestinationId = journey.destinations[0]?.id;
   const includedTourIds = new Set(journey.includedTours.map((t) => t.id));
-  const [relatedToursRaw, relatedJourneys, relatedArticles] = primaryDestinationId
-    ? await Promise.all([
-        getRelatedTours(primaryDestinationId, undefined, 6),
-        getJourneysByDestination(primaryDestinationId, journey.slug, 3),
-        getRelatedBlogPosts(primaryDestinationId, undefined, 3),
-      ])
-    : [[], [], []];
-  const relatedTours = relatedToursRaw.filter((t) => !includedTourIds.has(t.id)).slice(0, 3);
+
+  // "Bring This to Life": staff-curated picks take priority per category;
+  // any category left empty falls back to the existing destination-match
+  // auto-compute.
+  const [manualRelatedJourneys, manualRelatedTours, manualRelatedArticles] = await Promise.all([
+    getJourneysByIds(journey.relatedJourneyIds),
+    getToursByIds(journey.relatedTourIds),
+    getBlogPostsByIds(journey.relatedBlogPostIds),
+  ]);
+  const needsAutoTours = manualRelatedTours.length === 0;
+  const needsAutoJourneys = manualRelatedJourneys.length === 0;
+  const needsAutoArticles = manualRelatedArticles.length === 0;
+  const [autoToursRaw, autoJourneys, autoArticles] =
+    primaryDestinationId && (needsAutoTours || needsAutoJourneys || needsAutoArticles)
+      ? await Promise.all([
+          needsAutoTours ? getRelatedTours(primaryDestinationId, undefined, 6) : Promise.resolve([]),
+          needsAutoJourneys ? getJourneysByDestination(primaryDestinationId, journey.slug, 3) : Promise.resolve([]),
+          needsAutoArticles ? getRelatedBlogPosts(primaryDestinationId, undefined, 3) : Promise.resolve([]),
+        ])
+      : [[], [], []];
+
+  const relatedTours = needsAutoTours
+    ? autoToursRaw.filter((t) => !includedTourIds.has(t.id)).slice(0, 3)
+    : manualRelatedTours;
+  const relatedJourneys = needsAutoJourneys ? autoJourneys : manualRelatedJourneys;
+  const relatedArticles = needsAutoArticles ? autoArticles : manualRelatedArticles;
   const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     `Hi! I'm interested in the "${journey.title}" journey. Could you share more details?`
   )}`;

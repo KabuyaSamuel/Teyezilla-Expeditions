@@ -21,6 +21,7 @@ import VehiclesPicker from "./VehiclesPicker";
 import AccommodationsPicker from "./AccommodationsPicker";
 import TourPicker from "./TourPicker";
 import MediaPickerField from "./MediaPickerField";
+import RelatedContentEditor from "./RelatedContentEditor";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -37,6 +38,8 @@ export default function JourneyForm({
   accommodations,
   tours,
   mediaItems,
+  otherJourneys,
+  blogPosts,
 }: {
   existingJourney?: AdminJourneyDetail;
   destinations: Destination[];
@@ -48,6 +51,8 @@ export default function JourneyForm({
   accommodations: AdminAccommodation[];
   tours: Tour[];
   mediaItems: MediaItem[];
+  otherJourneys: { id: string; title: string }[];
+  blogPosts: { id: string; title: string }[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +76,9 @@ export default function JourneyForm({
   const [vehicleIds, setVehicleIds] = useState<string[]>(existingJourney?.vehicleIds ?? []);
   const [accommodationIds, setAccommodationIds] = useState<string[]>(existingJourney?.accommodationIds ?? []);
   const [tourIds, setTourIds] = useState<string[]>(existingJourney?.tourIds ?? []);
+  const [relatedJourneyIds, setRelatedJourneyIds] = useState<string[]>(existingJourney?.relatedJourneyIds ?? []);
+  const [relatedTourIds, setRelatedTourIds] = useState<string[]>(existingJourney?.relatedTourIds ?? []);
+  const [relatedBlogPostIds, setRelatedBlogPostIds] = useState<string[]>(existingJourney?.relatedBlogPostIds ?? []);
 
   function toggleId(list: string[], setList: (v: string[]) => void, id: string) {
     setList(list.includes(id) ? list.filter((v) => v !== id) : [...list, id]);
@@ -140,6 +148,9 @@ export default function JourneyForm({
       vehicleIds,
       accommodationIds,
       tourIds,
+      relatedJourneyIds,
+      relatedTourIds,
+      relatedBlogPostIds,
       featured: formData.get("featured") === "on",
       status: String(formData.get("status") ?? "draft"),
     };
@@ -331,6 +342,18 @@ export default function JourneyForm({
       <VehiclesPicker vehicles={vehicles} selectedIds={vehicleIds} onChange={setVehicleIds} />
       <AccommodationsPicker accommodations={accommodations} selectedIds={accommodationIds} onChange={setAccommodationIds} />
       <TourPicker tours={tours} selectedIds={tourIds} onChange={setTourIds} />
+
+      <RelatedContentEditor
+        journeys={otherJourneys.map((j) => ({ id: j.id, label: j.title }))}
+        tours={tours.map((t) => ({ id: t.id, label: t.title }))}
+        blogPosts={blogPosts.map((p) => ({ id: p.id, label: p.title }))}
+        relatedJourneyIds={relatedJourneyIds}
+        onChangeRelatedJourneyIds={setRelatedJourneyIds}
+        relatedTourIds={relatedTourIds}
+        onChangeRelatedTourIds={setRelatedTourIds}
+        relatedBlogPostIds={relatedBlogPostIds}
+        onChangeRelatedBlogPostIds={setRelatedBlogPostIds}
+      />
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Logistics</h2>

@@ -33,6 +33,8 @@ export type AdminModuleKey =
   | "settings"
   | "statuses"
   | "travel-resources"
+  | "faqs"
+  | "team-members"
   | "notifications";
 
 export interface AdminModuleDef {
@@ -64,6 +66,8 @@ export const ADMIN_MODULES: AdminModuleDef[] = [
   { key: "settings", label: "Website Settings", href: "/admin/settings", icon: "⚙️", description: "Company info, currency, SEO defaults" },
   { key: "statuses", label: "Status Options", href: "/admin/statuses", icon: "🏷️", description: "Manage booking and payment status choices" },
   { key: "travel-resources", label: "Travel Resources", href: "/admin/travel-resources", icon: "🧳", description: "Visa, packing, health guidance" },
+  { key: "faqs", label: "FAQs", href: "/admin/faqs", icon: "❓", description: "Questions and answers for the FAQs page and Safari guide" },
+  { key: "team-members", label: "Team Members", href: "/admin/team-members", icon: "🧑‍🤝‍🧑", description: "Staff bios for the About page" },
   { key: "notifications", label: "Notifications", href: "/admin/notifications", icon: "🔔", description: "Alerts and reminders" },
 ];
 
@@ -93,6 +97,8 @@ export const ROLE_MODULE_ACCESS: Record<StaffRole, AdminModuleKey[]> = {
     "settings",
     "statuses",
     "travel-resources",
+    "faqs",
+    "team-members",
     "notifications",
   ],
   sales_agent: [

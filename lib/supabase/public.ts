@@ -19,11 +19,17 @@ import { env } from "@/lib/env";
 // is actually for.
 
 export function getSupabasePublicClient() {
-  // env.NEXT_PUBLIC_SUPABASE_URL/ANON_KEY are required (see lib/env.ts), so
-  // importing this module already throws a clear error if they're missing
-  // -- this null-return path is unreachable in practice now, kept only so
-  // callers don't need a non-null assertion and this function's signature
-  // doesn't change.
+  // env.NEXT_PUBLIC_SUPABASE_URL/ANON_KEY are required (see lib/env.ts),
+  // but that validation itself is skippable via SKIP_ENV_VALIDATION (used
+  // by CI runs with no repository secrets, e.g. Dependabot PRs -- see
+  // .github/workflows/ci.yml). When it's skipped, these vars can genuinely
+  // be empty at runtime, and createClient() throws its own uncaught
+  // "supabaseUrl is required" immediately rather than the graceful empty
+  // result every caller of this function already checks for (`if
+  // (!supabase) return [] / undefined`). This guard is what actually makes
+  // that fallback real instead of a build-time crash.
+  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null;
+
   return createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     auth: { persistSession: false },
   });

@@ -1385,6 +1385,7 @@ export type Database = {
           short_description: string | null
           slug: string
           status: string | null
+          tagline: string | null
           teyezilla_moment: string | null
           title: string
           transportation: string | null
@@ -1423,6 +1424,7 @@ export type Database = {
           short_description?: string | null
           slug: string
           status?: string | null
+          tagline?: string | null
           teyezilla_moment?: string | null
           title: string
           transportation?: string | null
@@ -1461,6 +1463,7 @@ export type Database = {
           short_description?: string | null
           slug?: string
           status?: string | null
+          tagline?: string | null
           teyezilla_moment?: string | null
           title?: string
           transportation?: string | null
@@ -2208,6 +2211,7 @@ export type Database = {
           short_description: string | null
           slug: string
           status: string | null
+          tagline: string | null
           teyezilla_moment: string | null
           title: string
           transportation: string | null
@@ -2249,6 +2253,7 @@ export type Database = {
           short_description?: string | null
           slug: string
           status?: string | null
+          tagline?: string | null
           teyezilla_moment?: string | null
           title: string
           transportation?: string | null
@@ -2290,6 +2295,7 @@ export type Database = {
           short_description?: string | null
           slug?: string
           status?: string | null
+          tagline?: string | null
           teyezilla_moment?: string | null
           title?: string
           transportation?: string | null

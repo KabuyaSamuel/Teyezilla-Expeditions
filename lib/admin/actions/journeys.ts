@@ -22,6 +22,7 @@ export interface JourneyInput extends ProductScalarsInput {
   title: string;
   slug: string;
   heroImage: string;
+  tagline: string;
   shortDescription: string;
   overview: string;
   durationDays: number;
@@ -65,7 +66,10 @@ function toRow(input: JourneyInput) {
     title: input.title,
     slug: input.slug || slugify(input.title),
     hero_image: input.heroImage,
-    short_description: input.shortDescription,
+    tagline: input.tagline || null,
+    // Hard-capped client-side via the textarea's maxLength; sliced again
+    // here in case something bypasses that (a direct API call, for example).
+    short_description: input.shortDescription.slice(0, 250),
     overview: input.overview,
     duration_days: input.durationDays,
     price_from: input.priceFrom,

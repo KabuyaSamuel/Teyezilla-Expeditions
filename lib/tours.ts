@@ -42,6 +42,7 @@ function mapRow(row: Record<string, unknown>): Tour {
     categoryLabel: (row.category_label as string) ?? "",
     productType: (row.product_type as Tour["productType"]) ?? "experience",
     heroImage: (row.hero_image as string) ?? "",
+    tagline: (row.tagline as string) ?? "",
     shortDescription: (row.short_description as string) ?? "",
     durationDays: Number(row.duration_days ?? 0),
     durationHours: row.duration_hours != null ? Number(row.duration_hours) : null,

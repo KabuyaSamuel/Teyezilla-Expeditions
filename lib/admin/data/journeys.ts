@@ -30,6 +30,7 @@ export interface AdminJourneyDetail extends ProductScalars {
   slug: string;
   title: string;
   heroImage: string;
+  tagline: string;
   shortDescription: string;
   overview: string;
   durationDays: number;
@@ -190,6 +191,7 @@ export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyD
     slug: row.slug,
     title: row.title,
     heroImage: row.hero_image ?? "",
+    tagline: row.tagline ?? "",
     shortDescription: row.short_description ?? "",
     overview: row.overview ?? "",
     durationDays: Number(row.duration_days ?? 0),

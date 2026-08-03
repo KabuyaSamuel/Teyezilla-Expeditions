@@ -99,6 +99,7 @@ export default function JourneyForm({
       title: String(formData.get("title") ?? ""),
       slug: existingJourney?.slug ?? "",
       heroImage,
+      tagline: String(formData.get("tagline") ?? ""),
       shortDescription: String(formData.get("shortDescription") ?? ""),
       overview: String(formData.get("overview") ?? ""),
       productType: String(formData.get("productType") ?? "signature_journey"),
@@ -217,9 +218,14 @@ export default function JourneyForm({
           </div>
         </div>
         <div className="mt-4">
+          <label htmlFor="tagline" className="text-xs font-medium text-foreground/60">Tagline</label>
+          <p className="mt-0.5 text-[11px] text-foreground/40">Short and punchy -- this is what shows on the card, not the Overview below.</p>
+          <input id="tagline" name="tagline" maxLength={80} defaultValue={existingJourney?.tagline} placeholder="e.g. A multi-country expedition across East Africa" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div className="mt-4">
           <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Overview</label>
-          <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~120–150 characters (keeps card layouts uniform across the site).</p>
-          <textarea id="shortDescription" name="shortDescription" defaultValue={existingJourney?.shortDescription} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <p className="mt-0.5 text-[11px] text-foreground/40">Shown on the detail page, not the card -- 250 characters max.</p>
+          <textarea id="shortDescription" name="shortDescription" maxLength={250} defaultValue={existingJourney?.shortDescription} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div className="mt-4">
           <label htmlFor="overview" className="text-xs font-medium text-foreground/60">Journey Story (Full Description)</label>

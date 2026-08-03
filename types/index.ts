@@ -30,6 +30,7 @@ export interface Tour extends SEOFields {
   categoryLabel: string;
   productType: string;
   heroImage: string;
+  tagline: string;
   shortDescription: string;
   durationDays: number;
   durationHours: number | null;

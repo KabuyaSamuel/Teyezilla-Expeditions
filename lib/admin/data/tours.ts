@@ -38,6 +38,7 @@ function mapRow(row: Record<string, any>): AdminTourDetail {
     title: row.title,
     categoryLabel: row.category_label ?? "",
     heroImage: row.hero_image ?? "",
+    tagline: row.tagline ?? "",
     shortDescription: row.short_description ?? "",
     overview: row.overview ?? "",
     durationDays: Number(row.duration_days ?? 0),
@@ -68,7 +69,7 @@ function mapRow(row: Record<string, any>): AdminTourDetail {
 
 const LIST_SELECT = `
   id, slug, destination_id, title, category_label, product_type, hero_image,
-  short_description, duration_days, duration_hours, price_from, currency,
+  tagline, short_description, duration_days, duration_hours, price_from, currency,
   difficulty, featured, status, meta_title, meta_description, og_image
 `;
 
@@ -81,6 +82,7 @@ function mapListRow(row: any): Tour {
     categoryLabel: row.category_label ?? "",
     productType: row.product_type ?? "experience",
     heroImage: row.hero_image ?? "",
+    tagline: row.tagline ?? "",
     shortDescription: row.short_description ?? "",
     durationDays: Number(row.duration_days ?? 0),
     durationHours: row.duration_hours != null ? Number(row.duration_hours) : null,

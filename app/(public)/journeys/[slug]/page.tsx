@@ -145,8 +145,7 @@ export default async function JourneyPage({ params }: Props) {
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-10 lg:col-span-2">
             <div>
-              <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>
-              <p className="mt-3 text-foreground/70">{journey.shortDescription}</p>
+              <p className="text-foreground/70">{journey.shortDescription}</p>
             </div>
 
             <ProductFactsGrid facts={facts} />

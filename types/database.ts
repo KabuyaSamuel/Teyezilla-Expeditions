@@ -626,6 +626,7 @@ export type Database = {
           best_time_to_visit: string | null
           country_name: string
           created_at: string | null
+          featured: boolean
           flag_emoji: string | null
           health_guidance: string | null
           hero_image: string | null
@@ -646,6 +647,7 @@ export type Database = {
           best_time_to_visit?: string | null
           country_name: string
           created_at?: string | null
+          featured?: boolean
           flag_emoji?: string | null
           health_guidance?: string | null
           hero_image?: string | null
@@ -666,6 +668,7 @@ export type Database = {
           best_time_to_visit?: string | null
           country_name?: string
           created_at?: string | null
+          featured?: boolean
           flag_emoji?: string | null
           health_guidance?: string | null
           hero_image?: string | null

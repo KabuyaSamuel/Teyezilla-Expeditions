@@ -20,6 +20,7 @@ export interface Destination extends SEOFields {
   packingList: string;
   insuranceInfo: string;
   isLaunchDestination: boolean;
+  featured: boolean;
 }
 
 export interface Tour extends SEOFields {

@@ -16,6 +16,7 @@ function mapRow(row: Record<string, unknown>): Destination {
     packingList: (row.packing_list as string) ?? "",
     insuranceInfo: (row.insurance_info as string) ?? "",
     isLaunchDestination: Boolean(row.is_launch_destination),
+    featured: Boolean(row.featured),
     metaTitle: (row.meta_title as string) ?? "",
     metaDescription: (row.meta_description as string) ?? "",
     ogImage: (row.og_image as string) ?? "",
@@ -77,6 +78,11 @@ export async function getDestinationsPaginated(
 export async function getLaunchDestinations(): Promise<Destination[]> {
   const all = await getDestinations();
   return all.filter((d) => d.isLaunchDestination);
+}
+
+export async function getFeaturedDestinations(): Promise<Destination[]> {
+  const all = await getDestinations();
+  return all.filter((d) => d.featured);
 }
 
 export async function getDestinationBySlug(slug: string): Promise<Destination | undefined> {

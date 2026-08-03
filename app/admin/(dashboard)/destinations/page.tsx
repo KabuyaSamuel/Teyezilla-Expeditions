@@ -55,6 +55,7 @@ export default async function AdminDestinationsPage({
             header: "Status",
             cell: (d) => <Badge tone={d.isLaunchDestination ? "success" : "pending"}>{d.isLaunchDestination ? "Live" : "Coming Soon"}</Badge>,
           },
+          { header: "Featured", cell: (d) => (d.featured ? "★" : "-") },
           { header: "", cell: (d) => <Link href={`/admin/destinations/${d.slug}`} className="text-primary hover:underline">Edit</Link> },
         ]}
         renderMobileCard={(d) => (
@@ -69,6 +70,7 @@ export default async function AdminDestinationsPage({
                 label="Status"
                 value={<Badge tone={d.isLaunchDestination ? "success" : "pending"}>{d.isLaunchDestination ? "Live" : "Coming Soon"}</Badge>}
               />
+              <MobileCardField label="Featured" value={d.featured ? "★" : "-"} />
             </div>
           </>
         )}

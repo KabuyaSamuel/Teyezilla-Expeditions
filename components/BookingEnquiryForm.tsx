@@ -19,6 +19,8 @@ export interface ProductOption {
   priceFrom: number;
   currency: string;
   addons: BookableAddonOption[];
+  /** Set when arriving via a specific pricing tier's "Enquire" link. */
+  tierId?: string;
 }
 
 const inputClass =
@@ -96,6 +98,7 @@ export default function BookingEnquiryForm({
       <input type="hidden" name="tourSlug" value={selKind === "tour" ? selSlug : ""} />
       <input type="hidden" name="journeySlug" value={selKind === "journey" ? selSlug : ""} />
       <input type="hidden" name="addonIds" value={selectedAddonIds.join(",")} />
+      <input type="hidden" name="tierId" value={preselected?.tierId ?? ""} />
 
       {!preselected && (
         <div>
@@ -356,7 +359,7 @@ export default function BookingEnquiryForm({
         <div className="rounded-2xl bg-secondary/10 px-5 py-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-foreground/60">
-              {selectedProduct.title} (from, per person){addonsTotal > 0 ? " + add-ons" : ""}
+              {selectedProduct.title} ({selectedProduct.tierId ? "per person" : "from, per person"}){addonsTotal > 0 ? " + add-ons" : ""}
             </span>
             <span className="font-heading text-lg font-bold text-accent">
               {selectedProduct.currency} {estimatedTotal.toLocaleString()}

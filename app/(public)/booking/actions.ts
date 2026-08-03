@@ -87,6 +87,31 @@ async function lookupProduct(tourSlug: string, journeySlug: string): Promise<Pro
   return null;
 }
 
+// Re-fetches the actual pricing tier row server-side instead of trusting
+// whatever price the tier CTA link's page rendered client-side -- same
+// tamper concern as lookupSelectedAddons below. Scoped to this exact
+// product so a tier id from a different tour/journey can't be smuggled in.
+async function lookupTierPrice(
+  db: ReturnType<typeof getSupabasePublicClient>,
+  product: ProductRef,
+  tierId: string
+): Promise<{ tierName: string; price: number; currency: string } | null> {
+  if (!db || !tierId) return null;
+
+  const table = product.kind === "tour" ? "tour_pricing_tiers" : "journey_pricing_tiers";
+  const parentColumn = product.kind === "tour" ? "tour_id" : "journey_id";
+
+  const { data } = await db
+    .from(table)
+    .select("tier_name, price, currency")
+    .eq(parentColumn, product.id)
+    .eq("id", tierId)
+    .maybeSingle();
+
+  if (!data) return null;
+  return { tierName: data.tier_name, price: Number(data.price), currency: data.currency ?? product.currency };
+}
+
 // Re-fetches the actual add-on rows server-side instead of trusting
 // whatever price the client's form state claims -- a visitor could
 // otherwise edit the hidden addonIds input and any price shown client-side.
@@ -170,7 +195,11 @@ export async function submitBookingEnquiry(
     .map((s) => s.trim())
     .filter(Boolean);
   const selectedAddons = await lookupSelectedAddons(db, product, requestedAddonIds);
-  const basePrice = product.priceFrom;
+
+  const requestedTierId = String(formData.get("tierId") ?? "").trim();
+  const tier = requestedTierId ? await lookupTierPrice(db, product, requestedTierId) : null;
+  const currency = tier?.currency ?? product.currency;
+  const basePrice = tier?.price ?? product.priceFrom;
   const addonsTotal = selectedAddons.reduce((sum, a) => sum + a.price, 0);
   const totalAmount = basePrice + addonsTotal;
 
@@ -221,7 +250,7 @@ export async function submitBookingEnquiry(
     base_price: basePrice,
     addons_total: addonsTotal,
     total_amount: totalAmount,
-    currency: product.currency,
+    currency,
   };
 
   const countryCode = countryCodeForName(product.countryName);
@@ -279,8 +308,9 @@ export async function submitBookingEnquiry(
     input.budgetRange ? `Budget per person: ${input.budgetRange}` : "",
     input.referralSource ? `Heard about us via: ${input.referralSource}` : "",
     input.specialRequests ? `Special requests: ${input.specialRequests}` : "",
+    tier ? `Pricing tier requested: ${tier.tierName}` : "",
     addonsSummary ? `Add-ons requested: ${addonsSummary}` : "",
-    `Estimated total requested: ${product.currency} ${totalAmount.toLocaleString()}`,
+    `Estimated total requested: ${currency} ${totalAmount.toLocaleString()}`,
   ].filter(Boolean);
 
   const { error: inquiryError } = await db.from("inquiries").insert({
@@ -313,7 +343,8 @@ export async function submitBookingEnquiry(
   const emailFields: EmailField[] = [
     { label: "Reference", value: bookingReference },
     { label: `${product.kind === "tour" ? "Tour" : "Journey"}`, value: product.title },
-    { label: "Estimated total requested (per person, starting)", value: `${product.currency} ${totalAmount.toLocaleString()}` },
+    ...(tier ? [{ label: "Pricing tier requested", value: tier.tierName }] : []),
+    { label: "Estimated total requested (per person, starting)", value: `${currency} ${totalAmount.toLocaleString()}` },
     ...(addonsSummary ? [{ label: "Add-ons requested", value: addonsSummary }] : []),
     { label: "Name", value: input.fullName },
     { label: "Email", value: input.email },
@@ -344,11 +375,11 @@ export async function submitBookingEnquiry(
       customerName: input.fullName,
       bookingReference,
       enquiryTitle: product.title,
-      fields: emailFields.slice(0, 12),
+      fields: emailFields.slice(0, 13),
       whatsappUrl: whatsappLink(
         `Hi! I just sent enquiry ${bookingReference} about "${product.title}"${
-          addonsSummary ? ` with add-ons: ${addonsSummary}` : ""
-        }. Estimated total: ${product.currency} ${totalAmount.toLocaleString()}.`
+          tier ? ` (${tier.tierName})` : ""
+        }${addonsSummary ? ` with add-ons: ${addonsSummary}` : ""}. Estimated total: ${currency} ${totalAmount.toLocaleString()}.`
       ),
     }),
   });

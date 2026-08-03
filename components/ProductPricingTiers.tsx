@@ -20,6 +20,10 @@ export default function ProductPricingTiers({
 
   if (tiers.length === 0) return null;
 
+  function hrefForTier(tierId: string): string {
+    return `${bookingHref}${bookingHref.includes("?") ? "&" : "?"}tier=${tierId}`;
+  }
+
   return (
     <div>
       <h2 className="font-heading text-2xl font-bold text-foreground">Choose Your Journey</h2>
@@ -54,7 +58,7 @@ export default function ProductPricingTiers({
                 ))}
               </ul>
             )}
-            <Link href={bookingHref} className="btn-primary mt-6 text-center text-sm">
+            <Link href={hrefForTier(tier.id)} className="btn-primary mt-6 text-center text-sm">
               {tier.ctaLabel || `Enquire About ${tier.tierName}`}
             </Link>
           </div>

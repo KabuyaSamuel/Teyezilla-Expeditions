@@ -20,41 +20,68 @@ interface SummaryProduct {
   currency: string;
   slug: string;
   kind: "tour" | "journey";
+  /** Set when the visitor arrived via a specific pricing tier's "Enquire" link. */
+  tierName?: string;
+  tierId?: string;
+}
+
+// Swaps in the selected pricing tier's price/currency (and name, for display)
+// in place of the product's default priceFrom -- arrives as ?tier=<tierId>
+// from ProductPricingTiers' per-tier CTA links. tierId is kept on the
+// result (not just the display name) so the form can carry it through to
+// the server action, which re-verifies the price server-side.
+function applyTierOverride<T extends { pricingTiers: { id: string; tierName: string; price: number; currency: string }[] }>(
+  product: SummaryProduct,
+  detail: T,
+  tierId: string | undefined
+): SummaryProduct {
+  if (!tierId) return product;
+  const tier = detail.pricingTiers.find((t) => t.id === tierId);
+  if (!tier) return product;
+  return { ...product, priceFrom: tier.price, currency: tier.currency, tierName: tier.tierName, tierId: tier.id };
 }
 
 export default async function BookingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tour?: string; journey?: string }>;
+  searchParams: Promise<{ tour?: string; journey?: string; tier?: string }>;
 }) {
-  const { tour: tourSlug, journey: journeySlug } = await searchParams;
+  const { tour: tourSlug, journey: journeySlug, tier: tierId } = await searchParams;
 
   let product: SummaryProduct | undefined;
   if (tourSlug) {
     const tour = await getTourBySlug(tourSlug);
     if (tour) {
-      product = {
-        title: tour.title,
-        heroImage: tour.heroImage,
-        durationDays: tour.durationDays,
-        priceFrom: tour.priceFrom,
-        currency: tour.currency,
-        slug: tour.slug,
-        kind: "tour",
-      };
+      product = applyTierOverride(
+        {
+          title: tour.title,
+          heroImage: tour.heroImage,
+          durationDays: tour.durationDays,
+          priceFrom: tour.priceFrom,
+          currency: tour.currency,
+          slug: tour.slug,
+          kind: "tour",
+        },
+        tour,
+        tierId
+      );
     }
   } else if (journeySlug) {
     const journey = await getJourneyBySlug(journeySlug);
     if (journey) {
-      product = {
-        title: journey.title,
-        heroImage: journey.heroImage,
-        durationDays: journey.durationDays,
-        priceFrom: journey.priceFrom,
-        currency: journey.currency,
-        slug: journey.slug,
-        kind: "journey",
-      };
+      product = applyTierOverride(
+        {
+          title: journey.title,
+          heroImage: journey.heroImage,
+          durationDays: journey.durationDays,
+          priceFrom: journey.priceFrom,
+          currency: journey.currency,
+          slug: journey.slug,
+          kind: "journey",
+        },
+        journey,
+        tierId
+      );
     }
   }
 
@@ -107,9 +134,13 @@ export default async function BookingPage({
             <p className="text-xs uppercase tracking-wide text-foreground/50">
               You&apos;re enquiring about
             </p>
-            <p className="font-heading text-lg font-semibold text-foreground">{product.title}</p>
+            <p className="font-heading text-lg font-semibold text-foreground">
+              {product.title}
+              {product.tierName && <span className="text-foreground/60"> -- {product.tierName}</span>}
+            </p>
             <p className="mt-1 text-sm text-foreground/60">
-              {product.durationDays} day{product.durationDays !== 1 ? "s" : ""} · From{" "}
+              {product.durationDays} day{product.durationDays !== 1 ? "s" : ""} ·{" "}
+              {product.tierName ? "" : "From "}
               <span className="font-semibold text-accent">
                 {product.currency} {product.priceFrom.toLocaleString()}
               </span>{" "}
@@ -129,6 +160,7 @@ export default async function BookingPage({
                 priceFrom: product.priceFrom,
                 currency: product.currency,
                 addons: addonsBySlug[product.slug] ?? [],
+                tierId: product.tierId,
               }
             : undefined
         }

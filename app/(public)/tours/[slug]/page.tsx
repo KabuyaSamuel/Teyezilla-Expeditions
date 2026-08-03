@@ -148,18 +148,18 @@ export default async function TourPage({ params }: Props) {
             <div>
               <h2 className="font-heading text-2xl font-bold text-foreground">Overview</h2>
               <p className="mt-3 text-foreground/70">{tour.shortDescription}</p>
-
-              {tour.cancellationPolicy && (
-                <div className="mt-5 rounded-2xl border border-secondary/30 bg-secondary/10 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
-                    Cancellation & Refund Policy
-                  </p>
-                  <p className="mt-1 text-sm text-foreground/80">{tour.cancellationPolicy}</p>
-                </div>
-              )}
             </div>
 
             <ProductFactsGrid facts={facts} />
+
+            {tour.cancellationPolicy && (
+              <div className="rounded-2xl border border-secondary/30 bg-secondary/10 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
+                  Cancellation & Refund Policy
+                </p>
+                <p className="mt-1 text-sm text-foreground/80">{tour.cancellationPolicy}</p>
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-3">
               <a href={bookingHref} className="btn-primary px-5 py-2.5 text-sm">

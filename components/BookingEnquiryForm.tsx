@@ -12,6 +12,13 @@ export interface BookableAddonOption {
   currency: string;
 }
 
+export interface PricingTierOption {
+  id: string;
+  tierName: string;
+  price: number;
+  currency: string;
+}
+
 export interface ProductOption {
   slug: string;
   title: string;
@@ -19,6 +26,7 @@ export interface ProductOption {
   priceFrom: number;
   currency: string;
   addons: BookableAddonOption[];
+  pricingTiers?: PricingTierOption[];
   /** Set when arriving via a specific pricing tier's "Enquire" link. */
   tierId?: string;
 }
@@ -35,11 +43,15 @@ function FieldError({ message }: { message?: string }) {
 
 export default function BookingEnquiryForm({
   preselected,
+  preselectedAddonId,
   options,
 }: {
   // When arriving via ?tour= / ?journey= the product is fixed; otherwise the
   // visitor picks from the published tours + journeys list.
   preselected?: ProductOption;
+  // Set when arriving via a specific add-on's CTA link (?addon=<id>) so that
+  // add-on comes pre-checked below.
+  preselectedAddonId?: string;
   options: ProductOption[];
 }) {
   const [state, formAction, pending] = useActionState<EnquiryFormState, FormData>(
@@ -51,7 +63,12 @@ export default function BookingEnquiryForm({
   const [selection, setSelection] = useState(
     preselected ? `${preselected.kind}:${preselected.slug}` : ""
   );
-  const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
+  const [selectedTierId, setSelectedTierId] = useState(preselected?.tierId ?? "");
+  const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>(
+    preselectedAddonId && preselected?.addons.some((a) => a.id === preselectedAddonId)
+      ? [preselectedAddonId]
+      : []
+  );
   const [fields, setFields] = useState({
     fullName: "",
     email: "",
@@ -78,6 +95,8 @@ export default function BookingEnquiryForm({
     [allOptions, selKind, selSlug]
   );
   const availableAddons = selectedProduct?.addons ?? [];
+  const availableTiers = selectedProduct?.pricingTiers ?? [];
+  const selectedTier = availableTiers.find((t) => t.id === selectedTierId);
 
   function toggleAddon(id: string) {
     setSelectedAddonIds((ids) => (ids.includes(id) ? ids.filter((v) => v !== id) : [...ids, id]));
@@ -86,19 +105,22 @@ export default function BookingEnquiryForm({
   function handleSelectionChange(value: string) {
     setSelection(value);
     setSelectedAddonIds([]);
+    setSelectedTierId("");
   }
 
   const addonsTotal = availableAddons
     .filter((a) => selectedAddonIds.includes(a.id))
     .reduce((sum, a) => sum + a.price, 0);
-  const estimatedTotal = (selectedProduct?.priceFrom ?? 0) + addonsTotal;
+  const basePrice = selectedTier ? selectedTier.price : (selectedProduct?.priceFrom ?? 0);
+  const displayCurrency = selectedTier?.currency ?? selectedProduct?.currency;
+  const estimatedTotal = basePrice + addonsTotal;
 
   return (
     <form action={formAction} onReset={(e) => e.preventDefault()} className="mt-8 space-y-5" noValidate>
       <input type="hidden" name="tourSlug" value={selKind === "tour" ? selSlug : ""} />
       <input type="hidden" name="journeySlug" value={selKind === "journey" ? selSlug : ""} />
       <input type="hidden" name="addonIds" value={selectedAddonIds.join(",")} />
-      <input type="hidden" name="tierId" value={preselected?.tierId ?? ""} />
+      <input type="hidden" name="tierId" value={selectedTierId} />
 
       {!preselected && (
         <div>
@@ -322,6 +344,29 @@ export default function BookingEnquiryForm({
         />
       </div>
 
+      {availableTiers.length > 0 && (
+        <div>
+          <label htmlFor="pricingTier" className="mb-1 block px-2 text-sm font-medium text-foreground">
+            Pricing tier / package
+          </label>
+          <select
+            id="pricingTier"
+            value={selectedTierId}
+            onChange={(e) => setSelectedTierId(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">
+              Not sure yet -- from {selectedProduct?.currency} {selectedProduct?.priceFrom.toLocaleString()}
+            </option>
+            {availableTiers.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.tierName} ({t.currency} {t.price.toLocaleString()})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {availableAddons.length > 0 && (
         <div>
           <p className="mb-1 block px-2 text-sm font-medium text-foreground">
@@ -359,10 +404,10 @@ export default function BookingEnquiryForm({
         <div className="rounded-2xl bg-secondary/10 px-5 py-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-foreground/60">
-              {selectedProduct.title} ({selectedProduct.tierId ? "per person" : "from, per person"}){addonsTotal > 0 ? " + add-ons" : ""}
+              {selectedProduct.title} ({selectedTier ? "per person" : "from, per person"}){addonsTotal > 0 ? " + add-ons" : ""}
             </span>
             <span className="font-heading text-lg font-bold text-accent">
-              {selectedProduct.currency} {estimatedTotal.toLocaleString()}
+              {displayCurrency} {estimatedTotal.toLocaleString()}
             </span>
           </div>
           <p className="mt-1 text-xs text-foreground/50">

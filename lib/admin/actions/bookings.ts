@@ -97,7 +97,7 @@ export async function sendQuote(
   quotedAmount: number,
   message: string,
   redeemPoints?: number
-): Promise<{ emailSent: boolean }> {
+): Promise<{ emailSent: boolean; emailFailureReason?: string }> {
   if (!Number.isFinite(quotedAmount) || quotedAmount <= 0) {
     throw new Error("Enter a quoted amount greater than zero.");
   }
@@ -132,6 +132,7 @@ export async function sendQuote(
   if (error) throw new Error(error.message);
 
   let emailSent = false;
+  let emailFailureReason: string | undefined;
   if (booking.customerEmail) {
     const result = await sendCustomerConfirmation({
       to: booking.customerEmail,
@@ -150,8 +151,9 @@ export async function sendQuote(
       }),
     });
     emailSent = result.sent;
+    emailFailureReason = result.reason;
   }
 
   revalidateBooking(id);
-  return { emailSent };
+  return { emailSent, emailFailureReason };
 }

@@ -58,6 +58,12 @@ export interface JourneyDetail extends Journey, ProductScalars {
   vehicles: Vehicle[];
   accommodations: Accommodation[];
   includedTours: Tour[];
+  // Staff-curated "Bring This to Life" picks, in display order. Empty means
+  // no manual picks yet -- callers should fall back to the destination-match
+  // auto-compute (getJourneysByDestination/getRelatedTours/getRelatedBlogPosts).
+  relatedJourneyIds: string[];
+  relatedTourIds: string[];
+  relatedBlogPostIds: string[];
 }
 
 function mapTourRow(row: Record<string, unknown>): Tour {
@@ -168,6 +174,15 @@ export async function getJourneysByDestination(
     .slice(0, limit);
 }
 
+// Powers staff-curated "Bring This to Life" picks -- returns published
+// journeys in the same order as `ids` (the junction table's display_order).
+export async function getJourneysByIds(ids: string[]): Promise<Journey[]> {
+  if (ids.length === 0) return [];
+  const all = await getJourneys();
+  const bySlugMap = new Map(all.map((j) => [j.id, j]));
+  return ids.map((id) => bySlugMap.get(id)).filter((j): j is Journey => Boolean(j));
+}
+
 const DETAIL_SELECT = `
   *,
   journey_destinations(destination_id, destinations(country_name, slug)),
@@ -178,7 +193,10 @@ const DETAIL_SELECT = `
   journey_activities(activities(id, name, slug, description, icon)),
   journey_vehicles(vehicles(id, name, slug, vehicle_type, seats, description, features, image)),
   journey_accommodations(accommodations(id, destination_id, name, slug, description, hero_image, tier)),
-  journey_tours(display_order, tours(*))
+  journey_tours(display_order, tours(*)),
+  journey_related_journeys!journey_related_journeys_journey_id_fkey(display_order, related_journey_id),
+  journey_related_tours(display_order, tour_id),
+  journey_related_blog_posts(display_order, blog_post_id)
 `;
 
 export async function getJourneyBySlug(slug: string): Promise<JourneyDetail | undefined> {
@@ -253,5 +271,14 @@ export async function getJourneyBySlug(slug: string): Promise<JourneyDetail | un
       .map((jt: any) => jt.tours)
       .filter(Boolean)
       .map(mapTourRow),
+    relatedJourneyIds: [...(row.journey_related_journeys ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.related_journey_id),
+    relatedTourIds: [...(row.journey_related_tours ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.tour_id),
+    relatedBlogPostIds: [...(row.journey_related_blog_posts ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.blog_post_id),
   };
 }

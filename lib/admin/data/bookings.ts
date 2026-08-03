@@ -22,6 +22,7 @@ type BookingRow = Tables<"bookings"> & {
         >;
       })
     | null;
+  booking_addons: Pick<Tables<"booking_addons">, "title" | "price" | "currency">[];
 };
 
 export type PaymentStatus = "unpaid" | "deposit_received" | "paid";
@@ -59,6 +60,9 @@ export interface Booking {
   referralSource: string;
   countryOfResidence: string;
   totalAmount: number;
+  basePrice: number;
+  addonsTotal: number;
+  addons: { title: string; price: number; currency: string }[];
   currency: string;
   paymentStatus: PaymentStatus;
   bookingStatus: BookingStatus;
@@ -68,7 +72,8 @@ export interface Booking {
 const SELECT =
   "*, customer:customers(full_name, email), " +
   "tour:tours(title, slug, destinations(country_name)), " +
-  "journey:journeys(title, slug, journey_destinations(is_primary, display_order, destinations(country_name)))";
+  "journey:journeys(title, slug, journey_destinations(is_primary, display_order, destinations(country_name))), " +
+  "booking_addons(title, price, currency)";
 
 // Joins customers, tours, and journeys to get display names, since the
 // `bookings` table only stores foreign keys.
@@ -122,6 +127,13 @@ function mapRow(row: BookingRow): Booking {
     referralSource: row.referral_source ?? "",
     countryOfResidence: row.country_of_residence ?? "",
     totalAmount: Number(row.total_amount ?? 0),
+    basePrice: Number(row.base_price ?? 0),
+    addonsTotal: Number(row.addons_total ?? 0),
+    addons: (row.booking_addons ?? []).map((a) => ({
+      title: a.title,
+      price: Number(a.price),
+      currency: a.currency ?? "USD",
+    })),
     currency: row.currency ?? "USD",
     paymentStatus: (row.payment_status ?? "unpaid") as PaymentStatus,
     bookingStatus: (row.booking_status ?? "inquiry") as BookingStatus,

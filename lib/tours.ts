@@ -177,6 +177,15 @@ export async function getToursByDestination(destinationId: string): Promise<Tour
   return all.filter((t) => t.destinationId === destinationId);
 }
 
+// Powers staff-curated "Bring This to Life" picks -- returns published
+// tours in the same order as `ids` (the junction table's display_order).
+export async function getToursByIds(ids: string[]): Promise<Tour[]> {
+  if (ids.length === 0) return [];
+  const all = await getPublishedTours();
+  const byId = new Map(all.map((t) => [t.id, t]));
+  return ids.map((id) => byId.get(id)).filter((t): t is Tour => Boolean(t));
+}
+
 // Powers "related tours" sections on journey/destination/blog pages.
 export async function getRelatedTours(
   destinationId: string,

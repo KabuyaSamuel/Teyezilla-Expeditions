@@ -51,6 +51,9 @@ export interface JourneyInput extends ProductScalarsInput {
   vehicleIds: string[];
   accommodationIds: string[];
   tourIds: string[];
+  relatedJourneyIds: string[];
+  relatedTourIds: string[];
+  relatedBlogPostIds: string[];
 }
 
 function slugify(title: string): string {
@@ -156,6 +159,38 @@ async function syncJourneyRelations(
   if (input.tourIds.length > 0) {
     const { error } = await supabase.from("journey_tours").insert(
       input.tourIds.map((tourId, index) => ({ journey_id: journeyId, tour_id: tourId, display_order: index }))
+    );
+    if (error) throw new Error(error.message);
+  }
+
+  await supabase.from("journey_related_journeys").delete().eq("journey_id", journeyId);
+  if (input.relatedJourneyIds.length > 0) {
+    const { error } = await supabase.from("journey_related_journeys").insert(
+      input.relatedJourneyIds.map((relatedJourneyId, index) => ({
+        journey_id: journeyId,
+        related_journey_id: relatedJourneyId,
+        display_order: index,
+      }))
+    );
+    if (error) throw new Error(error.message);
+  }
+
+  await supabase.from("journey_related_tours").delete().eq("journey_id", journeyId);
+  if (input.relatedTourIds.length > 0) {
+    const { error } = await supabase.from("journey_related_tours").insert(
+      input.relatedTourIds.map((tourId, index) => ({ journey_id: journeyId, tour_id: tourId, display_order: index }))
+    );
+    if (error) throw new Error(error.message);
+  }
+
+  await supabase.from("journey_related_blog_posts").delete().eq("journey_id", journeyId);
+  if (input.relatedBlogPostIds.length > 0) {
+    const { error } = await supabase.from("journey_related_blog_posts").insert(
+      input.relatedBlogPostIds.map((blogPostId, index) => ({
+        journey_id: journeyId,
+        blog_post_id: blogPostId,
+        display_order: index,
+      }))
     );
     if (error) throw new Error(error.message);
   }

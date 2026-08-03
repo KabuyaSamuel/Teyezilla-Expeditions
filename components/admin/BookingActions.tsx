@@ -21,6 +21,7 @@ export default function BookingActions({
   customerLoyaltyBalance,
   loyaltyAccrualRate,
   canRedeemLoyalty,
+  requestedTotal,
 }: {
   id: string;
   bookingReference: string;
@@ -33,12 +34,14 @@ export default function BookingActions({
   customerLoyaltyBalance?: number;
   loyaltyAccrualRate: number;
   canRedeemLoyalty: boolean;
+  /** What the customer's enquiry auto-calculated to (base price + add-ons); pre-fills the quote input as a starting point staff can still adjust. */
+  requestedTotal?: number;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [quoteOpen, setQuoteOpen] = useState(false);
-  const [quoteAmount, setQuoteAmount] = useState("");
+  const [quoteAmount, setQuoteAmount] = useState(requestedTotal && requestedTotal > 0 ? String(requestedTotal) : "");
   const [quoteMessage, setQuoteMessage] = useState("");
   const [redeemPoints, setRedeemPoints] = useState("");
 
@@ -66,7 +69,7 @@ export default function BookingActions({
       return;
     }
     await run(async () => {
-      const { emailSent } = await sendQuote(id, amount, quoteMessage.trim(), redeemPointsNum || undefined);
+      const { emailSent, emailFailureReason } = await sendQuote(id, amount, quoteMessage.trim(), redeemPointsNum || undefined);
       setQuoteOpen(false);
       setQuoteAmount("");
       setQuoteMessage("");
@@ -74,7 +77,7 @@ export default function BookingActions({
       setNotice(
         emailSent
           ? "Quote saved and emailed to the customer."
-          : "Quote saved. The email could not be sent. Follow up by email or WhatsApp."
+          : `Quote saved, but the email failed${emailFailureReason ? `: ${emailFailureReason}` : ""}. Follow up by email or WhatsApp.`
       );
     });
   }

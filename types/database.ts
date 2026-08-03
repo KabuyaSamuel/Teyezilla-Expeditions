@@ -273,6 +273,44 @@ export type Database = {
           },
         ]
       }
+      booking_addons: {
+        Row: {
+          addon_id: string
+          booking_id: string
+          created_at: string | null
+          currency: string
+          id: string
+          price: number
+          title: string
+        }
+        Insert: {
+          addon_id: string
+          booking_id: string
+          created_at?: string | null
+          currency?: string
+          id?: string
+          price: number
+          title: string
+        }
+        Update: {
+          addon_id?: string
+          booking_id?: string
+          created_at?: string | null
+          currency?: string
+          id?: string
+          price?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_addons_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_guests: {
         Row: {
           age_group: string | null
@@ -316,10 +354,12 @@ export type Database = {
       }
       bookings: {
         Row: {
+          addons_total: number | null
           adults: number | null
           assigned_driver_id: string | null
           assigned_guide_id: string | null
           assigned_vehicle_id: string | null
+          base_price: number | null
           booking_reference: string
           booking_status: string | null
           budget_range: string | null
@@ -343,10 +383,12 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          addons_total?: number | null
           adults?: number | null
           assigned_driver_id?: string | null
           assigned_guide_id?: string | null
           assigned_vehicle_id?: string | null
+          base_price?: number | null
           booking_reference: string
           booking_status?: string | null
           budget_range?: string | null
@@ -370,10 +412,12 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          addons_total?: number | null
           adults?: number | null
           assigned_driver_id?: string | null
           assigned_guide_id?: string | null
           assigned_vehicle_id?: string | null
+          base_price?: number | null
           booking_reference?: string
           booking_status?: string | null
           budget_range?: string | null
@@ -1227,6 +1271,105 @@ export type Database = {
             columns: ["journey_id"]
             isOneToOne: false
             referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journey_related_blog_posts: {
+        Row: {
+          blog_post_id: string
+          display_order: number | null
+          journey_id: string
+        }
+        Insert: {
+          blog_post_id: string
+          display_order?: number | null
+          journey_id: string
+        }
+        Update: {
+          blog_post_id?: string
+          display_order?: number | null
+          journey_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_related_blog_posts_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_related_blog_posts_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journey_related_journeys: {
+        Row: {
+          display_order: number | null
+          journey_id: string
+          related_journey_id: string
+        }
+        Insert: {
+          display_order?: number | null
+          journey_id: string
+          related_journey_id: string
+        }
+        Update: {
+          display_order?: number | null
+          journey_id?: string
+          related_journey_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_related_journeys_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_related_journeys_related_journey_id_fkey"
+            columns: ["related_journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journey_related_tours: {
+        Row: {
+          display_order: number | null
+          journey_id: string
+          tour_id: string
+        }
+        Insert: {
+          display_order?: number | null
+          journey_id: string
+          tour_id: string
+        }
+        Update: {
+          display_order?: number | null
+          journey_id?: string
+          tour_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_related_tours_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_related_tours_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
             referencedColumns: ["id"]
           },
         ]

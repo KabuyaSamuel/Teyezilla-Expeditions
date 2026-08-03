@@ -26,6 +26,15 @@ interface ProductRef {
   title: string;
   kind: "tour" | "journey";
   countryName: string | null;
+  priceFrom: number;
+  currency: string;
+}
+
+interface SelectedAddon {
+  id: string;
+  title: string;
+  price: number;
+  currency: string;
 }
 
 async function lookupProduct(tourSlug: string, journeySlug: string): Promise<ProductRef | null> {
@@ -35,18 +44,25 @@ async function lookupProduct(tourSlug: string, journeySlug: string): Promise<Pro
   if (tourSlug) {
     const { data } = await supabase
       .from("tours")
-      .select("id, title, destinations(country_name)")
+      .select("id, title, price_from, currency, destinations(country_name)")
       .eq("slug", tourSlug)
       .maybeSingle();
     if (data) {
       const destination = data.destinations as unknown as { country_name: string } | null;
-      return { id: data.id, title: data.title, kind: "tour", countryName: destination?.country_name ?? null };
+      return {
+        id: data.id,
+        title: data.title,
+        kind: "tour",
+        countryName: destination?.country_name ?? null,
+        priceFrom: Number(data.price_from ?? 0),
+        currency: data.currency ?? "USD",
+      };
     }
   }
   if (journeySlug) {
     const { data } = await supabase
       .from("journeys")
-      .select("id, title, journey_destinations(is_primary, display_order, destinations(country_name))")
+      .select("id, title, price_from, currency, journey_destinations(is_primary, display_order, destinations(country_name))")
       .eq("slug", journeySlug)
       .maybeSingle();
     if (data) {
@@ -58,10 +74,74 @@ async function lookupProduct(tourSlug: string, journeySlug: string): Promise<Pro
       const primary =
         legs.find((l) => l.is_primary) ??
         [...legs].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))[0];
-      return { id: data.id, title: data.title, kind: "journey", countryName: primary?.destinations?.country_name ?? null };
+      return {
+        id: data.id,
+        title: data.title,
+        kind: "journey",
+        countryName: primary?.destinations?.country_name ?? null,
+        priceFrom: Number(data.price_from ?? 0),
+        currency: data.currency ?? "USD",
+      };
     }
   }
   return null;
+}
+
+// Re-fetches the actual pricing tier row server-side instead of trusting
+// whatever price the tier CTA link's page rendered client-side -- same
+// tamper concern as lookupSelectedAddons below. Scoped to this exact
+// product so a tier id from a different tour/journey can't be smuggled in.
+async function lookupTierPrice(
+  db: ReturnType<typeof getSupabasePublicClient>,
+  product: ProductRef,
+  tierId: string
+): Promise<{ tierName: string; price: number; currency: string } | null> {
+  if (!db || !tierId) return null;
+
+  const table = product.kind === "tour" ? "tour_pricing_tiers" : "journey_pricing_tiers";
+  const parentColumn = product.kind === "tour" ? "tour_id" : "journey_id";
+
+  const { data } = await db
+    .from(table)
+    .select("tier_name, price, currency")
+    .eq(parentColumn, product.id)
+    .eq("id", tierId)
+    .maybeSingle();
+
+  if (!data) return null;
+  return { tierName: data.tier_name, price: Number(data.price), currency: data.currency ?? product.currency };
+}
+
+// Re-fetches the actual add-on rows server-side instead of trusting
+// whatever price the client's form state claims -- a visitor could
+// otherwise edit the hidden addonIds input and any price shown client-side.
+// Scoped to this exact product + kind = 'addon' so an id from a different
+// tour/journey (or an 'extension') can't be smuggled in either.
+async function lookupSelectedAddons(
+  db: ReturnType<typeof getSupabasePublicClient>,
+  product: ProductRef,
+  addonIds: string[]
+): Promise<SelectedAddon[]> {
+  if (!db || addonIds.length === 0) return [];
+
+  const table = product.kind === "tour" ? "tour_addons" : "journey_addons";
+  const parentColumn = product.kind === "tour" ? "tour_id" : "journey_id";
+
+  const { data, error } = await db
+    .from(table)
+    .select("id, title, price, currency")
+    .eq(parentColumn, product.id)
+    .eq("kind", "addon")
+    .not("price", "is", null)
+    .in("id", addonIds);
+
+  if (error || !data) return [];
+  return data.map((row) => ({
+    id: row.id,
+    title: row.title,
+    price: Number(row.price),
+    currency: row.currency ?? product.currency,
+  }));
 }
 
 export async function submitBookingEnquiry(
@@ -110,6 +190,19 @@ export async function submitBookingEnquiry(
     return { fieldErrors: { tourSlug: "We couldn't find that tour or journey. Please pick one from the list." } };
   }
 
+  const requestedAddonIds = String(formData.get("addonIds") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const selectedAddons = await lookupSelectedAddons(db, product, requestedAddonIds);
+
+  const requestedTierId = String(formData.get("tierId") ?? "").trim();
+  const tier = requestedTierId ? await lookupTierPrice(db, product, requestedTierId) : null;
+  const currency = tier?.currency ?? product.currency;
+  const basePrice = tier?.price ?? product.priceFrom;
+  const addonsTotal = selectedAddons.reduce((sum, a) => sum + a.price, 0);
+  const totalAmount = basePrice + addonsTotal;
+
   // 1. Upsert customer by email (create if new; refresh name/phone if existing).
   let customerId: string | null = null;
   if (service) {
@@ -154,6 +247,10 @@ export async function submitBookingEnquiry(
     country_of_residence: input.country,
     booking_status: "inquiry",
     payment_status: "unpaid",
+    base_price: basePrice,
+    addons_total: addonsTotal,
+    total_amount: totalAmount,
+    currency,
   };
 
   const countryCode = countryCodeForName(product.countryName);
@@ -183,7 +280,25 @@ export async function submitBookingEnquiry(
     }
   }
 
+  // 2b. Record which add-ons were selected (only possible when the service
+  // client inserted the row above and we actually got a bookingId back).
+  if (bookingId && selectedAddons.length > 0) {
+    const { error: addonsError } = await db.from("booking_addons").insert(
+      selectedAddons.map((a) => ({
+        booking_id: bookingId,
+        addon_id: a.id,
+        title: a.title,
+        price: a.price,
+        currency: a.currency,
+      }))
+    );
+    if (addonsError) {
+      captureServerActionError("booking", `booking_addons insert failed: ${addonsError.message}`, { email: input.email });
+    }
+  }
+
   // 3. Mirror the enquiry into the inquiries inbox.
+  const addonsSummary = selectedAddons.map((a) => `${a.title} (${a.currency} ${a.price.toLocaleString()})`).join(", ");
   const summaryLines = [
     `Enquiry for ${product.kind}: ${product.title}`,
     `Reference: ${bookingReference}`,
@@ -193,6 +308,9 @@ export async function submitBookingEnquiry(
     input.budgetRange ? `Budget per person: ${input.budgetRange}` : "",
     input.referralSource ? `Heard about us via: ${input.referralSource}` : "",
     input.specialRequests ? `Special requests: ${input.specialRequests}` : "",
+    tier ? `Pricing tier requested: ${tier.tierName}` : "",
+    addonsSummary ? `Add-ons requested: ${addonsSummary}` : "",
+    `Estimated total requested: ${currency} ${totalAmount.toLocaleString()}`,
   ].filter(Boolean);
 
   const { error: inquiryError } = await db.from("inquiries").insert({
@@ -218,10 +336,16 @@ export async function submitBookingEnquiry(
     relatedId: bookingId ?? undefined,
   });
 
-  // 5. Emails (fail-soft, never block the submission).
+  // 5. Emails (fail-soft, never block the submission). Estimated total and
+  // add-ons are placed right after the reference/product so they survive
+  // the customer email's field slice below regardless of how many optional
+  // fields (budget, referral, etc.) come after them.
   const emailFields: EmailField[] = [
     { label: "Reference", value: bookingReference },
     { label: `${product.kind === "tour" ? "Tour" : "Journey"}`, value: product.title },
+    ...(tier ? [{ label: "Pricing tier requested", value: tier.tierName }] : []),
+    { label: "Estimated total requested (per person, starting)", value: `${currency} ${totalAmount.toLocaleString()}` },
+    ...(addonsSummary ? [{ label: "Add-ons requested", value: addonsSummary }] : []),
     { label: "Name", value: input.fullName },
     { label: "Email", value: input.email },
     { label: "Phone / WhatsApp", value: input.phone },
@@ -251,8 +375,12 @@ export async function submitBookingEnquiry(
       customerName: input.fullName,
       bookingReference,
       enquiryTitle: product.title,
-      fields: emailFields.slice(0, 10),
-      whatsappUrl: whatsappLink(`Hi! I just sent enquiry ${bookingReference} about "${product.title}".`),
+      fields: emailFields.slice(0, 13),
+      whatsappUrl: whatsappLink(
+        `Hi! I just sent enquiry ${bookingReference} about "${product.title}"${
+          tier ? ` (${tier.tierName})` : ""
+        }${addonsSummary ? ` with add-ons: ${addonsSummary}` : ""}. Estimated total: ${currency} ${totalAmount.toLocaleString()}.`
+      ),
     }),
   });
 

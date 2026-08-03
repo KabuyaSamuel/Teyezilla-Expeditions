@@ -4,6 +4,8 @@
 // Used by both the public lib (lib/tours.ts, lib/journeys.ts) and the admin
 // data layer (lib/admin/data/tours.ts, lib/admin/data/journeys.ts).
 
+import { getSupabasePublicClient } from "@/lib/supabase/public";
+
 export interface ItineraryDay {
   day: number;
   fromLocation?: string;
@@ -100,6 +102,65 @@ export function mapAddonRow(row: Record<string, any>): ProductAddon {
     ctaLabel: row.cta_label ?? "",
     displayOrder: Number(row.display_order ?? 0),
   };
+}
+
+// A bookable, priced add-on offered at enquiry time -- deliberately just
+// the "addon" kind with a set price (never "extension": those are
+// itinerary-changing and still need a staff conversation, not a checkbox).
+export interface BookableAddon {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  currency: string;
+}
+
+// Powers the add-on checkboxes on the booking enquiry form. Two bulk
+// queries regardless of catalog size (not one per product), grouped by
+// slug since that's how BookingEnquiryForm/ProductOption key a product.
+export async function getBookableAddonsBySlug(): Promise<Record<string, BookableAddon[]>> {
+  const supabase = getSupabasePublicClient();
+  if (!supabase) return {};
+
+  const [tourRes, journeyRes] = await Promise.all([
+    supabase
+      .from("tour_addons")
+      .select("id, title, description, price, currency, display_order, tours(slug, status)")
+      .eq("kind", "addon")
+      .not("price", "is", null)
+      .order("display_order"),
+    supabase
+      .from("journey_addons")
+      .select("id, title, description, price, currency, display_order, journeys(slug, status)")
+      .eq("kind", "addon")
+      .not("price", "is", null)
+      .order("display_order"),
+  ]);
+
+  const grouped: Record<string, BookableAddon[]> = {};
+  for (const row of (tourRes.data ?? []) as any[]) {
+    const tour = row.tours as { slug: string; status: string } | null;
+    if (!tour || tour.status !== "published") continue;
+    (grouped[tour.slug] ??= []).push({
+      id: row.id,
+      title: row.title,
+      description: row.description ?? "",
+      price: Number(row.price),
+      currency: row.currency ?? "USD",
+    });
+  }
+  for (const row of (journeyRes.data ?? []) as any[]) {
+    const journey = row.journeys as { slug: string; status: string } | null;
+    if (!journey || journey.status !== "published") continue;
+    (grouped[journey.slug] ??= []).push({
+      id: row.id,
+      title: row.title,
+      description: row.description ?? "",
+      price: Number(row.price),
+      currency: row.currency ?? "USD",
+    });
+  }
+  return grouped;
 }
 
 export function mapProductScalars(row: Record<string, any>): ProductScalars {

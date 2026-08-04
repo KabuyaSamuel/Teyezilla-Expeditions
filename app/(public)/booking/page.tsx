@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import BookingEnquiryForm, { type ProductOption } from "@/components/BookingEnquiryForm";
 import { getTours, getTourBySlug } from "@/lib/tours";
 import { getJourneys, getJourneyBySlug } from "@/lib/journeys";
@@ -21,15 +20,14 @@ interface SummaryProduct {
   slug: string;
   kind: "tour" | "journey";
   /** Set when the visitor arrived via a specific pricing tier's "Enquire" link. */
-  tierName?: string;
   tierId?: string;
 }
 
-// Swaps in the selected pricing tier's price/currency (and name, for display)
-// in place of the product's default priceFrom -- arrives as ?tier=<tierId>
-// from ProductPricingTiers' per-tier CTA links. tierId is kept on the
-// result (not just the display name) so the form can carry it through to
-// the server action, which re-verifies the price server-side.
+// Swaps in the selected pricing tier's price/currency in place of the
+// product's default priceFrom -- arrives as ?tier=<tierId> from
+// ProductPricingTiers' per-tier CTA links. tierId is kept on the result so
+// the form can carry it through to the server action, which re-verifies the
+// price server-side.
 function applyTierOverride<T extends { pricingTiers: { id: string; tierName: string; price: number; currency: string }[] }>(
   product: SummaryProduct,
   detail: T,
@@ -38,7 +36,7 @@ function applyTierOverride<T extends { pricingTiers: { id: string; tierName: str
   if (!tierId) return product;
   const tier = detail.pricingTiers.find((t) => t.id === tierId);
   if (!tier) return product;
-  return { ...product, priceFrom: tier.price, currency: tier.currency, tierName: tier.tierName, tierId: tier.id };
+  return { ...product, priceFrom: tier.price, currency: tier.currency, tierId: tier.id };
 }
 
 export default async function BookingPage({
@@ -132,33 +130,6 @@ export default async function BookingPage({
         quote. No payment is taken online; everything is arranged directly with your consultant.
       </p>
 
-      {product && (
-        <div className="card mt-8 flex items-center gap-5 overflow-hidden p-4">
-          {product.heroImage && (
-            <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-xl">
-              <Image src={product.heroImage} alt={product.title} fill sizes="128px" className="object-cover" />
-            </div>
-          )}
-          <div>
-            <p className="text-xs uppercase tracking-wide text-foreground/50">
-              You&apos;re enquiring about
-            </p>
-            <p className="font-heading text-lg font-semibold text-foreground">
-              {product.title}
-              {product.tierName && <span className="text-foreground/60"> -- {product.tierName}</span>}
-            </p>
-            <p className="mt-1 text-sm text-foreground/60">
-              {product.durationDays} day{product.durationDays !== 1 ? "s" : ""} ·{" "}
-              {product.tierName ? "" : "From "}
-              <span className="font-semibold text-accent">
-                {product.currency} {product.priceFrom.toLocaleString()}
-              </span>{" "}
-              per person
-            </p>
-          </div>
-        </div>
-      )}
-
       <BookingEnquiryForm
         preselected={
           product
@@ -171,6 +142,8 @@ export default async function BookingPage({
                 addons: addonsBySlug[product.slug] ?? [],
                 pricingTiers: pricingTiers,
                 tierId: product.tierId,
+                heroImage: product.heroImage,
+                durationDays: product.durationDays,
               }
             : undefined
         }

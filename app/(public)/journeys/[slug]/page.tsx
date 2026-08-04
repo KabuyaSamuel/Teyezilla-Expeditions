@@ -130,9 +130,11 @@ export default async function JourneyPage({ params }: Props) {
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 flex items-end">
           <div className="mx-auto w-full max-w-7xl px-6 pb-10">
-            <span className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-white">
-              {journey.journeyTypes[0] ?? "Signature Journey"}
-            </span>
+            {journey.journeyTypes[0] && (
+              <span className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-white">
+                {journey.journeyTypes[0]}
+              </span>
+            )}
             <h1 className="mt-3 h1-page text-white">
               {journey.title}
             </h1>

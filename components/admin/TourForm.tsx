@@ -19,6 +19,7 @@ import ExperienceTypesPicker from "./ExperienceTypesPicker";
 import VehiclesPicker from "./VehiclesPicker";
 import AccommodationsPicker from "./AccommodationsPicker";
 import MediaPickerField from "./MediaPickerField";
+import RelatedContentEditor from "./RelatedContentEditor";
 
 export default function TourForm({
   existingTour,
@@ -28,6 +29,9 @@ export default function TourForm({
   vehicles,
   accommodations,
   mediaItems,
+  otherTours,
+  journeys,
+  blogPosts,
 }: {
   existingTour?: AdminTourDetail;
   destinations: Destination[];
@@ -36,6 +40,9 @@ export default function TourForm({
   vehicles: AdminVehicle[];
   accommodations: AdminAccommodation[];
   mediaItems: MediaItem[];
+  otherTours: { id: string; title: string }[];
+  journeys: { id: string; title: string }[];
+  blogPosts: { id: string; title: string }[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +61,9 @@ export default function TourForm({
   const [experienceTypeIds, setExperienceTypeIds] = useState<string[]>(existingTour?.experienceTypeIds ?? []);
   const [vehicleIds, setVehicleIds] = useState<string[]>(existingTour?.vehicleIds ?? []);
   const [accommodationIds, setAccommodationIds] = useState<string[]>(existingTour?.accommodationIds ?? []);
+  const [relatedJourneyIds, setRelatedJourneyIds] = useState<string[]>(existingTour?.relatedJourneyIds ?? []);
+  const [relatedTourIds, setRelatedTourIds] = useState<string[]>(existingTour?.relatedTourIds ?? []);
+  const [relatedBlogPostIds, setRelatedBlogPostIds] = useState<string[]>(existingTour?.relatedBlogPostIds ?? []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -107,6 +117,9 @@ export default function TourForm({
       experienceTypeIds,
       vehicleIds,
       accommodationIds,
+      relatedJourneyIds,
+      relatedTourIds,
+      relatedBlogPostIds,
       featured: formData.get("featured") === "on",
       status: String(formData.get("status") ?? "draft"),
     };
@@ -249,6 +262,18 @@ export default function TourForm({
       <ExperienceTypesPicker experienceTypes={experienceTypes} selectedIds={experienceTypeIds} onChange={setExperienceTypeIds} />
       <VehiclesPicker vehicles={vehicles} selectedIds={vehicleIds} onChange={setVehicleIds} />
       <AccommodationsPicker accommodations={accommodations} selectedIds={accommodationIds} onChange={setAccommodationIds} />
+
+      <RelatedContentEditor
+        journeys={journeys.map((j) => ({ id: j.id, label: j.title }))}
+        tours={otherTours.map((t) => ({ id: t.id, label: t.title }))}
+        blogPosts={blogPosts.map((p) => ({ id: p.id, label: p.title }))}
+        relatedJourneyIds={relatedJourneyIds}
+        onChangeRelatedJourneyIds={setRelatedJourneyIds}
+        relatedTourIds={relatedTourIds}
+        onChangeRelatedTourIds={setRelatedTourIds}
+        relatedBlogPostIds={relatedBlogPostIds}
+        onChangeRelatedBlogPostIds={setRelatedBlogPostIds}
+      />
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Logistics</h2>

@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { getTours, getTourBySlug, getRelatedTours } from "@/lib/tours";
+import { getTours, getTourBySlug, getRelatedTours, getToursByIds } from "@/lib/tours";
 import { getDestinationById } from "@/lib/destinations";
-import { getJourneysByDestination } from "@/lib/journeys";
-import { getRelatedBlogPosts } from "@/lib/blog";
+import { getJourneysByDestination, getJourneysByIds } from "@/lib/journeys";
+import { getRelatedBlogPosts, getBlogPostsByIds } from "@/lib/blog";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 import { formatTourDuration } from "@/lib/duration";
 import ProductItinerary from "@/components/ProductItinerary";
@@ -56,11 +56,30 @@ export default async function TourPage({ params }: Props) {
   if (!tour) notFound();
 
   const destination = await getDestinationById(tour.destinationId);
-  const [relatedTours, relatedJourneys, relatedArticles] = await Promise.all([
-    getRelatedTours(tour.destinationId, tour.slug, 3),
-    getJourneysByDestination(tour.destinationId, undefined, 3),
-    getRelatedBlogPosts(tour.destinationId, undefined, 3),
+
+  // "Bring This to Life": staff-curated picks take priority per category;
+  // any category left empty falls back to the existing destination-match
+  // auto-compute.
+  const [manualRelatedTours, manualRelatedJourneys, manualRelatedArticles] = await Promise.all([
+    getToursByIds(tour.relatedTourIds),
+    getJourneysByIds(tour.relatedJourneyIds),
+    getBlogPostsByIds(tour.relatedBlogPostIds),
   ]);
+  const needsAutoTours = manualRelatedTours.length === 0;
+  const needsAutoJourneys = manualRelatedJourneys.length === 0;
+  const needsAutoArticles = manualRelatedArticles.length === 0;
+  const [autoTours, autoJourneys, autoArticles] =
+    needsAutoTours || needsAutoJourneys || needsAutoArticles
+      ? await Promise.all([
+          needsAutoTours ? getRelatedTours(tour.destinationId, tour.slug, 3) : Promise.resolve([]),
+          needsAutoJourneys ? getJourneysByDestination(tour.destinationId, undefined, 3) : Promise.resolve([]),
+          needsAutoArticles ? getRelatedBlogPosts(tour.destinationId, undefined, 3) : Promise.resolve([]),
+        ])
+      : [[], [], []];
+
+  const relatedTours = needsAutoTours ? autoTours : manualRelatedTours;
+  const relatedJourneys = needsAutoJourneys ? autoJourneys : manualRelatedJourneys;
+  const relatedArticles = needsAutoArticles ? autoArticles : manualRelatedArticles;
   const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     `Hi! I'm interested in the "${tour.title}" tour. Could you share more details?`
   )}`;

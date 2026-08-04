@@ -28,6 +28,9 @@ export interface AdminTourDetail extends Tour, ProductScalars {
   experienceTypeIds: string[];
   vehicleIds: string[];
   accommodationIds: string[];
+  relatedJourneyIds: string[];
+  relatedTourIds: string[];
+  relatedBlogPostIds: string[];
 }
 
 function mapRow(row: Record<string, any>): AdminTourDetail {
@@ -64,6 +67,15 @@ function mapRow(row: Record<string, any>): AdminTourDetail {
     experienceTypeIds: (row.tour_experience_types ?? []).map((e: any) => e.experience_type_id),
     vehicleIds: (row.tour_vehicles ?? []).map((v: any) => v.vehicle_id),
     accommodationIds: (row.tour_accommodations ?? []).map((a: any) => a.accommodation_id),
+    relatedJourneyIds: [...(row.tour_related_journeys ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.related_journey_id),
+    relatedTourIds: [...(row.tour_related_tours ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.related_tour_id),
+    relatedBlogPostIds: [...(row.tour_related_blog_posts ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.blog_post_id),
   };
 }
 
@@ -165,7 +177,10 @@ const DETAIL_SELECT = `
   tour_activities(activity_id),
   tour_experience_types(experience_type_id),
   tour_vehicles(vehicle_id),
-  tour_accommodations(accommodation_id)
+  tour_accommodations(accommodation_id),
+  tour_related_journeys(related_journey_id, display_order),
+  tour_related_tours!tour_related_tours_tour_id_fkey(related_tour_id, display_order),
+  tour_related_blog_posts(blog_post_id, display_order)
 `;
 
 // Admin edit form needs fields (inclusions/exclusions/itinerary/logistics/

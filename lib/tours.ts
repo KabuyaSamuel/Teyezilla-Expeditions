@@ -31,6 +31,12 @@ export interface TourDetail extends Tour, ProductScalars {
   vehicles: Vehicle[];
   accommodations: Accommodation[];
   featuredInJourneys: { slug: string; title: string }[];
+  // Staff-curated "Bring This to Life" picks, in display order. Empty means
+  // no manual picks yet -- callers should fall back to the destination-match
+  // auto-compute (getJourneysByDestination/getRelatedTours/getRelatedBlogPosts).
+  relatedJourneyIds: string[];
+  relatedTourIds: string[];
+  relatedBlogPostIds: string[];
 }
 
 function mapRow(row: Record<string, unknown>): Tour {
@@ -100,7 +106,10 @@ const DETAIL_SELECT = `
   tour_activities(activities(id, name, slug, description, icon)),
   tour_vehicles(vehicles(id, name, slug, vehicle_type, seats, description, features, image)),
   tour_accommodations(accommodations(id, destination_id, name, slug, description, hero_image, tier)),
-  journey_tours(journeys(slug, title))
+  journey_tours(journeys(slug, title)),
+  tour_related_journeys(display_order, related_journey_id),
+  tour_related_tours!tour_related_tours_tour_id_fkey(display_order, related_tour_id),
+  tour_related_blog_posts(display_order, blog_post_id)
 `;
 
 export async function getTourBySlug(slug: string): Promise<TourDetail | undefined> {
@@ -169,6 +178,15 @@ export async function getTourBySlug(slug: string): Promise<TourDetail | undefine
       .map((jt: any) => jt.journeys)
       .filter(Boolean)
       .map((j: any) => ({ slug: j.slug, title: j.title })),
+    relatedJourneyIds: [...(row.tour_related_journeys ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.related_journey_id),
+    relatedTourIds: [...(row.tour_related_tours ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.related_tour_id),
+    relatedBlogPostIds: [...(row.tour_related_blog_posts ?? [])]
+      .sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((r: any) => r.blog_post_id),
   };
 }
 

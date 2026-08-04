@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/PageHeader";
 import TourForm from "@/components/admin/TourForm";
 import AvailabilityCalendar from "@/components/admin/AvailabilityCalendar";
-import { getAdminTourBySlug } from "@/lib/admin/data/tours";
+import { getAdminTourBySlug, getAdminTours } from "@/lib/admin/data/tours";
 import { getTourAvailability } from "@/lib/admin/data/availability";
 import { addTourAvailabilityDate, removeTourAvailabilityDate } from "@/lib/admin/actions/availability";
 import { getDestinations } from "@/lib/destinations";
@@ -11,6 +11,8 @@ import { getExperienceTypes } from "@/lib/experienceTypes";
 import { getAdminVehicles } from "@/lib/admin/data/vehicles";
 import { getAdminAccommodations } from "@/lib/admin/data/accommodations";
 import { getMediaItems } from "@/lib/admin/data/media";
+import { getAdminJourneys } from "@/lib/admin/data/journeys";
+import { getAdminBlogPosts } from "@/lib/admin/data/blog";
 
 export default async function EditTourPage({
   params,
@@ -18,7 +20,7 @@ export default async function EditTourPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [tour, destinations, activities, experienceTypes, vehicles, accommodations, mediaItems] = await Promise.all([
+  const [tour, destinations, activities, experienceTypes, vehicles, accommodations, mediaItems, allTours, journeys, blogPosts] = await Promise.all([
     getAdminTourBySlug(slug),
     getDestinations(),
     getActivities(),
@@ -26,9 +28,13 @@ export default async function EditTourPage({
     getAdminVehicles(),
     getAdminAccommodations(),
     getMediaItems(),
+    getAdminTours(),
+    getAdminJourneys(),
+    getAdminBlogPosts(),
   ]);
   if (!tour) notFound();
 
+  const otherTours = allTours.filter((t) => t.id !== tour.id);
   const availability = await getTourAvailability(tour.id);
 
   return (
@@ -42,6 +48,9 @@ export default async function EditTourPage({
         vehicles={vehicles}
         accommodations={accommodations}
         mediaItems={mediaItems}
+        otherTours={otherTours}
+        journeys={journeys}
+        blogPosts={blogPosts}
       />
       <div className="mt-8">
         <AvailabilityCalendar

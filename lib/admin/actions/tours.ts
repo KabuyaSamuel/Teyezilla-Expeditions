@@ -28,6 +28,7 @@ export interface TourInput extends ProductScalarsInput {
   durationHours: number | null;
   heroImage: string;
   priceFrom: number;
+  currency: string;
   tagline: string;
   shortDescription: string;
   overview: string;
@@ -48,6 +49,9 @@ export interface TourInput extends ProductScalarsInput {
   experienceTypeIds: string[];
   vehicleIds: string[];
   accommodationIds: string[];
+  relatedJourneyIds: string[];
+  relatedTourIds: string[];
+  relatedBlogPostIds: string[];
 }
 
 function slugify(title: string): string {
@@ -70,6 +74,7 @@ function toRow(input: TourInput) {
     duration_hours: input.durationHours,
     hero_image: input.heroImage,
     price_from: input.priceFrom,
+    currency: input.currency,
     tagline: input.tagline || null,
     // Hard-capped client-side via the textarea's maxLength; sliced again
     // here in case something bypasses that (a direct API call, for example).
@@ -97,6 +102,42 @@ async function syncTourRelations(supabase: any, tourId: string, input: TourInput
   await syncExperienceTypes(supabase, "tour_experience_types", "tour_id", tourId, input.experienceTypeIds);
   await syncVehicles(supabase, "tour_vehicles", "tour_id", tourId, input.vehicleIds);
   await syncAccommodations(supabase, "tour_accommodations", "tour_id", tourId, input.accommodationIds);
+
+  await supabase.from("tour_related_journeys").delete().eq("tour_id", tourId);
+  if (input.relatedJourneyIds.length > 0) {
+    const { error } = await supabase.from("tour_related_journeys").insert(
+      input.relatedJourneyIds.map((relatedJourneyId, index) => ({
+        tour_id: tourId,
+        related_journey_id: relatedJourneyId,
+        display_order: index,
+      }))
+    );
+    if (error) throw new Error(error.message);
+  }
+
+  await supabase.from("tour_related_tours").delete().eq("tour_id", tourId);
+  if (input.relatedTourIds.length > 0) {
+    const { error } = await supabase.from("tour_related_tours").insert(
+      input.relatedTourIds.map((relatedTourId, index) => ({
+        tour_id: tourId,
+        related_tour_id: relatedTourId,
+        display_order: index,
+      }))
+    );
+    if (error) throw new Error(error.message);
+  }
+
+  await supabase.from("tour_related_blog_posts").delete().eq("tour_id", tourId);
+  if (input.relatedBlogPostIds.length > 0) {
+    const { error } = await supabase.from("tour_related_blog_posts").insert(
+      input.relatedBlogPostIds.map((blogPostId, index) => ({
+        tour_id: tourId,
+        blog_post_id: blogPostId,
+        display_order: index,
+      }))
+    );
+    if (error) throw new Error(error.message);
+  }
 }
 
 export async function createTour(input: TourInput): Promise<void> {

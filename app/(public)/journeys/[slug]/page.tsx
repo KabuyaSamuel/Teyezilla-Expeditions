@@ -101,7 +101,7 @@ export default async function JourneyPage({ params }: Props) {
   const facts = [
     { label: "Duration", value: `${journey.durationDays} Days / ${Math.max(journey.durationDays - 1, 0)} Nights` },
     { label: "Destination", value: destinationNames },
-    { label: "Experience", value: journey.productType === "multi_country_expedition" ? "Multi-Country Expedition" : "Private Safari" },
+    { label: "Experience", value: journey.productType === "multi_country_expedition" ? "Multi-Country Expedition" : "Signature Journey" },
     { label: "Group Size", value: journey.minGuests && journey.maxGuests ? `${journey.minGuests}–${journey.maxGuests} Guests` : "" },
     { label: "Transport", value: journey.transportation },
     { label: "Guide", value: journey.guideInfo },
@@ -130,9 +130,11 @@ export default async function JourneyPage({ params }: Props) {
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 flex items-end">
           <div className="mx-auto w-full max-w-7xl px-6 pb-10">
-            <span className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-white">
-              {journey.journeyTypes[0] ?? "Signature Journey"}
-            </span>
+            {journey.journeyTypes[0] && (
+              <span className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-white">
+                {journey.journeyTypes[0]}
+              </span>
+            )}
             <h1 className="mt-3 h1-page text-white">
               {journey.title}
             </h1>

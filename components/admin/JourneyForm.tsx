@@ -195,13 +195,8 @@ export default function JourneyForm({
           <div>
             <MediaPickerField id="heroImage" name="heroImage" label="Hero Image URL" value={heroImage} onChange={setHeroImage} mediaItems={mediaItems} />
           </div>
-          <div>
-            <label htmlFor="productType" className="text-xs font-medium text-foreground/60">Product Type</label>
-            <select id="productType" name="productType" defaultValue={existingJourney?.productType ?? "signature_journey"} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-              <option value="signature_journey">Signature Journey</option>
-              <option value="multi_country_expedition">Multi-Country Expedition</option>
-            </select>
-          </div>
+          {/* Hidden from the UI per product decision; kept in the payload so existing values survive a save. */}
+          <input type="hidden" name="productType" value={existingJourney?.productType ?? "signature_journey"} />
           <div>
             <label htmlFor="difficulty" className="text-xs font-medium text-foreground/60">Difficulty (optional)</label>
             <select id="difficulty" name="difficulty" defaultValue={existingJourney?.difficulty ?? ""} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">

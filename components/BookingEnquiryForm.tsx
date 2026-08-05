@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState, useMemo, useState } from "react";
 import { submitBookingEnquiry } from "@/app/(public)/booking/actions";
 import { BUDGET_RANGES, COUNTRIES, REFERRAL_SOURCES, type EnquiryFormState } from "@/lib/enquiry-shared";
@@ -29,6 +30,8 @@ export interface ProductOption {
   pricingTiers?: PricingTierOption[];
   /** Set when arriving via a specific pricing tier's "Enquire" link. */
   tierId?: string;
+  heroImage?: string;
+  durationDays?: number;
 }
 
 const inputClass =
@@ -116,7 +119,41 @@ export default function BookingEnquiryForm({
   const estimatedTotal = basePrice + addonsTotal;
 
   return (
-    <form action={formAction} onReset={(e) => e.preventDefault()} className="mt-8 space-y-5" noValidate>
+    <>
+      {preselected && selectedProduct && (
+        <div className="card mt-8 flex items-center gap-5 overflow-hidden p-4">
+          {selectedProduct.heroImage && (
+            <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-xl">
+              <Image
+                src={selectedProduct.heroImage}
+                alt={selectedProduct.title}
+                fill
+                sizes="128px"
+                className="object-cover"
+              />
+            </div>
+          )}
+          <div>
+            <p className="text-xs uppercase tracking-wide text-foreground/50">
+              You&apos;re enquiring about
+            </p>
+            <p className="font-heading text-lg font-semibold text-foreground">
+              {selectedProduct.title}
+              {selectedTier && <span className="text-foreground/60"> -- {selectedTier.tierName}</span>}
+            </p>
+            <p className="mt-1 text-sm text-foreground/60">
+              {selectedProduct.durationDays} day{selectedProduct.durationDays !== 1 ? "s" : ""} ·{" "}
+              {selectedTier ? "" : "From "}
+              <span className="font-semibold text-accent">
+                {displayCurrency} {basePrice.toLocaleString()}
+              </span>{" "}
+              per person
+            </p>
+          </div>
+        </div>
+      )}
+
+      <form action={formAction} onReset={(e) => e.preventDefault()} className="mt-8 space-y-5" noValidate>
       <input type="hidden" name="tourSlug" value={selKind === "tour" ? selSlug : ""} />
       <input type="hidden" name="journeySlug" value={selKind === "journey" ? selSlug : ""} />
       <input type="hidden" name="addonIds" value={selectedAddonIds.join(",")} />
@@ -426,6 +463,7 @@ export default function BookingEnquiryForm({
       <p className="text-center text-xs text-foreground/50">
         No payment is taken online. Our travel team replies with a personal quote within 24 hours.
       </p>
-    </form>
+      </form>
+    </>
   );
 }

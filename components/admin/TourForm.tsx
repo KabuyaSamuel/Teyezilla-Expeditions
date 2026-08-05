@@ -85,6 +85,7 @@ export default function TourForm({
       durationDays: Number(formData.get("durationDays") ?? 0),
       durationHours: formData.get("durationHours") ? Number(formData.get("durationHours")) : null,
       priceFrom: Number(formData.get("priceFrom") ?? 0),
+      currency: String(formData.get("currency") ?? "USD"),
       heroImage,
       tagline: String(formData.get("tagline") ?? ""),
       shortDescription: String(formData.get("shortDescription") ?? ""),
@@ -215,8 +216,16 @@ export default function TourForm({
             />
           </div>
           <div>
-            <label htmlFor="priceFrom" className="text-xs font-medium text-foreground/60">Price From (USD)</label>
+            <label htmlFor="priceFrom" className="text-xs font-medium text-foreground/60">Price From</label>
             <input id="priceFrom" name="priceFrom" type="number" min={0} defaultValue={existingTour?.priceFrom} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="currency" className="text-xs font-medium text-foreground/60">Currency</label>
+            <select id="currency" name="currency" defaultValue={existingTour?.currency ?? "USD"} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+              <option>USD</option>
+              <option>EUR</option>
+              <option>KES</option>
+            </select>
           </div>
         </div>
         <div className="mt-4">

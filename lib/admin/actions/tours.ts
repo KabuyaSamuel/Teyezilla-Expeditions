@@ -28,6 +28,7 @@ export interface TourInput extends ProductScalarsInput {
   durationHours: number | null;
   heroImage: string;
   priceFrom: number;
+  currency: string;
   tagline: string;
   shortDescription: string;
   overview: string;
@@ -73,6 +74,7 @@ function toRow(input: TourInput) {
     duration_hours: input.durationHours,
     hero_image: input.heroImage,
     price_from: input.priceFrom,
+    currency: input.currency,
     tagline: input.tagline || null,
     // Hard-capped client-side via the textarea's maxLength; sliced again
     // here in case something bypasses that (a direct API call, for example).

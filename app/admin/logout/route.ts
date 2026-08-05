@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { SESSION_EXPIRY_COOKIE } from "@/lib/admin/sessionExpiry";
 
 export async function POST(request: Request) {
   const supabase = await getSupabaseServerClient();
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
       response.cookies.set(cookie.name, "", { maxAge: 0, path: "/" });
     }
   }
+  response.cookies.set(SESSION_EXPIRY_COOKIE, "", { maxAge: 0, path: "/" });
 
   return response;
 }

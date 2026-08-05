@@ -1,7 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabase/server";
+import { SESSION_EXPIRY_COOKIE, DEFAULT_SESSION_MS, REMEMBER_ME_SESSION_MS } from "@/lib/admin/sessionExpiry";
 
 export interface LoginState {
   error?: "email" | "password" | "config";
@@ -16,6 +18,7 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
   const email = String(formData.get("email") || "");
   const password = String(formData.get("password") || "");
   const from = String(formData.get("from") || "/admin");
+  const remember = formData.get("remember") === "on";
 
   const supabase = await getSupabaseServerClient();
   if (!supabase) {
@@ -44,6 +47,16 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     }
     return { error: reason, email };
   }
+
+  const sessionMs = remember ? REMEMBER_ME_SESSION_MS : DEFAULT_SESSION_MS;
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_EXPIRY_COOKIE, String(Date.now() + sessionMs), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: sessionMs / 1000,
+  });
 
   redirect(from || "/admin");
 }

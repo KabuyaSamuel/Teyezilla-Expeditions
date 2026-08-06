@@ -9,6 +9,7 @@ export interface DestinationInput {
   countryName: string;
   slug: string;
   flagEmoji: string;
+  heroImage: string;
   shortDescription: string;
   overview: string;
   bestTimeToVisit: string;
@@ -30,6 +31,7 @@ function toRow(input: DestinationInput) {
     country_name: input.countryName,
     slug: input.slug || slugify(input.countryName),
     flag_emoji: input.flagEmoji,
+    hero_image: input.heroImage,
     short_description: input.shortDescription,
     overview: input.overview,
     best_time_to_visit: input.bestTimeToVisit,

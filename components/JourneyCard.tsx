@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Journey } from "@/lib/journeys";
+import WishlistButton from "./WishlistButton";
 
 export default function JourneyCard({ journey }: { journey: Journey }) {
   const destinationNames = journey.destinations.map((d) => d.countryName).join(" · ");
@@ -23,6 +24,7 @@ export default function JourneyCard({ journey }: { journey: Journey }) {
               {destinationNames}
             </span>
           )}
+          <WishlistButton id={journey.id} label={journey.title} />
         </div>
       </Link>
       <div className="flex flex-1 flex-col p-5">

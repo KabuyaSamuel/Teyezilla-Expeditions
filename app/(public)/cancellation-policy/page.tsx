@@ -1,27 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { whatsappLink } from "@/lib/enquiry-shared";
+import { getSiteSetting } from "@/lib/settings";
+import { DEFAULT_CANCELLATION_POLICY_CONTENT } from "@/lib/legalContent";
 
 export const metadata: Metadata = {
   title: "Cancellation Policy",
   description: "How cancellations and refunds work for Teyezilla Expeditions bookings.",
 };
 
-export default function CancellationPolicyPage() {
+export default async function CancellationPolicyPage() {
+  const content = (await getSiteSetting("cancellationPolicyContent")) || DEFAULT_CANCELLATION_POLICY_CONTENT;
+
   return (
     <div className="section max-w-prose">
       <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">Support</span>
       <h1 className="mt-3 h1-page">Cancellation Policy</h1>
-      <p className="mt-4 text-foreground/70">
-        Cancellation and refund terms vary by tour and journey; they depend on factors like
-        supplier deposits, park permits, and accommodation booking terms, so we set them per
-        package rather than a single blanket policy.
-      </p>
-      <p className="mt-4 text-foreground/70">
-        You&apos;ll find the specific cancellation terms for a package on its detail page, and your
-        travel consultant will confirm them again before you book. If you&apos;re not sure about a
-        package you&apos;re considering, just ask before you enquire.
-      </p>
+      <p className="mt-4 whitespace-pre-line text-foreground/70">{content}</p>
 
       <div className="mt-10 flex flex-wrap gap-3">
         <Link href="/contact" className="btn-primary">Contact Us</Link>

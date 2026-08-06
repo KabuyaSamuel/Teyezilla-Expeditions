@@ -31,7 +31,10 @@ export async function updateSiteSettings(formData: FormData): Promise<void> {
 
   const now = new Date().toISOString();
   const rows = Array.from(formData.entries())
-    .filter((entry): entry is [string, string] => typeof entry[1] === "string")
+    // Next.js injects its own "$ACTION_ID_..." field into every Server
+    // Action form submission for dispatch -- without this filter it gets
+    // saved as a bogus site_settings row alongside the real fields.
+    .filter((entry): entry is [string, string] => typeof entry[1] === "string" && !entry[0].startsWith("$"))
     .map(([key, value]) => ({ key, value: value.trim(), updated_at: now }));
 
   const { error } = await supabase.from("site_settings").upsert(rows);

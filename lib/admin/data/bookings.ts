@@ -58,6 +58,9 @@ export interface Booking {
   budgetRange: string;
   specialRequests: string;
   referralSource: string;
+  utmSource: string;
+  utmMedium: string;
+  utmCampaign: string;
   countryOfResidence: string;
   totalAmount: number;
   basePrice: number;
@@ -125,6 +128,9 @@ function mapRow(row: BookingRow): Booking {
     budgetRange: row.budget_range ?? "",
     specialRequests: row.special_requests ?? "",
     referralSource: row.referral_source ?? "",
+    utmSource: row.utm_source ?? "",
+    utmMedium: row.utm_medium ?? "",
+    utmCampaign: row.utm_campaign ?? "",
     countryOfResidence: row.country_of_residence ?? "",
     totalAmount: Number(row.total_amount ?? 0),
     basePrice: Number(row.base_price ?? 0),

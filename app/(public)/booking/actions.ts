@@ -1,8 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
+import { ATTRIBUTION_COOKIE, parseAttributionCookie } from "@/lib/attribution";
 import { createNotification } from "@/lib/admin/actions/notifications";
 import { sendAdminNotification, sendCustomerConfirmation } from "@/lib/email";
 import {
@@ -185,6 +187,9 @@ export async function submitBookingEnquiry(
     return { formError: "Our enquiry system is temporarily unavailable. Please email us or reach out on WhatsApp." };
   }
 
+  const cookieStore = await cookies();
+  const attribution = parseAttributionCookie(cookieStore.get(ATTRIBUTION_COOKIE)?.value);
+
   const product = await lookupProduct(input.tourSlug, input.journeySlug);
   if (!product) {
     return { fieldErrors: { tourSlug: "We couldn't find that tour or journey. Please pick one from the list." } };
@@ -245,6 +250,9 @@ export async function submitBookingEnquiry(
     special_requests: input.specialRequests || null,
     referral_source: input.referralSource || null,
     country_of_residence: input.country,
+    utm_source: attribution.utmSource,
+    utm_medium: attribution.utmMedium,
+    utm_campaign: attribution.utmCampaign,
     booking_status: "inquiry",
     payment_status: "unpaid",
     base_price: basePrice,
@@ -325,6 +333,9 @@ export async function submitBookingEnquiry(
     // Links this mirror row back to the booking so admin "new enquiry"
     // counts only count the lead once instead of once per table.
     booking_id: bookingId,
+    utm_source: attribution.utmSource,
+    utm_medium: attribution.utmMedium,
+    utm_campaign: attribution.utmCampaign,
   });
   if (inquiryError) captureServerActionError("booking", `inquiry insert failed: ${inquiryError.message}`, { email: input.email });
 

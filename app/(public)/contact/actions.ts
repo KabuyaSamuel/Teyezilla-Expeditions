@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { createNotification } from "@/lib/admin/actions/notifications";
@@ -8,6 +9,7 @@ import { adminEnquiryEmail, customerContactConfirmationEmail } from "@/lib/email
 import { contactSchema, zodFieldErrors, type EnquiryFormState } from "@/lib/enquiry-shared";
 import { captureServerActionError } from "@/lib/monitoring";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { ATTRIBUTION_COOKIE, parseAttributionCookie } from "@/lib/attribution";
 
 export async function submitContactMessage(
   _prevState: EnquiryFormState,
@@ -34,6 +36,9 @@ export async function submitContactMessage(
     return { formError: "Our contact form is temporarily unavailable. Please email us or reach out on WhatsApp." };
   }
 
+  const cookieStore = await cookies();
+  const attribution = parseAttributionCookie(cookieStore.get(ATTRIBUTION_COOKIE)?.value);
+
   const { data: inquiry, error } = await db
     .from("inquiries")
     .insert({
@@ -42,6 +47,9 @@ export async function submitContactMessage(
       customer_email: input.email,
       message: input.message,
       status: "new",
+      utm_source: attribution.utmSource,
+      utm_medium: attribution.utmMedium,
+      utm_campaign: attribution.utmCampaign,
     })
     .select("id")
     .single();

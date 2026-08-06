@@ -55,6 +55,20 @@ export default async function AdminReportsPage() {
   }, {});
   const mostEnquired = Object.entries(enquiryCounts).sort((a, b) => b[1] - a[1])[0];
 
+  // Real link-based attribution (utmSource, from ?utm_source=... links, see
+  // lib/attribution.ts) takes priority over the self-reported "How did you
+  // hear about us?" dropdown (referralSource) when both are present, since
+  // a tracked link is a harder signal than what a customer typed in.
+  const sourceCounts = bookings.reduce<Record<string, number>>((acc, b) => {
+    const key = b.utmSource || b.referralSource || "Direct / Unknown";
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+  const trafficSources = Object.entries(sourceCounts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+  const maxSourceCount = Math.max(...trafficSources.map((s) => s.count), 1);
+
   return (
     <div>
       <PageHeader title="Reports & Analytics" description="Revenue, bookings, and conversion across the platform." />
@@ -116,6 +130,28 @@ export default async function AdminReportsPage() {
               <p className="text-sm text-foreground/50">No paid bookings yet.</p>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="mt-6 card p-6">
+        <h2 className="font-heading text-lg font-semibold text-foreground">Traffic Sources</h2>
+        <p className="mt-1 text-xs text-foreground/50">
+          Enquiries by where the visit came from -- tracked links (see Link Generator) where available,
+          falling back to the self-reported &ldquo;How did you hear about us?&rdquo; answer otherwise.
+        </p>
+        <div className="mt-4 space-y-3">
+          {trafficSources.map((s) => (
+            <div key={s.name}>
+              <div className="flex justify-between text-sm">
+                <span className="text-foreground/80">{s.name}</span>
+                <span className="font-medium text-foreground">{s.count.toLocaleString()}</span>
+              </div>
+              <div className="mt-1 h-2 w-full rounded-full bg-secondary/20">
+                <div className="h-2 rounded-full bg-primary" style={{ width: `${(s.count / maxSourceCount) * 100}%` }} />
+              </div>
+            </div>
+          ))}
+          {trafficSources.length === 0 && <p className="text-sm text-foreground/50">No enquiries yet.</p>}
         </div>
       </div>
 

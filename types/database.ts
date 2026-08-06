@@ -381,6 +381,9 @@ export type Database = {
           travel_date: string | null
           traveler_count: number
           updated_at: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
           addons_total?: number | null
@@ -410,6 +413,9 @@ export type Database = {
           travel_date?: string | null
           traveler_count: number
           updated_at?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
           addons_total?: number | null
@@ -439,6 +445,9 @@ export type Database = {
           travel_date?: string | null
           traveler_count?: number
           updated_at?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: [
           {
@@ -827,6 +836,30 @@ export type Database = {
         }
         Relationships: []
       }
+      hero_slides: {
+        Row: {
+          alt_text: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          media_url: string
+        }
+        Insert: {
+          alt_text?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          media_url: string
+        }
+        Update: {
+          alt_text?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          media_url?: string
+        }
+        Relationships: []
+      }
       inquiries: {
         Row: {
           assigned_staff_id: string | null
@@ -844,6 +877,9 @@ export type Database = {
           status: string | null
           tour_id: string | null
           trip_planner_request_id: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
           assigned_staff_id?: string | null
@@ -861,6 +897,9 @@ export type Database = {
           status?: string | null
           tour_id?: string | null
           trip_planner_request_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
           assigned_staff_id?: string | null
@@ -878,6 +917,9 @@ export type Database = {
           status?: string | null
           tour_id?: string | null
           trip_planner_request_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: [
           {
@@ -2247,6 +2289,105 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tour_pricing_tiers_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tour_related_blog_posts: {
+        Row: {
+          blog_post_id: string
+          display_order: number | null
+          tour_id: string
+        }
+        Insert: {
+          blog_post_id: string
+          display_order?: number | null
+          tour_id: string
+        }
+        Update: {
+          blog_post_id?: string
+          display_order?: number | null
+          tour_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_related_blog_posts_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_related_blog_posts_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tour_related_journeys: {
+        Row: {
+          display_order: number | null
+          related_journey_id: string
+          tour_id: string
+        }
+        Insert: {
+          display_order?: number | null
+          related_journey_id: string
+          tour_id: string
+        }
+        Update: {
+          display_order?: number | null
+          related_journey_id?: string
+          tour_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_related_journeys_related_journey_id_fkey"
+            columns: ["related_journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_related_journeys_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tour_related_tours: {
+        Row: {
+          display_order: number | null
+          related_tour_id: string
+          tour_id: string
+        }
+        Insert: {
+          display_order?: number | null
+          related_tour_id: string
+          tour_id: string
+        }
+        Update: {
+          display_order?: number | null
+          related_tour_id?: string
+          tour_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_related_tours_related_tour_id_fkey"
+            columns: ["related_tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_related_tours_tour_id_fkey"
             columns: ["tour_id"]
             isOneToOne: false
             referencedRelation: "tours"

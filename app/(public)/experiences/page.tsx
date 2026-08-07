@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getPublishedTours } from "@/lib/tours";
 import { getDestinations } from "@/lib/destinations";
 import TourCard from "@/components/TourCard";
+import Pagination from "@/components/Pagination";
 
 export const metadata: Metadata = {
   title: "African Travel Experiences",
@@ -19,12 +20,14 @@ const PRODUCT_TYPES = [
   { value: "private_travel", label: "Private Travel" },
 ];
 
+const PAGE_SIZE = 9;
+
 interface Props {
-  searchParams: Promise<{ productType?: string; destination?: string }>;
+  searchParams: Promise<{ productType?: string; destination?: string; page?: string }>;
 }
 
 export default async function ExperiencesPage({ searchParams }: Props) {
-  const { productType, destination } = await searchParams;
+  const { productType, destination, page: rawPage } = await searchParams;
   const [allTours, destinations] = await Promise.all([getPublishedTours(), getDestinations()]);
 
   const availableDestinationIds = new Set(allTours.map((t) => t.destinationId));
@@ -32,22 +35,28 @@ export default async function ExperiencesPage({ searchParams }: Props) {
     .filter((d) => availableDestinationIds.has(d.id))
     .sort((a, b) => a.countryName.localeCompare(b.countryName));
 
-  function buildHref(overrides: { productType?: string; destination?: string }) {
+  function buildHref(overrides: { productType?: string; destination?: string; page?: number }) {
     const params = new URLSearchParams();
     const nextProductType = "productType" in overrides ? overrides.productType : productType;
     const nextDestination = "destination" in overrides ? overrides.destination : destination;
+    const nextPage = overrides.page ?? 1;
     if (nextProductType) params.set("productType", nextProductType);
     if (nextDestination) params.set("destination", nextDestination);
+    if (nextPage > 1) params.set("page", String(nextPage));
     const qs = params.toString();
     return qs ? `/experiences?${qs}` : "/experiences";
   }
 
   const selectedDestination = destination ? destinations.find((d) => d.slug === destination) : undefined;
-  const tours = allTours.filter((t) => {
+  const filteredTours = allTours.filter((t) => {
     if (productType && t.productType !== productType) return false;
     if (selectedDestination && t.destinationId !== selectedDestination.id) return false;
     return true;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredTours.length / PAGE_SIZE));
+  const page = Math.min(Math.max(1, Number(rawPage) || 1), totalPages);
+  const tours = filteredTours.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   function pillClass(active: boolean) {
     return `rounded-full px-4 py-2 text-sm font-medium transition-colors ${
@@ -94,11 +103,14 @@ export default async function ExperiencesPage({ searchParams }: Props) {
           </p>
         </div>
       ) : (
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {tours.map((tour) => (
-            <TourCard key={tour.id} tour={tour} />
-          ))}
-        </div>
+        <>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {tours.map((tour) => (
+              <TourCard key={tour.id} tour={tour} />
+            ))}
+          </div>
+          <Pagination currentPage={page} totalPages={totalPages} buildHref={(p) => buildHref({ page: p })} />
+        </>
       )}
     </div>
   );

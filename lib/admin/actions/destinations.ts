@@ -41,12 +41,25 @@ function toRow(input: DestinationInput) {
   };
 }
 
+// Postgres surfaces a unique-violation as a raw "duplicate key value
+// violates unique constraint..." message, which isn't something a staff
+// member (not a developer) can act on -- translate the one case that can
+// actually happen here (the auto-generated slug already exists, almost
+// always because a destination with the same name already exists) into a
+// message that tells them what to actually do about it.
+function friendlyDestinationError(error: { code?: string; message: string }, countryName: string): string {
+  if (error.code === "23505" && error.message.includes("destinations_slug_key")) {
+    return `A destination named "${countryName}" already exists. Choose a different name, or edit the existing one instead.`;
+  }
+  return error.message;
+}
+
 export async function createDestination(input: DestinationInput): Promise<void> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
   const { error } = await supabase.from("destinations").insert(toRow(input));
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyDestinationError(error, input.countryName));
 
   revalidatePath("/admin/destinations");
   revalidatePath("/destinations");
@@ -59,7 +72,7 @@ export async function updateDestination(id: string, input: DestinationInput): Pr
   if (!supabase) throw new Error("Supabase not configured.");
 
   const { error } = await supabase.from("destinations").update(toRow(input)).eq("id", id);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyDestinationError(error, input.countryName));
 
   revalidatePath("/admin/destinations");
   revalidatePath("/destinations");

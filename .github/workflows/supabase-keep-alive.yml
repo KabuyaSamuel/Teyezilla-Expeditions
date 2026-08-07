@@ -1,0 +1,56 @@
+name: Supabase Keep-Alive
+
+# Supabase's free tier auto-pauses a project after 7 days with zero database
+# queries -- and this app's data-fetching functions (lib/tours.ts, lib/
+# destinations.ts, etc.) fail open to an *empty* result when the database
+# isn't reachable, not seed/demo data, so a paused project would mean the
+# live site quietly renders empty pages instead of erroring visibly. This
+# runs a real, minimal read every 3 days to keep well inside that 7-day
+# window (see scripts/keep-supabase-alive.ts for why a plain HTTP ping to
+# the project URL wouldn't work -- it has to actually touch a table).
+#
+# Cron's day-of-month `*/N` field is NOT "every N days from the last run" --
+# it resets to day 1 at the start of every month, so the gap across a month
+# boundary isn't automatically N days. Worked through every month length for
+# `*/3` specifically: 31-day months trigger on day 31 itself (gap to the 1st
+# of next month = 1 day); 30-day months (Apr/Jun/Sep/Nov) last trigger on the
+# 28th (gap = 3 days); February non-leap trigger on the 28th (gap = 1 day);
+# February leap trigger on the 28th (gap = 2 days). Maximum gap across all
+# twelve months is 3 days -- exactly the target, with 4 full days of margin
+# before the 7-day pause threshold even if a single scheduled run fails to
+# fire.
+#
+# workflow_dispatch lets this be triggered on demand to verify it actually
+# works, without waiting for the schedule.
+
+on:
+  schedule:
+    - cron: "0 6 */3 * *"
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: "Query a nonexistent table on purpose, to verify the failure path (Actions run goes red + Sentry event) without touching real code"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      SIMULATE_FAILURE: ${{ inputs.simulate_failure }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run keep-alive query
+        run: npx tsx scripts/keep-supabase-alive.ts

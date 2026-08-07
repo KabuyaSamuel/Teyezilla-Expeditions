@@ -271,6 +271,33 @@ just don't add new `any` types in files you touch.
   Production deployments (not every push — audits are slow, this tracks trends).
 - `.github/workflows/smoke-test.yml` — post-deploy smoke test.
 
+### Supabase keep-alive
+
+`.github/workflows/supabase-keep-alive.yml` runs a real, minimal read query
+(`scripts/keep-supabase-alive.ts`) against the database every 3 days.
+
+This exists because Supabase's free tier auto-pauses a project after 7 days with zero
+database queries — and this app's data-fetching functions (`lib/tours.ts`,
+`lib/destinations.ts`, etc.) fail open to an *empty* result when the database isn't
+reachable, not seed/demo data, so a paused project would mean the live site quietly
+renders empty pages instead of erroring visibly. A plain HTTP ping to the project URL
+would **not** prevent the pause — it has to be a real query against a table, which is
+why this is a script rather than a `curl` in the workflow YAML.
+
+If the query fails, the workflow fails loudly: the Actions run itself goes red, and (if
+`SENTRY_DSN` is configured as a repo secret) a Sentry event is also captured, since a
+silently-broken keep-alive defeats its own purpose.
+
+**To verify it's working:**
+
+- Check the Actions tab for the `Supabase Keep-Alive` workflow's run history.
+- Trigger it manually any time via **Actions → Supabase Keep-Alive → Run workflow**
+  (`workflow_dispatch`), without waiting for the schedule.
+- To verify the *failure* path specifically, run it manually with the
+  `simulate_failure` input checked — this deliberately queries a nonexistent table, so
+  you can confirm the run goes red and a Sentry event shows up, without touching any
+  real code.
+
 ## Making changes — where things live
 
 - `app/(public)/` — public-facing pages (route group so `/admin/*` doesn't inherit the

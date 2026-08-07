@@ -1,9 +1,15 @@
 import PageHeader from "@/components/admin/PageHeader";
 import HeroSlidesEditor from "@/components/admin/HeroSlidesEditor";
+import SettingsImageField from "@/components/admin/SettingsImageField";
 import { getSiteSetting } from "@/lib/settings";
 import { updateSiteSettings } from "@/lib/admin/actions/settings";
 import { getHeroSlides, HERO_TEXT_DEFAULTS } from "@/lib/hero";
 import { getMediaItems } from "@/lib/admin/data/media";
+import {
+  WHY_CHOOSE_DEFAULTS,
+  TRUST_INDICATORS_DEFAULTS,
+  CATEGORY_OVERVIEW_DEFAULTS,
+} from "@/lib/homepageContent";
 import {
   DEFAULT_TERMS_CONTENT,
   DEFAULT_PRIVACY_POLICY_CONTENT,
@@ -24,6 +30,9 @@ const SETTINGS_KEYS = [
   "whatsappNumber",
   "happy_travelers_count",
   ...(Object.keys(HERO_TEXT_DEFAULTS) as (keyof typeof HERO_TEXT_DEFAULTS)[]),
+  ...(Object.keys(WHY_CHOOSE_DEFAULTS) as (keyof typeof WHY_CHOOSE_DEFAULTS)[]),
+  ...(Object.keys(TRUST_INDICATORS_DEFAULTS) as (keyof typeof TRUST_INDICATORS_DEFAULTS)[]),
+  ...(Object.keys(CATEGORY_OVERVIEW_DEFAULTS) as (keyof typeof CATEGORY_OVERVIEW_DEFAULTS)[]),
   "termsContent",
   "privacyPolicyContent",
   "cancellationPolicyContent",
@@ -45,6 +54,9 @@ const DEFAULTS: Record<(typeof SETTINGS_KEYS)[number], string> = {
   whatsappNumber: "254726584159",
   happy_travelers_count: "1000",
   ...HERO_TEXT_DEFAULTS,
+  ...WHY_CHOOSE_DEFAULTS,
+  ...TRUST_INDICATORS_DEFAULTS,
+  ...CATEGORY_OVERVIEW_DEFAULTS,
   termsContent: DEFAULT_TERMS_CONTENT,
   privacyPolicyContent: DEFAULT_PRIVACY_POLICY_CONTENT,
   cancellationPolicyContent: DEFAULT_CANCELLATION_POLICY_CONTENT,
@@ -136,6 +148,114 @@ export default async function AdminSettingsPage() {
               <label htmlFor="heroCta2Href" className="text-xs font-medium text-foreground/60">Secondary Button Link</label>
               <input id="heroCta2Href" name="heroCta2Href" defaultValue={settings.heroCta2Href} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
+          </div>
+        </section>
+
+        <section className="card p-6">
+          <h2 className="font-heading text-lg font-semibold text-foreground">Trust Indicators</h2>
+          <p className="mt-1 text-xs text-foreground/50">The 4 highlight cards below the hero (icons are fixed).</p>
+
+          <div className="mt-4 grid gap-6 sm:grid-cols-2">
+            {([1, 2, 3, 4] as const).map((n) => (
+              <div key={n} className="space-y-2 rounded-2xl border border-secondary/20 p-4">
+                <div>
+                  <label htmlFor={`trustIndicator${n}Title`} className="text-xs font-medium text-foreground/60">Card {n} Title</label>
+                  <input
+                    id={`trustIndicator${n}Title`}
+                    name={`trustIndicator${n}Title`}
+                    defaultValue={settings[`trustIndicator${n}Title` as const]}
+                    className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <label htmlFor={`trustIndicator${n}Desc`} className="text-xs font-medium text-foreground/60">Card {n} Description</label>
+                  <input
+                    id={`trustIndicator${n}Desc`}
+                    name={`trustIndicator${n}Desc`}
+                    defaultValue={settings[`trustIndicator${n}Desc` as const]}
+                    className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="card p-6">
+          <h2 className="font-heading text-lg font-semibold text-foreground">Homepage Story (&ldquo;More Than Just a Trip&rdquo;)</h2>
+          <p className="mt-1 text-xs text-foreground/50">
+            The testimonial section below the hero. To change which review is quoted here, use the
+            &ldquo;Feature on Homepage&rdquo; button on the Reviews page.
+          </p>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="whyChooseHeadlineLine1" className="text-xs font-medium text-foreground/60">Headline, Line 1</label>
+              <input id="whyChooseHeadlineLine1" name="whyChooseHeadlineLine1" defaultValue={settings.whyChooseHeadlineLine1} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="whyChooseHeadlineLine2" className="text-xs font-medium text-foreground/60">Headline, Line 2 (italic)</label>
+              <input id="whyChooseHeadlineLine2" name="whyChooseHeadlineLine2" defaultValue={settings.whyChooseHeadlineLine2} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="whyChooseDescription" className="text-xs font-medium text-foreground/60">Description</label>
+              <textarea id="whyChooseDescription" name="whyChooseDescription" rows={2} defaultValue={settings.whyChooseDescription} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div className="sm:col-span-2">
+              <SettingsImageField id="whyChooseImage" name="whyChooseImage" label="Image" defaultValue={settings.whyChooseImage} mediaItems={mediaItems} />
+            </div>
+            <div>
+              <label htmlFor="whyChooseChecklist1" className="text-xs font-medium text-foreground/60">Checklist Item 1</label>
+              <input id="whyChooseChecklist1" name="whyChooseChecklist1" defaultValue={settings.whyChooseChecklist1} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="whyChooseChecklist2" className="text-xs font-medium text-foreground/60">Checklist Item 2</label>
+              <input id="whyChooseChecklist2" name="whyChooseChecklist2" defaultValue={settings.whyChooseChecklist2} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="whyChooseChecklist3" className="text-xs font-medium text-foreground/60">Checklist Item 3</label>
+              <input id="whyChooseChecklist3" name="whyChooseChecklist3" defaultValue={settings.whyChooseChecklist3} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="whyChooseChecklist4" className="text-xs font-medium text-foreground/60">Checklist Item 4</label>
+              <input id="whyChooseChecklist4" name="whyChooseChecklist4" defaultValue={settings.whyChooseChecklist4} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="whyChooseCtaLabel" className="text-xs font-medium text-foreground/60">Button Label</label>
+              <input id="whyChooseCtaLabel" name="whyChooseCtaLabel" defaultValue={settings.whyChooseCtaLabel} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="whyChooseCtaHref" className="text-xs font-medium text-foreground/60">Button Link</label>
+              <input id="whyChooseCtaHref" name="whyChooseCtaHref" defaultValue={settings.whyChooseCtaHref} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+          </div>
+        </section>
+
+        <section className="card p-6">
+          <h2 className="font-heading text-lg font-semibold text-foreground">Explore Teyezilla (&ldquo;Seven Ways to Discover Africa&rdquo;)</h2>
+          <p className="mt-1 text-xs text-foreground/50">Description and image for each of the 7 category cards (labels and links are fixed).</p>
+
+          <div className="mt-4 grid gap-6 sm:grid-cols-2">
+            {(
+              [
+                ["Destinations", "categoryDestinationsDescription", "categoryDestinationsImage"],
+                ["Journeys", "categoryJourneysDescription", "categoryJourneysImage"],
+                ["Experiences", "categoryExperiencesDescription", "categoryExperiencesImage"],
+                ["Collections", "categoryCollectionsDescription", "categoryCollectionsImage"],
+                ["Safari", "categorySafariDescription", "categorySafariImage"],
+                ["Bespoke", "categoryBespokeDescription", "categoryBespokeImage"],
+                ["Journal", "categoryJournalDescription", "categoryJournalImage"],
+              ] as const
+            ).map(([label, descKey, imageKey]) => (
+              <div key={label} className="space-y-3 rounded-2xl border border-secondary/20 p-4">
+                <h3 className="text-sm font-semibold text-foreground">{label}</h3>
+                <div>
+                  <label htmlFor={descKey} className="text-xs font-medium text-foreground/60">Description</label>
+                  <textarea id={descKey} name={descKey} rows={2} defaultValue={settings[descKey]} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+                <SettingsImageField id={imageKey} name={imageKey} label="Image" defaultValue={settings[imageKey]} mediaItems={mediaItems} />
+              </div>
+            ))}
           </div>
         </section>
 

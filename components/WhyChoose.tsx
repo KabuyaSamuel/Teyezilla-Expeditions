@@ -3,31 +3,35 @@ import Link from "next/link";
 import { Star, Users, Check } from "lucide-react";
 import type { Review } from "@/types";
 import ScrollReveal from "./ScrollReveal";
+import { getSiteSetting } from "@/lib/settings";
+import { WHY_CHOOSE_DEFAULTS, type WhyChooseKey } from "@/lib/homepageContent";
 
-const CHECKLIST = [
-  "Local travel experts who live where they guide",
-  "Personalized, flexible itineraries",
-  "Transparent pricing, no hidden fees",
-  "24/7 customer support",
-];
-
-export default function WhyChoose({
+export default async function WhyChoose({
   testimonial,
   happyTravelersCount,
 }: {
   testimonial?: Review;
   happyTravelersCount: string;
 }) {
+  const keys = Object.keys(WHY_CHOOSE_DEFAULTS) as WhyChooseKey[];
+  const values = await Promise.all(keys.map((key) => getSiteSetting(key)));
+  const text = Object.fromEntries(
+    keys.map((key, i) => [key, values[i] || WHY_CHOOSE_DEFAULTS[key]])
+  ) as typeof WHY_CHOOSE_DEFAULTS;
+
+  const checklist = [
+    text.whyChooseChecklist1,
+    text.whyChooseChecklist2,
+    text.whyChooseChecklist3,
+    text.whyChooseChecklist4,
+  ].filter(Boolean);
+
   return (
     <section className="section grid gap-12 lg:grid-cols-2 lg:items-center">
       <ScrollReveal className="relative">
         <div className="relative h-[420px] w-full overflow-hidden rounded-xl2 shadow-card">
-          {/* TEMP placeholder until real Teyezilla photography is available.
-              "Kenya safari.jpg" by Flickr user DEMOSH (Nairobi, Kenya),
-              CC BY 2.0: https://creativecommons.org/licenses/by/2.0 --
-              https://commons.wikimedia.org/wiki/File:Kenya_safari.jpg */}
           <Image
-            src="https://upload.wikimedia.org/wikipedia/commons/4/41/Kenya_safari.jpg"
+            src={text.whyChooseImage}
             alt="Safari vehicle with travelers watching wildebeest cross the road in the Maasai Mara, Kenya"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
@@ -59,16 +63,13 @@ export default function WhyChoose({
 
       <ScrollReveal delay={150}>
         <h2 className="h2-section">
-          More Than Just a Trip,
-          <span className="block font-normal italic text-primary">It&apos;s a Connection.</span>
+          {text.whyChooseHeadlineLine1}
+          <span className="block font-normal italic text-primary">{text.whyChooseHeadlineLine2}</span>
         </h2>
-        <p className="mt-4 text-foreground/70">
-          We don&apos;t just show you places; we connect you to the people, the culture, and the
-          wild beauty of Africa.
-        </p>
+        <p className="mt-4 text-foreground/70">{text.whyChooseDescription}</p>
 
         <ul className="mt-6 space-y-3">
-          {CHECKLIST.map((item) => (
+          {checklist.map((item) => (
             <li key={item} className="flex items-start gap-3 text-sm text-foreground/80">
               <Check className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
               {item}
@@ -76,8 +77,8 @@ export default function WhyChoose({
           ))}
         </ul>
 
-        <Link href="/about" className="btn-primary mt-8 inline-flex">
-          About Teyezilla →
+        <Link href={text.whyChooseCtaHref} className="btn-primary mt-8 inline-flex">
+          {text.whyChooseCtaLabel} →
         </Link>
       </ScrollReveal>
     </section>

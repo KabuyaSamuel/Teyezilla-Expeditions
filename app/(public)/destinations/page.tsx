@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import DestinationCard from "@/components/DestinationCard";
 import { getDestinations } from "@/lib/destinations";
 
@@ -10,8 +11,26 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600;
 
-export default async function DestinationsPage() {
-  const destinations = await getDestinations();
+const FILTERS = [
+  { value: "available", label: "Available" },
+  { value: "coming-soon", label: "Coming Soon" },
+  { value: "all", label: "All" },
+] as const;
+type FilterValue = (typeof FILTERS)[number]["value"];
+
+interface Props {
+  searchParams: Promise<{ filter?: string }>;
+}
+
+export default async function DestinationsPage({ searchParams }: Props) {
+  const { filter: rawFilter } = await searchParams;
+  const filter: FilterValue = FILTERS.some((f) => f.value === rawFilter) ? (rawFilter as FilterValue) : "available";
+
+  const allDestinations = await getDestinations();
+  const destinations =
+    filter === "all"
+      ? allDestinations
+      : allDestinations.filter((d) => (filter === "available" ? d.isLaunchDestination : !d.isLaunchDestination));
 
   return (
     <div className="section">
@@ -19,11 +38,35 @@ export default async function DestinationsPage() {
       <p className="mt-3 max-w-2xl text-foreground/70">
         Five destinations open for booking today, with more of Africa on the way.
       </p>
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {destinations.map((destination) => (
-          <DestinationCard key={destination.id} destination={destination} />
+
+      <div className="mt-8 flex flex-wrap gap-2">
+        {FILTERS.map((f) => (
+          <Link
+            key={f.value}
+            href={f.value === "available" ? "/destinations" : `/destinations?filter=${f.value}`}
+            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+              filter === f.value ? "bg-primary text-white" : "bg-secondary/15 text-foreground/70 hover:bg-secondary/25"
+            }`}
+          >
+            {f.label}
+          </Link>
         ))}
       </div>
+
+      {destinations.length === 0 ? (
+        <div className="card mt-10 p-10 text-center">
+          <p className="font-heading text-lg font-semibold text-foreground">
+            {filter === "coming-soon" ? "Nothing coming soon right now." : "No destinations to show yet."}
+          </p>
+          <p className="mt-2 text-sm text-foreground/70">Check back soon, or explore what&rsquo;s already open.</p>
+        </div>
+      ) : (
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {destinations.map((destination) => (
+            <DestinationCard key={destination.id} destination={destination} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -26,7 +26,7 @@ export default async function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_70%_at_20%_75%,rgba(0,0,0,0.55),transparent_70%)]" />
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-col items-start gap-4 px-6 pb-20 pt-36 sm:gap-5 sm:pb-24 sm:pt-40">
-        <span className="animate-fadeUp inline-flex items-center gap-2 rounded-full text-[10px] font-medium uppercase tracking-[0.2em] text-accent drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] sm:gap-3 sm:text-xs">
+        <span className="animate-fadeUp inline-flex items-center gap-2 rounded-full bg-black/55 py-1.5 pl-3.5 pr-4 text-[10px] font-medium uppercase tracking-[0.2em] text-accent sm:gap-3 sm:pl-4 sm:pr-5 sm:text-xs">
           {text.heroBadgeText}
           <span className="h-px w-8 bg-accent sm:w-12" />
         </span>

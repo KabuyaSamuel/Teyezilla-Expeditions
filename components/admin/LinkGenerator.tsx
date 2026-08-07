@@ -20,6 +20,8 @@ export default function LinkGenerator() {
   const [campaign, setCampaign] = useState("");
   const [copied, setCopied] = useState(false);
 
+  const isKnownPreset = PRESETS.some((p) => p.source === source && p.medium === medium);
+
   const generatedUrl = useMemo(() => {
     if (!source.trim()) return "";
     const params = new URLSearchParams();
@@ -60,6 +62,20 @@ export default function LinkGenerator() {
               {p.label}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => {
+              setSource("");
+              setMedium("");
+            }}
+            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+              !isKnownPreset
+                ? "bg-primary text-white"
+                : "bg-secondary/15 text-foreground/70 hover:bg-secondary/25"
+            }`}
+          >
+            Custom
+          </button>
         </div>
       </section>
 

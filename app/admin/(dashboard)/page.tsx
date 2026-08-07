@@ -5,9 +5,28 @@ import Link from "next/link";
 import { getBookings } from "@/lib/admin/data/bookings";
 import { getInquiries } from "@/lib/admin/data/inquiries";
 import { bookingStatusTone } from "@/lib/admin/status-tone";
+import { getFeaturedDestinations } from "@/lib/destinations";
+import { getFeaturedTours } from "@/lib/tours";
+import { getFeaturedJourneys } from "@/lib/journeys";
+import { FEATURED_DESTINATIONS_COUNT, FEATURED_EXPERIENCES_COUNT, FEATURED_JOURNEYS_COUNT } from "@/lib/featuredCounts";
 
 export default async function AdminDashboardPage() {
-  const [bookings, inquiries] = await Promise.all([getBookings(), getInquiries()]);
+  const [bookings, inquiries, featuredDestinations, featuredTours, featuredJourneys] = await Promise.all([
+    getBookings(),
+    getInquiries(),
+    getFeaturedDestinations(),
+    getFeaturedTours(),
+    getFeaturedJourneys(),
+  ]);
+
+  // Purely informational -- the homepage always fills any gap from the full
+  // catalogue (see lib/featuredCounts.ts), so this is a nudge to curate a
+  // better set, never a blocker.
+  const featuredShortfalls = [
+    { label: "Destinations", href: "/admin/destinations", count: featuredDestinations.length, target: FEATURED_DESTINATIONS_COUNT },
+    { label: "Journeys", href: "/admin/journeys", count: featuredJourneys.length, target: FEATURED_JOURNEYS_COUNT },
+    { label: "Experiences", href: "/admin/tours", count: featuredTours.length, target: FEATURED_EXPERIENCES_COUNT },
+  ].filter((s) => s.count < s.target);
   const totalBookings = bookings.length;
   // Revenue is staff-entered: bookings marked paid, using the quoted total.
   const revenueTotal = bookings
@@ -46,6 +65,22 @@ export default async function AdminDashboardPage() {
         title="Dashboard"
         description="Overview of bookings, revenue, and activity across Teyezilla Expeditions."
       />
+
+      {featuredShortfalls.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-accent/30 bg-accent/10 p-4 text-sm">
+          <p className="font-medium text-foreground">Homepage featured sections could use more picks</p>
+          <p className="mt-1 text-xs text-foreground/60">
+            Optional -- the homepage automatically fills any gap with other published items, so nothing looks broken either way.
+          </p>
+          <ul className="mt-2 space-y-1">
+            {featuredShortfalls.map((s) => (
+              <li key={s.label} className="text-foreground/80">
+                <Link href={s.href} className="font-medium text-primary hover:underline">{s.label}</Link>: {s.count} of {s.target} marked featured
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="New Enquiries" value={String(newEnquiries)} accent sublabel="awaiting first response" />

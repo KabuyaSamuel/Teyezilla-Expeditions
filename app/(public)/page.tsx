@@ -13,16 +13,13 @@ import ReviewCard from "@/components/ReviewCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import { getDestinations, getFeaturedDestinations } from "@/lib/destinations";
 import { getRegionsWithDestinations, type RegionWithDestinations } from "@/lib/regions";
-import { getFeaturedTours } from "@/lib/tours";
+import { getFeaturedTours, getPublishedTours } from "@/lib/tours";
 import { getFeaturedJourneys, getJourneys } from "@/lib/journeys";
 import { getApprovedReviews, getFeaturedReview } from "@/lib/reviews";
 import { getSiteSetting } from "@/lib/settings";
+import { FEATURED_DESTINATIONS_COUNT, FEATURED_EXPERIENCES_COUNT, FEATURED_JOURNEYS_COUNT, fillToCount } from "@/lib/featuredCounts";
 
 export const revalidate = 3600;
-
-const FEATURED_DESTINATIONS_COUNT = 3;
-const FEATURED_EXPERIENCES_COUNT = 4;
-const FEATURED_JOURNEYS_COUNT = 4;
 
 // Round-robins across regions (launch destinations sort first within each
 // region already) so the homepage doesn't just dump the first N rows in
@@ -54,12 +51,13 @@ function pickBalancedDestinations(
 }
 
 export default async function HomePage() {
-  const [destinations, regions, featuredDestinationsAll, featuredTours, featuredJourneysAll, journeysAll, reviews, featuredReview, happyTravelersCount] =
+  const [destinations, regions, featuredDestinationsAll, featuredTours, allTours, featuredJourneysAll, journeysAll, reviews, featuredReview, happyTravelersCount] =
     await Promise.all([
       getDestinations(),
       getRegionsWithDestinations(),
       getFeaturedDestinations(),
       getFeaturedTours(),
+      getPublishedTours(),
       getFeaturedJourneys(),
       getJourneys(),
       getApprovedReviews(),
@@ -67,20 +65,22 @@ export default async function HomePage() {
       getSiteSetting("happy_travelers_count"),
     ]);
 
-  // Manually-curated (destinations.featured) takes priority; fall back to
-  // the balanced round-robin pick if fewer than the target count are
-  // marked featured, same fallback pattern as featuredJourneys below.
-  const featuredDestinations =
-    featuredDestinationsAll.length >= FEATURED_DESTINATIONS_COUNT
-      ? featuredDestinationsAll.slice(0, FEATURED_DESTINATIONS_COUNT)
-      : pickBalancedDestinations(destinations, regions, FEATURED_DESTINATIONS_COUNT);
-  const featuredExperiences = featuredTours.slice(0, FEATURED_EXPERIENCES_COUNT);
-  // Fall back to the general journeys list if fewer than the target count are
-  // marked featured, so the section isn't sparse while the catalogue is small.
-  const featuredJourneys = (featuredJourneysAll.length > 0 ? featuredJourneysAll : journeysAll).slice(
-    0,
-    FEATURED_JOURNEYS_COUNT
+  // Manually-curated (destinations.featured) takes priority; any picks
+  // beyond that are topped up from the balanced round-robin pick rather
+  // than discarding partial manual picks outright, so a staff pick is
+  // never silently dropped just because there weren't enough of them.
+  const manualFeaturedDestinations = featuredDestinationsAll.slice(0, FEATURED_DESTINATIONS_COUNT);
+  const featuredDestinations = fillToCount(
+    manualFeaturedDestinations,
+    pickBalancedDestinations(destinations, regions, FEATURED_DESTINATIONS_COUNT),
+    FEATURED_DESTINATIONS_COUNT,
+    (d) => d.id
   );
+  // Tops up with other published tours/journeys (not already shown) when
+  // fewer than the target count are marked featured, so the grid never
+  // renders with empty trailing cells.
+  const featuredExperiences = fillToCount(featuredTours, allTours, FEATURED_EXPERIENCES_COUNT, (t) => t.id);
+  const featuredJourneys = fillToCount(featuredJourneysAll, journeysAll, FEATURED_JOURNEYS_COUNT, (j) => j.id);
 
   return (
     <>
@@ -122,9 +122,9 @@ export default async function HomePage() {
               Curated multi-day journeys connecting wildlife, culture, and place.
             </p>
           </ScrollReveal>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {featuredJourneys.map((journey, i) => (
-              <ScrollReveal key={journey.id} delay={(i % 4) * 100}>
+              <ScrollReveal key={journey.id} delay={(i % 3) * 100}>
                 <JourneyCard journey={journey} />
               </ScrollReveal>
             ))}

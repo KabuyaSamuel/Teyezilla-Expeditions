@@ -130,3 +130,51 @@ export function canAccessModule(role: StaffRole, moduleKey: AdminModuleKey): boo
 export function getModulesForRole(role: StaffRole): AdminModuleDef[] {
   return ADMIN_MODULES.filter((m) => canAccessModule(role, m.key));
 }
+
+// Same five-way split as the comment on ADMIN_MODULES above, made explicit
+// so the sidebar can render them as named, collapsible sections instead of
+// one long flat list. "dashboard" is deliberately left out -- it's pinned
+// above the groups as the one always-visible "home" link.
+export interface AdminModuleGroup {
+  key: string;
+  label: string;
+  moduleKeys: AdminModuleKey[];
+}
+
+export const ADMIN_MODULE_GROUPS: AdminModuleGroup[] = [
+  { key: "today", label: "Today", moduleKeys: ["notifications", "bookings", "inquiries", "customers", "operations"] },
+  { key: "catalog", label: "Catalog", moduleKeys: ["tours", "journeys", "collections", "destinations"] },
+  { key: "building-blocks", label: "Building Blocks", moduleKeys: ["activities", "vehicles", "accommodations"] },
+  {
+    key: "content-marketing",
+    label: "Content & Marketing",
+    moduleKeys: ["blog", "reviews", "faqs", "travel-resources", "team-members", "media", "link-generator"],
+  },
+  { key: "reports-settings", label: "Reports & Settings", moduleKeys: ["reports", "staff", "settings", "statuses"] },
+];
+
+export interface AdminModuleGroupWithModules {
+  key: string;
+  label: string;
+  modules: AdminModuleDef[];
+}
+
+// Groups a role's accessible modules for the sidebar, dropping any group
+// that has nothing left in it for that role (e.g. a sales agent has no
+// "Catalog" access at all) instead of rendering an empty section.
+export function getGroupedModulesForRole(role: StaffRole): {
+  pinned: AdminModuleDef[];
+  groups: AdminModuleGroupWithModules[];
+} {
+  const accessible = getModulesForRole(role);
+  const byKey = new Map(accessible.map((m) => [m.key, m]));
+
+  const pinned = accessible.filter((m) => m.key === "dashboard");
+  const groups = ADMIN_MODULE_GROUPS.map((g) => ({
+    key: g.key,
+    label: g.label,
+    modules: g.moduleKeys.map((k) => byKey.get(k)).filter((m): m is AdminModuleDef => Boolean(m)),
+  })).filter((g) => g.modules.length > 0);
+
+  return { pinned, groups };
+}

@@ -7,6 +7,7 @@ import { revalidatePublicSite } from "@/lib/revalidate";
 import {
   syncPricingTiers,
   syncHighlights,
+  syncFaqs,
   syncAddons,
   syncActivities,
   syncVehicles,
@@ -14,6 +15,7 @@ import {
   productScalarsToRow,
   type PricingTierInput,
   type HighlightInput,
+  type FaqInput,
   type AddonInput,
   type ProductScalarsInput,
 } from "./productShared";
@@ -46,6 +48,7 @@ export interface JourneyInput extends ProductScalarsInput {
   ogImage: string;
   pricingTiers: PricingTierInput[];
   highlights: HighlightInput[];
+  faqs: FaqInput[];
   addons: AddonInput[];
   activityIds: string[];
   vehicleIds: string[];
@@ -150,6 +153,7 @@ async function syncJourneyRelations(
 
   await syncPricingTiers(supabase, "journey_pricing_tiers", "journey_id", journeyId, input.pricingTiers);
   await syncHighlights(supabase, "journey_highlights", "journey_id", journeyId, input.highlights);
+  await syncFaqs(supabase, "journey_faqs", "journey_id", journeyId, input.faqs);
   await syncAddons(supabase, "journey_addons", "journey_id", journeyId, input.addons);
   await syncActivities(supabase, "journey_activities", "journey_id", journeyId, input.activityIds);
   await syncVehicles(supabase, "journey_vehicles", "journey_id", journeyId, input.vehicleIds);

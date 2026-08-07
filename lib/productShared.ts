@@ -36,6 +36,13 @@ export interface ProductHighlight {
   displayOrder: number;
 }
 
+export interface ProductFaq {
+  id: string;
+  question: string;
+  answer: string;
+  displayOrder: number;
+}
+
 export interface ProductAddon {
   id: string;
   kind: "addon" | "extension";
@@ -85,6 +92,15 @@ export function mapHighlightRow(row: Record<string, any>): ProductHighlight {
     id: row.id,
     title: row.title,
     description: row.description ?? "",
+    displayOrder: Number(row.display_order ?? 0),
+  };
+}
+
+export function mapFaqRow(row: Record<string, any>): ProductFaq {
+  return {
+    id: row.id,
+    question: row.question,
+    answer: row.answer,
     displayOrder: Number(row.display_order ?? 0),
   };
 }

@@ -7,6 +7,7 @@ import { getRelatedBlogPosts, getBlogPostsByIds } from "@/lib/blog";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 import ProductItinerary from "@/components/ProductItinerary";
 import ProductHighlights from "@/components/ProductHighlights";
+import ProductFaqAccordion from "@/components/ProductFaqAccordion";
 import ProductFactsGrid from "@/components/ProductFactsGrid";
 import ProductIncludesExcludes from "@/components/ProductIncludesExcludes";
 import ProductGoodToKnow from "@/components/ProductGoodToKnow";
@@ -17,7 +18,7 @@ import ProductVehicles from "@/components/ProductVehicles";
 import ProductAccommodations from "@/components/ProductAccommodations";
 import RelatedContent from "@/components/RelatedContent";
 import JsonLd from "@/components/JsonLd";
-import { breadcrumbListJsonLd } from "@/lib/jsonld";
+import { breadcrumbListJsonLd, faqPageJsonLd } from "@/lib/jsonld";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -118,9 +119,22 @@ export default async function JourneyPage({ params }: Props) {
     { name: journey.title, path: `/journeys/${journey.slug}` },
   ]);
 
+  const faqs = [
+    {
+      question: `How much does the ${journey.title} cost?`,
+      answer: `The ${journey.title} starts from ${journey.currency} ${journey.priceFrom} per person for ${journey.durationDays} days.`,
+    },
+    ...(journey.difficulty
+      ? [{ question: `How difficult is the ${journey.title}?`, answer: `This journey is rated ${journey.difficulty}.` }]
+      : []),
+    ...journey.faqs.map((f) => ({ question: f.question, answer: f.answer })),
+  ];
+  const faqJsonLd = faqPageJsonLd(faqs);
+
   return (
     <div>
       <JsonLd data={touristTripJsonLd} />
+      <JsonLd data={faqJsonLd} />
       <JsonLd data={breadcrumbJsonLd} />
 
       <div className="relative h-[380px] w-full">
@@ -209,6 +223,8 @@ export default async function JourneyPage({ params }: Props) {
             <ProductTeyezillaMoment text={journey.teyezillaMoment} />
             <ProductPricingTiers tiers={journey.pricingTiers} bookingHref={bookingHref} />
             <ProductAddons addons={journey.addons} bookingHref={bookingHref} />
+
+            <ProductFaqAccordion faqs={faqs} />
           </div>
 
           <aside className="card sticky top-24 h-fit p-6">

@@ -10,6 +10,7 @@ import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 import { formatTourDuration } from "@/lib/duration";
 import ProductItinerary from "@/components/ProductItinerary";
 import ProductHighlights from "@/components/ProductHighlights";
+import ProductFaqAccordion from "@/components/ProductFaqAccordion";
 import ProductFactsGrid from "@/components/ProductFactsGrid";
 import ProductIncludesExcludes from "@/components/ProductIncludesExcludes";
 import ProductGoodToKnow from "@/components/ProductGoodToKnow";
@@ -98,7 +99,7 @@ export default async function TourPage({ params }: Props) {
     },
   };
 
-  const faqJsonLd = faqPageJsonLd([
+  const faqs = [
     {
       question: `How much does the ${tour.title} cost?`,
       answer: `The ${tour.title} starts from ${tour.currency} ${tour.priceFrom} per person for ${formatTourDuration(tour)}.`,
@@ -106,7 +107,9 @@ export default async function TourPage({ params }: Props) {
     ...(tour.difficulty
       ? [{ question: `How difficult is the ${tour.title}?`, answer: `This tour is rated ${tour.difficulty}.` }]
       : []),
-  ]);
+    ...tour.faqs.map((f) => ({ question: f.question, answer: f.answer })),
+  ];
+  const faqJsonLd = faqPageJsonLd(faqs);
 
   const breadcrumbJsonLd = breadcrumbListJsonLd(
     destination
@@ -248,27 +251,7 @@ export default async function TourPage({ params }: Props) {
               </div>
             )}
 
-            <div className="card p-6">
-              <h2 className="font-heading text-xl font-semibold text-foreground">FAQs</h2>
-              <div className="mt-4 space-y-4">
-                <div>
-                  <h3 className="font-heading font-semibold text-foreground">
-                    How much does the {tour.title} cost?
-                  </h3>
-                  <p className="mt-1 text-sm text-foreground/70">
-                    Starts from {tour.currency} {tour.priceFrom} per person for {formatTourDuration(tour)}.
-                  </p>
-                </div>
-                {tour.difficulty && (
-                  <div>
-                    <h3 className="font-heading font-semibold text-foreground">
-                      How difficult is this tour?
-                    </h3>
-                    <p className="mt-1 text-sm text-foreground/70">Rated {tour.difficulty}.</p>
-                  </div>
-                )}
-              </div>
-            </div>
+            <ProductFaqAccordion faqs={faqs} />
           </div>
 
           <aside className="card sticky top-24 h-fit p-6">

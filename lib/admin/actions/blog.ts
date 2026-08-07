@@ -12,6 +12,7 @@ export interface BlogPostInput {
   category: string;
   tags: string[];
   destinationId: string;
+  featuredImage: string;
   excerpt: string;
   answer: string;
   bodyBlocks: ContentBlock[];
@@ -44,6 +45,7 @@ function toRow(input: BlogPostInput) {
     category: input.category,
     tags: input.tags,
     destination_id: input.destinationId || null,
+    hero_image: input.featuredImage,
     excerpt: input.excerpt,
     answer: input.answer,
     body_blocks: input.bodyBlocks,

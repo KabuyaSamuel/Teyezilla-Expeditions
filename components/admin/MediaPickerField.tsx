@@ -30,7 +30,20 @@ export default function MediaPickerField({
   return (
     <div>
       <label htmlFor={id} className="text-xs font-medium text-foreground/60">{label}</label>
-      <div className="mt-1 flex gap-2">
+      {value && (
+        <div className="mt-1 flex items-center gap-3">
+          {/* Plain img, not next/image: this field also accepts a freely
+              pasted external URL, which next/image would reject (or crash
+              on) unless its domain happens to already be in
+              next.config.ts's remotePatterns. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={value} alt="" className="h-16 w-16 shrink-0 rounded-xl border border-secondary/40 object-cover" />
+          <button type="button" onClick={() => onChange("")} className="text-xs font-medium text-error hover:underline">
+            Remove
+          </button>
+        </div>
+      )}
+      <div className="mt-2 flex gap-2">
         <input
           id={id}
           name={name}

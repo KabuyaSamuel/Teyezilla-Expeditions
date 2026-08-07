@@ -9,7 +9,7 @@ import TourCard from "@/components/TourCard";
 import JourneyCard from "@/components/JourneyCard";
 import WhyChoose from "@/components/WhyChoose";
 import StatsBar from "@/components/StatsBar";
-import ReviewCard from "@/components/ReviewCard";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import ScrollReveal from "@/components/ScrollReveal";
 import { getDestinations, getFeaturedDestinations } from "@/lib/destinations";
 import { getRegionsWithDestinations, type RegionWithDestinations } from "@/lib/regions";
@@ -169,13 +169,9 @@ export default async function HomePage() {
             What Our Travelers Say
           </h2>
         </ScrollReveal>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {reviews.map((review, i) => (
-            <ScrollReveal key={review.id} delay={(i % 3) * 100}>
-              <ReviewCard review={review} />
-            </ScrollReveal>
-          ))}
-        </div>
+        <ScrollReveal>
+          <TestimonialsCarousel reviews={reviews} />
+        </ScrollReveal>
       </section>
     </>
   );

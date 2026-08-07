@@ -20,22 +20,48 @@ export interface EmailField {
   value: string;
 }
 
+// Full document (not just a fragment) so the viewport meta tag and the
+// mobile media query below are reliably honored -- Resend sends this html
+// string as-is with no wrapping of its own (lib/email.ts). Outlook desktop
+// ignores the media query entirely (its Word-based engine doesn't support
+// them at all), which is fine: the layout is already fluid (max-width, not
+// a fixed width) so it degrades to a normal desktop-width email there
+// instead of breaking.
 function layout(title: string, bodyHtml: string): string {
-  return `
-<div style="background-color:${IVORY};padding:32px 16px;font-family:Georgia,'Times New Roman',serif;color:#2b2b2b;">
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${title}</title>
+<style>
+  @media only screen and (max-width: 480px) {
+    .email-outer { padding: 20px 12px !important; }
+    .email-header { padding: 20px 20px !important; }
+    .email-body { padding: 20px 20px !important; }
+    .email-footer { padding: 14px 20px !important; }
+    .field-row td { display: block !important; width: 100% !important; white-space: normal !important; padding: 2px 0 !important; }
+    .field-row .field-label { padding-top: 8px !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;">
+<div class="email-outer" style="background-color:${IVORY};padding:32px 16px;font-family:Georgia,'Times New Roman',serif;color:#2b2b2b;">
   <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e0d5;">
-    <div style="background-color:${EMERALD};padding:24px 32px;">
+    <div class="email-header" style="background-color:${EMERALD};padding:24px 32px;">
       <p style="margin:0;color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:0.5px;">Teyezilla Expeditions</p>
       <p style="margin:6px 0 0;color:${GOLD};font-size:13px;letter-spacing:1px;text-transform:uppercase;">${title}</p>
     </div>
-    <div style="padding:28px 32px;font-size:15px;line-height:1.6;">
+    <div class="email-body" style="padding:28px 32px;font-size:15px;line-height:1.6;">
       ${bodyHtml}
     </div>
-    <div style="background-color:${IVORY};padding:16px 32px;border-top:2px solid ${GOLD};">
+    <div class="email-footer" style="background-color:${IVORY};padding:16px 32px;border-top:2px solid ${GOLD};">
       <p style="margin:0;font-size:12px;color:#6b6b6b;">Teyezilla Expeditions · Crafted African journeys · teyezillaexpeditions.com</p>
     </div>
   </div>
-</div>`.trim();
+</div>
+</body>
+</html>`.trim();
 }
 
 function fieldsTable(fields: EmailField[]): string {
@@ -43,8 +69,8 @@ function fieldsTable(fields: EmailField[]): string {
     .filter((f) => f.value)
     .map(
       (f) => `
-      <tr>
-        <td style="padding:6px 12px 6px 0;font-size:13px;color:#6b6b6b;white-space:nowrap;vertical-align:top;">${escapeHtml(f.label)}</td>
+      <tr class="field-row">
+        <td class="field-label" style="padding:6px 12px 6px 0;font-size:13px;color:#6b6b6b;white-space:nowrap;vertical-align:top;">${escapeHtml(f.label)}</td>
         <td style="padding:6px 0;font-size:14px;color:#2b2b2b;">${escapeHtml(f.value)}</td>
       </tr>`
     )

@@ -4,8 +4,10 @@ import { useState } from "react";
 import type { Destination } from "@/types";
 import type { AdminBlogPost } from "@/lib/admin/data/blog";
 import type { ContentBlock } from "@/lib/blogBlocks";
+import type { MediaItem } from "@/lib/admin/data/media";
 import { createBlogPost, updateBlogPost, deleteBlogPost } from "@/lib/admin/actions/blog";
 import BlogContentEditor from "./BlogContentEditor";
+import MediaPickerField from "./MediaPickerField";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -14,13 +16,16 @@ function isRedirectError(err: unknown): boolean {
 export default function BlogPostForm({
   existingPost,
   destinations,
+  mediaItems,
 }: {
   existingPost?: AdminBlogPost;
   destinations: Destination[];
+  mediaItems: MediaItem[];
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [blocks, setBlocks] = useState<ContentBlock[]>(existingPost?.bodyBlocks ?? []);
+  const [featuredImage, setFeaturedImage] = useState(existingPost?.featuredImage ?? "");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,6 +42,7 @@ export default function BlogPostForm({
       category: String(formData.get("category") ?? ""),
       tags: splitCommas(formData.get("tags")),
       destinationId: String(formData.get("destinationId") ?? ""),
+      featuredImage,
       excerpt: String(formData.get("excerpt") ?? ""),
       answer: String(formData.get("answer") ?? ""),
       bodyBlocks: blocks,
@@ -102,6 +108,9 @@ export default function BlogPostForm({
               <option key={d.id} value={d.id}>{d.countryName}</option>
             ))}
           </select>
+        </div>
+        <div className="sm:col-span-2">
+          <MediaPickerField id="featuredImage" name="featuredImage" label="Featured Image" value={featuredImage} onChange={setFeaturedImage} mediaItems={mediaItems} />
         </div>
         <div className="sm:col-span-2">
           <label htmlFor="tags" className="text-xs font-medium text-foreground/60">Tags (comma-separated)</label>

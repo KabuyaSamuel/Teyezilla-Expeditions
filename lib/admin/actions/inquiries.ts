@@ -1,9 +1,25 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { sendCustomerConfirmation } from "@/lib/email";
 import { staffReplyEmail } from "@/lib/email-templates";
+
+// inquiry_replies cascades on delete (see 20260803030000_add_inquiry_replies.sql);
+// notifications.related_id has no FK constraint, so a stale reference there
+// is the only trace left behind, same as any other notification whose
+// target was later deleted.
+export async function deleteInquiry(id: string): Promise<void> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) throw new Error("Supabase not configured.");
+
+  const { error } = await supabase.from("inquiries").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/inquiries");
+  redirect("/admin/inquiries");
+}
 
 export async function updateInquiryStatus(id: string, formData: FormData): Promise<void> {
   const status = String(formData.get("status") ?? "");

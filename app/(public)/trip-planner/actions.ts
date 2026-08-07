@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { createNotification } from "@/lib/admin/actions/notifications";
@@ -12,6 +13,7 @@ import {
 import { tripPlannerSchema, zodFieldErrors, type EnquiryFormState } from "@/lib/enquiry-shared";
 import { captureServerActionError } from "@/lib/monitoring";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { ATTRIBUTION_COOKIE, parseAttributionCookie } from "@/lib/attribution";
 
 export async function submitTripPlannerRequest(
   _prevState: EnquiryFormState,
@@ -43,6 +45,9 @@ export async function submitTripPlannerRequest(
     captureServerActionError("trip-planner", "Supabase not configured -- both service and public clients unavailable.");
     return { formError: "The trip planner is temporarily unavailable. Please reach out on WhatsApp instead." };
   }
+
+  const cookieStore = await cookies();
+  const attribution = parseAttributionCookie(cookieStore.get(ATTRIBUTION_COOKIE)?.value);
 
   const { data: request, error: requestError } = await db
     .from("trip_planner_requests")
@@ -83,6 +88,9 @@ export async function submitTripPlannerRequest(
       message: summary,
       status: "new",
       trip_planner_request_id: request.id,
+      utm_source: attribution.utmSource,
+      utm_medium: attribution.utmMedium,
+      utm_campaign: attribution.utmCampaign,
     })
     .select("id")
     .single();

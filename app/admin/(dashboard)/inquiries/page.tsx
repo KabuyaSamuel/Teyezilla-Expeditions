@@ -1,8 +1,8 @@
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
+import InquiryStatusQuickSelect from "@/components/admin/InquiryStatusQuickSelect";
 import { getInquiries } from "@/lib/admin/data/inquiries";
-import { inquiryStatusTone } from "@/lib/admin/status-tone";
 
 const SOURCE_LABELS: Record<string, string> = {
   website: "Website",
@@ -93,11 +93,11 @@ export default async function AdminInquiriesPage({
                 <p className="font-heading font-semibold text-foreground">{inq.customerName}</p>
                 <p className="text-xs text-foreground/50">{inq.customerEmail} · {inq.createdAt}</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge tone="info">{SOURCE_LABELS[inq.source]}</Badge>
-                <Badge tone={inquiryStatusTone(inq.status)}>{inq.status.replace("_", " ")}</Badge>
                 {inq.repliedAt && <Badge tone="success">Replied</Badge>}
                 {inq.bookingId && <Badge tone="pending">From Booking</Badge>}
+                <InquiryStatusQuickSelect id={inq.id} status={inq.status} />
               </div>
             </div>
             {(inq.tourTitle || inq.journeyTitle) && (

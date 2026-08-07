@@ -43,7 +43,7 @@ export default function LoginForm({ from }: { from: string }) {
             required
             defaultValue={state.email}
             autoComplete="username"
-            className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-3 text-sm transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
         <div>
@@ -54,9 +54,13 @@ export default function LoginForm({ from }: { from: string }) {
             type="password"
             required
             autoComplete="current-password"
-            className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-3 text-sm transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
+        <label className="flex items-center gap-2 text-sm text-foreground/70">
+          <input type="checkbox" name="remember" className="h-4 w-4 accent-primary" />
+          Remember me for 7 days
+        </label>
         <button type="submit" disabled={pending} className="btn-primary w-full disabled:opacity-50">
           {pending ? "Signing in…" : "Log In"}
         </button>

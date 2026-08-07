@@ -2,15 +2,24 @@
 
 import { useState } from "react";
 import type { AdminTeamMember } from "@/lib/admin/data/team-members";
+import type { MediaItem } from "@/lib/admin/data/media";
 import { createTeamMember, updateTeamMember, deleteTeamMember } from "@/lib/admin/actions/team-members";
+import MediaPickerField from "./MediaPickerField";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
 }
 
-export default function TeamMemberForm({ existingTeamMember }: { existingTeamMember?: AdminTeamMember }) {
+export default function TeamMemberForm({
+  existingTeamMember,
+  mediaItems,
+}: {
+  existingTeamMember?: AdminTeamMember;
+  mediaItems: MediaItem[];
+}) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [photo, setPhoto] = useState(existingTeamMember?.photo ?? "");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -22,7 +31,7 @@ export default function TeamMemberForm({ existingTeamMember }: { existingTeamMem
       fullName: String(formData.get("fullName") ?? ""),
       roleTitle: String(formData.get("roleTitle") ?? ""),
       bio: String(formData.get("bio") ?? ""),
-      photo: String(formData.get("photo") ?? ""),
+      photo,
       status: String(formData.get("status") ?? "draft"),
       displayOrder: Number(formData.get("displayOrder") ?? 0),
     };
@@ -73,8 +82,7 @@ export default function TeamMemberForm({ existingTeamMember }: { existingTeamMem
             <input id="roleTitle" name="roleTitle" defaultValue={existingTeamMember?.roleTitle} placeholder="Founder & Head Guide" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
-            <label htmlFor="photo" className="text-xs font-medium text-foreground/60">Photo URL</label>
-            <input id="photo" name="photo" defaultValue={existingTeamMember?.photo} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <MediaPickerField id="photo" name="photo" label="Photo" value={photo} onChange={setPhoto} mediaItems={mediaItems} />
           </div>
           <div>
             <label htmlFor="displayOrder" className="text-xs font-medium text-foreground/60">Display Order</label>

@@ -40,7 +40,7 @@ export default async function AdminMediaPage() {
                     <Badge key={tag} tone="neutral">{tag}</Badge>
                   ))}
                 </div>
-                <MediaDeleteButton id={item.id} storagePath={item.storagePath} />
+                <MediaDeleteButton id={item.id} fileUrl={item.fileUrl} storagePath={item.storagePath} />
               </div>
             </div>
           </div>

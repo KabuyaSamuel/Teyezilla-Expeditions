@@ -1,13 +1,32 @@
 import PageHeader from "@/components/admin/PageHeader";
+import HeroSlidesEditor from "@/components/admin/HeroSlidesEditor";
 import { getSiteSetting } from "@/lib/settings";
-import { updateSiteSetting, updateSiteSettings } from "@/lib/admin/actions/settings";
+import { updateSiteSettings } from "@/lib/admin/actions/settings";
+import { getHeroSlides, HERO_TEXT_DEFAULTS } from "@/lib/hero";
+import { getMediaItems } from "@/lib/admin/data/media";
+import {
+  DEFAULT_TERMS_CONTENT,
+  DEFAULT_PRIVACY_POLICY_CONTENT,
+  DEFAULT_CANCELLATION_POLICY_CONTENT,
+} from "@/lib/legalContent";
 import { LOYALTY_ACCRUAL_SETTING_KEY, LOYALTY_ACCRUAL_DEFAULT } from "@/lib/loyalty-shared";
 
+// Ordered by priority: identity and first-impression content (company info,
+// homepage) come first since they're the most foundational and most
+// frequently revisited; legal/trust content next; then progressively more
+// niche or "set once and forget" operational settings, with the
+// code-pointer-only Email Templates section last since there's nothing to
+// action on this page for it.
 const SETTINGS_KEYS = [
   "companyName",
   "tagline",
   "contactEmail",
   "whatsappNumber",
+  "happy_travelers_count",
+  ...(Object.keys(HERO_TEXT_DEFAULTS) as (keyof typeof HERO_TEXT_DEFAULTS)[]),
+  "termsContent",
+  "privacyPolicyContent",
+  "cancellationPolicyContent",
   "instagramUrl",
   "facebookUrl",
   "tiktokUrl",
@@ -24,6 +43,11 @@ const DEFAULTS: Record<(typeof SETTINGS_KEYS)[number], string> = {
   tagline: "Extraordinary Journeys Across Africa",
   contactEmail: "hello@teyezillaexpeditions.com",
   whatsappNumber: "254726584159",
+  happy_travelers_count: "1000",
+  ...HERO_TEXT_DEFAULTS,
+  termsContent: DEFAULT_TERMS_CONTENT,
+  privacyPolicyContent: DEFAULT_PRIVACY_POLICY_CONTENT,
+  cancellationPolicyContent: DEFAULT_CANCELLATION_POLICY_CONTENT,
   instagramUrl: "",
   facebookUrl: "",
   tiktokUrl: "",
@@ -36,9 +60,11 @@ const DEFAULTS: Record<(typeof SETTINGS_KEYS)[number], string> = {
 };
 
 export default async function AdminSettingsPage() {
-  const happyTravelersCount = (await getSiteSetting("happy_travelers_count")) ?? "";
-
-  const settingsValues = await Promise.all(SETTINGS_KEYS.map((key) => getSiteSetting(key)));
+  const [settingsValues, heroSlides, mediaItems] = await Promise.all([
+    Promise.all(SETTINGS_KEYS.map((key) => getSiteSetting(key))),
+    getHeroSlides(),
+    getMediaItems(),
+  ]);
   const settings = Object.fromEntries(
     SETTINGS_KEYS.map((key, i) => [key, settingsValues[i] ?? DEFAULTS[key]])
   ) as Record<(typeof SETTINGS_KEYS)[number], string>;
@@ -46,28 +72,6 @@ export default async function AdminSettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Website Settings" description="Company info, contact details, currency, and SEO defaults." />
-
-      <section className="card p-6">
-        <h2 className="font-heading text-lg font-semibold text-foreground">Homepage Content</h2>
-        <p className="mt-1 text-xs text-foreground/50">
-          Shown in the &ldquo;Why Choose Teyezilla&rdquo; and stats sections on the homepage.
-        </p>
-        <form action={updateSiteSetting} className="mt-4 flex flex-wrap items-end gap-3">
-          <input type="hidden" name="key" value="happy_travelers_count" />
-          <div>
-            <label htmlFor="happyTravelersCount" className="text-xs font-medium text-foreground/60">
-              Happy Travelers Count
-            </label>
-            <input
-              id="happyTravelersCount"
-              name="value"
-              defaultValue={happyTravelersCount}
-              className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <button type="submit" className="btn-primary text-sm">Save</button>
-        </form>
-      </section>
 
       <form action={updateSiteSettings} className="space-y-6">
         <section className="card grid gap-4 p-6 sm:grid-cols-2">
@@ -87,6 +91,85 @@ export default async function AdminSettingsPage() {
           <div>
             <label htmlFor="whatsappNumber" className="text-xs font-medium text-foreground/60">WhatsApp Number</label>
             <input id="whatsappNumber" name="whatsappNumber" defaultValue={settings.whatsappNumber} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+        </section>
+
+        <section className="card p-6">
+          <h2 className="font-heading text-lg font-semibold text-foreground">Homepage Content</h2>
+          <p className="mt-1 text-xs text-foreground/50">The hero section visitors see first, and the stats row below it.</p>
+
+          <div className="mt-4 max-w-xs">
+            <label htmlFor="happy_travelers_count" className="text-xs font-medium text-foreground/60">Happy Travelers Count</label>
+            <input id="happy_travelers_count" name="happy_travelers_count" defaultValue={settings.happy_travelers_count} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+
+          <div className="mt-6 grid gap-4 border-t border-secondary/20 pt-6 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label htmlFor="heroBadgeText" className="text-xs font-medium text-foreground/60">Badge Text</label>
+              <input id="heroBadgeText" name="heroBadgeText" defaultValue={settings.heroBadgeText} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="heroHeadlineLine1" className="text-xs font-medium text-foreground/60">Headline, Line 1</label>
+              <input id="heroHeadlineLine1" name="heroHeadlineLine1" defaultValue={settings.heroHeadlineLine1} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="heroHeadlineLine2" className="text-xs font-medium text-foreground/60">Headline, Line 2 (italic)</label>
+              <input id="heroHeadlineLine2" name="heroHeadlineLine2" defaultValue={settings.heroHeadlineLine2} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="heroSubtitle" className="text-xs font-medium text-foreground/60">Subtitle</label>
+              <textarea id="heroSubtitle" name="heroSubtitle" rows={2} defaultValue={settings.heroSubtitle} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="heroCta1Label" className="text-xs font-medium text-foreground/60">Primary Button Label</label>
+              <input id="heroCta1Label" name="heroCta1Label" defaultValue={settings.heroCta1Label} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="heroCta1Href" className="text-xs font-medium text-foreground/60">Primary Button Link</label>
+              <input id="heroCta1Href" name="heroCta1Href" defaultValue={settings.heroCta1Href} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="heroCta2Label" className="text-xs font-medium text-foreground/60">Secondary Button Label</label>
+              <input id="heroCta2Label" name="heroCta2Label" defaultValue={settings.heroCta2Label} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="heroCta2Href" className="text-xs font-medium text-foreground/60">Secondary Button Link</label>
+              <input id="heroCta2Href" name="heroCta2Href" defaultValue={settings.heroCta2Href} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+          </div>
+        </section>
+
+        <button type="submit" className="btn-primary text-sm">Save Settings</button>
+      </form>
+
+      <HeroSlidesEditor
+        slides={heroSlides.map((s) => ({ mediaUrl: s.mediaUrl, altText: s.altText }))}
+        mediaItems={mediaItems}
+      />
+
+      <form action={updateSiteSettings} className="space-y-6">
+        <section className="card p-6">
+          <h2 className="font-heading text-lg font-semibold text-foreground">Legal Pages</h2>
+          <p className="mt-1 text-xs text-foreground/50">
+            Shown on the Terms &amp; Conditions, Privacy Policy, and Cancellation Policy pages.
+          </p>
+          <div className="mt-4 space-y-4">
+            <div>
+              <label htmlFor="termsContent" className="text-xs font-medium text-foreground/60">Terms &amp; Conditions</label>
+              <textarea id="termsContent" name="termsContent" rows={6} defaultValue={settings.termsContent} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="privacyPolicyContent" className="text-xs font-medium text-foreground/60">Privacy Policy</label>
+              <textarea id="privacyPolicyContent" name="privacyPolicyContent" rows={6} defaultValue={settings.privacyPolicyContent} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label htmlFor="cancellationPolicyContent" className="text-xs font-medium text-foreground/60">Cancellation Policy</label>
+              <p className="mt-0.5 text-[11px] text-foreground/40">
+                The general explainer on the standalone Cancellation Policy page -- specific per-package
+                terms are set on each tour/journey&rsquo;s own Cancellation &amp; Refund Policy field instead.
+              </p>
+              <textarea id="cancellationPolicyContent" name="cancellationPolicyContent" rows={6} defaultValue={settings.cancellationPolicyContent} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
           </div>
         </section>
 

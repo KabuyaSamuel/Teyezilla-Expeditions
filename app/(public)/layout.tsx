@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import MobileTabBar from "@/components/MobileTabBar";
 import SiteJsonLd from "@/components/SiteJsonLd";
+import UtmCapture from "@/components/UtmCapture";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 
 // This route group is exactly the public site (everything except /admin).
@@ -21,6 +22,7 @@ export default function PublicLayout({
 }) {
   return (
     <>
+      <UtmCapture />
       <SiteJsonLd />
       <Navbar />
       <main className="flex-1 pt-20">{children}</main>

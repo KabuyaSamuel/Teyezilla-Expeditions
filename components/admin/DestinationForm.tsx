@@ -2,16 +2,25 @@
 
 import { useState } from "react";
 import type { Destination } from "@/types";
+import type { MediaItem } from "@/lib/admin/data/media";
 import { createDestination, updateDestination, deleteDestination } from "@/lib/admin/actions/destinations";
 import { AFRICAN_COUNTRIES, flagEmojiForCode } from "@/lib/country-codes";
+import MediaPickerField from "./MediaPickerField";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
 }
 
-export default function DestinationForm({ existingDestination }: { existingDestination?: Destination }) {
+export default function DestinationForm({
+  existingDestination,
+  mediaItems,
+}: {
+  existingDestination?: Destination;
+  mediaItems: MediaItem[];
+}) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [heroImage, setHeroImage] = useState(existingDestination?.heroImage ?? "");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -23,6 +32,7 @@ export default function DestinationForm({ existingDestination }: { existingDesti
       countryName: String(formData.get("countryName") ?? ""),
       slug: existingDestination?.slug ?? "",
       flagEmoji: String(formData.get("flagEmoji") ?? ""),
+      heroImage,
       shortDescription: String(formData.get("shortDescription") ?? ""),
       overview: String(formData.get("overview") ?? ""),
       bestTimeToVisit: String(formData.get("bestTimeToVisit") ?? ""),
@@ -93,6 +103,9 @@ export default function DestinationForm({ existingDestination }: { existingDesti
               );
             })}
           </select>
+        </div>
+        <div className="sm:col-span-2">
+          <MediaPickerField id="heroImage" name="heroImage" label="Hero Image" value={heroImage} onChange={setHeroImage} mediaItems={mediaItems} />
         </div>
         <div className="sm:col-span-2">
           <label htmlFor="shortDescription" className="text-xs font-medium text-foreground/60">Short Description</label>

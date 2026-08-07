@@ -35,7 +35,8 @@ export type AdminModuleKey =
   | "travel-resources"
   | "faqs"
   | "team-members"
-  | "notifications";
+  | "notifications"
+  | "link-generator";
 
 export interface AdminModuleDef {
   key: AdminModuleKey;
@@ -71,6 +72,7 @@ export const ADMIN_MODULES: AdminModuleDef[] = [
   { key: "reviews", label: "Reviews", href: "/admin/reviews", icon: "⭐", description: "Approve or hide testimonials" },
   { key: "faqs", label: "FAQs", href: "/admin/faqs", icon: "❓", description: "Questions and answers for the FAQs page and Safari guide" },
   { key: "travel-resources", label: "Travel Resources", href: "/admin/travel-resources", icon: "🧳", description: "Visa, packing, health guidance" },
+  { key: "link-generator", label: "Link Generator", href: "/admin/link-generator", icon: "🔗", description: "Build trackable UTM links for ads and social campaigns" },
   { key: "team-members", label: "Team Members", href: "/admin/team-members", icon: "🧑‍🤝‍🧑", description: "Staff bios for the About page" },
   { key: "media", label: "Media Library", href: "/admin/media", icon: "🖼️", description: "Images, videos, PDFs, brochures" },
   { key: "reports", label: "Reports & Analytics", href: "/admin/reports", icon: "📈", description: "Revenue and booking analytics" },
@@ -108,6 +110,7 @@ export const ROLE_MODULE_ACCESS: Record<StaffRole, AdminModuleKey[]> = {
     "faqs",
     "team-members",
     "notifications",
+    "link-generator",
   ],
   sales_agent: [
     "dashboard",

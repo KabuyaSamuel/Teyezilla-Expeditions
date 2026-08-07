@@ -22,6 +22,11 @@ export interface HighlightInput {
   description: string;
 }
 
+export interface FaqInput {
+  question: string;
+  answer: string;
+}
+
 export interface AddonInput {
   kind: "addon" | "extension";
   title: string;
@@ -110,6 +115,27 @@ export async function syncHighlights(
       [parentColumn]: parentId,
       title: h.title,
       description: h.description,
+      display_order: i,
+    }))
+  );
+  if (error) throw new Error(error.message);
+}
+
+export async function syncFaqs(
+  supabase: SupabaseLike,
+  table: "tour_faqs" | "journey_faqs",
+  parentColumn: "tour_id" | "journey_id",
+  parentId: string,
+  faqs: FaqInput[]
+) {
+  await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (faqs.length === 0) return;
+
+  const { error } = await supabase.from(table).insert(
+    faqs.map((f, i) => ({
+      [parentColumn]: parentId,
+      question: f.question,
+      answer: f.answer,
       display_order: i,
     }))
   );

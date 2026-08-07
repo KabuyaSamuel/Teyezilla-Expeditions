@@ -6,16 +6,18 @@ import { getSupabasePublicClient } from "@/lib/supabase/public";
 import {
   mapPricingTierRow,
   mapHighlightRow,
+  mapFaqRow,
   mapAddonRow,
   mapProductScalars,
   type ItineraryDay,
   type PricingTier,
   type ProductHighlight,
+  type ProductFaq,
   type ProductAddon,
   type ProductScalars,
 } from "@/lib/productShared";
 
-export type { ItineraryDay, PricingTier, ProductHighlight, ProductAddon };
+export type { ItineraryDay, PricingTier, ProductHighlight, ProductFaq, ProductAddon };
 
 export interface TourDetail extends Tour, ProductScalars {
   overview: string;
@@ -26,6 +28,7 @@ export interface TourDetail extends Tour, ProductScalars {
   pickupLocations: string[];
   pricingTiers: PricingTier[];
   highlights: ProductHighlight[];
+  faqs: ProductFaq[];
   addons: ProductAddon[];
   activities: Activity[];
   vehicles: Vehicle[];
@@ -102,6 +105,7 @@ const DETAIL_SELECT = `
   *,
   tour_pricing_tiers(*),
   tour_highlights(*),
+  tour_faqs(*),
   tour_addons(*),
   tour_activities(activities(id, name, slug, description, icon)),
   tour_vehicles(vehicles(id, name, slug, vehicle_type, seats, description, features, image)),
@@ -142,6 +146,9 @@ export async function getTourBySlug(slug: string): Promise<TourDetail | undefine
     highlights: (row.tour_highlights ?? [])
       .map(mapHighlightRow)
       .sort((a: ProductHighlight, b: ProductHighlight) => a.displayOrder - b.displayOrder),
+    faqs: (row.tour_faqs ?? [])
+      .map(mapFaqRow)
+      .sort((a: ProductFaq, b: ProductFaq) => a.displayOrder - b.displayOrder),
     addons: (row.tour_addons ?? [])
       .map(mapAddonRow)
       .sort((a: ProductAddon, b: ProductAddon) => a.displayOrder - b.displayOrder),

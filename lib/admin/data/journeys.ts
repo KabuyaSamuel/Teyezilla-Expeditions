@@ -2,11 +2,13 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import {
   mapPricingTierRow,
   mapHighlightRow,
+  mapFaqRow,
   mapAddonRow,
   mapProductScalars,
   type ItineraryDay,
   type PricingTier,
   type ProductHighlight,
+  type ProductFaq,
   type ProductAddon,
   type ProductScalars,
 } from "@/lib/productShared";
@@ -54,6 +56,7 @@ export interface AdminJourneyDetail extends ProductScalars {
   safariThemeIds: string[];
   pricingTiers: PricingTier[];
   highlights: ProductHighlight[];
+  faqs: ProductFaq[];
   addons: ProductAddon[];
   activityIds: string[];
   vehicleIds: string[];
@@ -164,6 +167,7 @@ const DETAIL_SELECT = `
   journey_safari_themes(safari_theme_id),
   journey_pricing_tiers(*),
   journey_highlights(*),
+  journey_faqs(*),
   journey_addons(*),
   journey_activities(activity_id),
   journey_vehicles(vehicle_id),
@@ -224,6 +228,7 @@ export async function getAdminJourneyBySlug(slug: string): Promise<AdminJourneyD
     ...mapProductScalars(row),
     pricingTiers: (row.journey_pricing_tiers ?? []).map(mapPricingTierRow),
     highlights: (row.journey_highlights ?? []).map(mapHighlightRow),
+    faqs: (row.journey_faqs ?? []).map(mapFaqRow),
     addons: (row.journey_addons ?? []).map(mapAddonRow),
     activityIds: (row.journey_activities ?? []).map((a: any) => a.activity_id),
     vehicleIds: (row.journey_vehicles ?? []).map((v: any) => v.vehicle_id),

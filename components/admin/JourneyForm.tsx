@@ -9,12 +9,13 @@ import type { Activity } from "@/lib/activities";
 import type { AdminVehicle } from "@/lib/admin/data/vehicles";
 import type { AdminAccommodation } from "@/lib/admin/data/accommodations";
 import type { AdminJourneyDetail, ItineraryDay } from "@/lib/admin/data/journeys";
-import type { PricingTierInput, HighlightInput, AddonInput } from "@/lib/admin/actions/productShared";
+import type { PricingTierInput, HighlightInput, FaqInput, AddonInput } from "@/lib/admin/actions/productShared";
 import type { MediaItem } from "@/lib/admin/data/media";
 import { createJourney, updateJourney, deleteJourney } from "@/lib/admin/actions/journeys";
 import ItineraryEditor from "./ItineraryEditor";
 import PricingTiersEditor from "./PricingTiersEditor";
 import HighlightsEditor from "./HighlightsEditor";
+import FaqsEditor from "./FaqsEditor";
 import AddonsEditor from "./AddonsEditor";
 import ActivitiesPicker from "./ActivitiesPicker";
 import VehiclesPicker from "./VehiclesPicker";
@@ -71,6 +72,7 @@ export default function JourneyForm({
   const [highlights, setHighlights] = useState<HighlightInput[]>(
     existingJourney?.highlights.map((h) => ({ ...h })) ?? []
   );
+  const [faqs, setFaqs] = useState<FaqInput[]>(existingJourney?.faqs.map((f) => ({ ...f })) ?? []);
   const [addons, setAddons] = useState<AddonInput[]>(existingJourney?.addons.map((a) => ({ ...a })) ?? []);
   const [activityIds, setActivityIds] = useState<string[]>(existingJourney?.activityIds ?? []);
   const [vehicleIds, setVehicleIds] = useState<string[]>(existingJourney?.vehicleIds ?? []);
@@ -143,6 +145,7 @@ export default function JourneyForm({
       safariThemeIds,
       pricingTiers,
       highlights,
+      faqs,
       addons,
       activityIds,
       vehicleIds,
@@ -314,6 +317,8 @@ export default function JourneyForm({
       </section>
 
       <HighlightsEditor highlights={highlights} onChange={setHighlights} />
+
+      <FaqsEditor faqs={faqs} onChange={setFaqs} />
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Inclusions & Exclusions</h2>

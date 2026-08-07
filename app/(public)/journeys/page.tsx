@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getJourneys, getJourneyTypes } from "@/lib/journeys";
 import JourneyCard from "@/components/JourneyCard";
+import Pagination from "@/components/Pagination";
 
 export const metadata: Metadata = {
   title: "Journeys",
@@ -11,14 +12,28 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600;
 
+const PAGE_SIZE = 9;
+
 interface Props {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; page?: string }>;
 }
 
 export default async function JourneysPage({ searchParams }: Props) {
-  const { type } = await searchParams;
+  const { type, page: rawPage } = await searchParams;
   const [allJourneys, journeyTypes] = await Promise.all([getJourneys(), getJourneyTypes()]);
-  const journeys = type ? allJourneys.filter((j) => j.journeyTypes.includes(type)) : allJourneys;
+  const filteredJourneys = type ? allJourneys.filter((j) => j.journeyTypes.includes(type)) : allJourneys;
+
+  const totalPages = Math.max(1, Math.ceil(filteredJourneys.length / PAGE_SIZE));
+  const page = Math.min(Math.max(1, Number(rawPage) || 1), totalPages);
+  const journeys = filteredJourneys.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function buildHref(nextPage: number) {
+    const params = new URLSearchParams();
+    if (type) params.set("type", type);
+    if (nextPage > 1) params.set("page", String(nextPage));
+    const qs = params.toString();
+    return qs ? `/journeys?${qs}` : "/journeys";
+  }
 
   return (
     <div className="section">
@@ -62,11 +77,14 @@ export default async function JourneysPage({ searchParams }: Props) {
           </p>
         </div>
       ) : (
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {journeys.map((journey) => (
-            <JourneyCard key={journey.id} journey={journey} />
-          ))}
-        </div>
+        <>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {journeys.map((journey) => (
+              <JourneyCard key={journey.id} journey={journey} />
+            ))}
+          </div>
+          <Pagination currentPage={page} totalPages={totalPages} buildHref={buildHref} />
+        </>
       )}
     </div>
   );

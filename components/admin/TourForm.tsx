@@ -7,12 +7,13 @@ import type { ExperienceType } from "@/lib/experienceTypes";
 import type { AdminVehicle } from "@/lib/admin/data/vehicles";
 import type { AdminAccommodation } from "@/lib/admin/data/accommodations";
 import type { AdminTourDetail, ItineraryDay } from "@/lib/admin/data/tours";
-import type { PricingTierInput, HighlightInput, AddonInput } from "@/lib/admin/actions/productShared";
+import type { PricingTierInput, HighlightInput, FaqInput, AddonInput } from "@/lib/admin/actions/productShared";
 import type { MediaItem } from "@/lib/admin/data/media";
 import { createTour, updateTour, deleteTour } from "@/lib/admin/actions/tours";
 import ItineraryEditor from "./ItineraryEditor";
 import PricingTiersEditor from "./PricingTiersEditor";
 import HighlightsEditor from "./HighlightsEditor";
+import FaqsEditor from "./FaqsEditor";
 import AddonsEditor from "./AddonsEditor";
 import ActivitiesPicker from "./ActivitiesPicker";
 import ExperienceTypesPicker from "./ExperienceTypesPicker";
@@ -56,6 +57,7 @@ export default function TourForm({
   const [highlights, setHighlights] = useState<HighlightInput[]>(
     existingTour?.highlights.map((h) => ({ ...h })) ?? []
   );
+  const [faqs, setFaqs] = useState<FaqInput[]>(existingTour?.faqs.map((f) => ({ ...f })) ?? []);
   const [addons, setAddons] = useState<AddonInput[]>(existingTour?.addons.map((a) => ({ ...a })) ?? []);
   const [activityIds, setActivityIds] = useState<string[]>(existingTour?.activityIds ?? []);
   const [experienceTypeIds, setExperienceTypeIds] = useState<string[]>(existingTour?.experienceTypeIds ?? []);
@@ -113,6 +115,7 @@ export default function TourForm({
       ogImage: String(formData.get("ogImage") ?? ""),
       pricingTiers,
       highlights,
+      faqs,
       addons,
       activityIds,
       experienceTypeIds,
@@ -248,6 +251,8 @@ export default function TourForm({
       </section>
 
       <HighlightsEditor highlights={highlights} onChange={setHighlights} />
+
+      <FaqsEditor faqs={faqs} onChange={setFaqs} />
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Inclusions & Exclusions</h2>

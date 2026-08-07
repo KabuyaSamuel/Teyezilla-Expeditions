@@ -3,11 +3,13 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import {
   mapPricingTierRow,
   mapHighlightRow,
+  mapFaqRow,
   mapAddonRow,
   mapProductScalars,
   type ItineraryDay,
   type PricingTier,
   type ProductHighlight,
+  type ProductFaq,
   type ProductAddon,
   type ProductScalars,
 } from "@/lib/productShared";
@@ -23,6 +25,7 @@ export interface AdminTourDetail extends Tour, ProductScalars {
   pickupLocations: string[];
   pricingTiers: PricingTier[];
   highlights: ProductHighlight[];
+  faqs: ProductFaq[];
   addons: ProductAddon[];
   activityIds: string[];
   experienceTypeIds: string[];
@@ -62,6 +65,7 @@ function mapRow(row: Record<string, any>): AdminTourDetail {
     ...mapProductScalars(row),
     pricingTiers: (row.tour_pricing_tiers ?? []).map(mapPricingTierRow),
     highlights: (row.tour_highlights ?? []).map(mapHighlightRow),
+    faqs: (row.tour_faqs ?? []).map(mapFaqRow),
     addons: (row.tour_addons ?? []).map(mapAddonRow),
     activityIds: (row.tour_activities ?? []).map((a: any) => a.activity_id),
     experienceTypeIds: (row.tour_experience_types ?? []).map((e: any) => e.experience_type_id),
@@ -173,6 +177,7 @@ const DETAIL_SELECT = `
   *,
   tour_pricing_tiers(*),
   tour_highlights(*),
+  tour_faqs(*),
   tour_addons(*),
   tour_activities(activity_id),
   tour_experience_types(experience_type_id),

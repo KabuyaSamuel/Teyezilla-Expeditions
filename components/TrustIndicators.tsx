@@ -1,35 +1,31 @@
 import { Award, ShieldCheck, Gem, Leaf } from "lucide-react";
+import { getSiteSetting } from "@/lib/settings";
+import { TRUST_INDICATORS_DEFAULTS, type TrustIndicatorKey } from "@/lib/homepageContent";
 
-const INDICATORS = [
-  {
-    icon: Award,
-    title: "Local Experts",
-    desc: "Passionate guides with deep local knowledge.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Safe & Reliable",
-    desc: "Your safety and comfort are our priority.",
-  },
-  {
-    icon: Gem,
-    title: "Quality Experiences",
-    desc: "Handpicked activities and premium services.",
-  },
-  {
-    icon: Leaf,
-    title: "Sustainable Tourism",
-    desc: "Travel responsibly and support local communities.",
-  },
-];
+// Icons are fixed per position (structural, not editable) -- only the
+// title/description text is admin-editable, via site_settings.
+const ICONS = [Award, ShieldCheck, Gem, Leaf];
 
-export default function TrustIndicators() {
+export default async function TrustIndicators() {
+  const keys = Object.keys(TRUST_INDICATORS_DEFAULTS) as TrustIndicatorKey[];
+  const values = await Promise.all(keys.map((key) => getSiteSetting(key)));
+  const text = Object.fromEntries(
+    keys.map((key, i) => [key, values[i] || TRUST_INDICATORS_DEFAULTS[key]])
+  ) as typeof TRUST_INDICATORS_DEFAULTS;
+
+  const indicators = [
+    { icon: ICONS[0], title: text.trustIndicator1Title, desc: text.trustIndicator1Desc },
+    { icon: ICONS[1], title: text.trustIndicator2Title, desc: text.trustIndicator2Desc },
+    { icon: ICONS[2], title: text.trustIndicator3Title, desc: text.trustIndicator3Desc },
+    { icon: ICONS[3], title: text.trustIndicator4Title, desc: text.trustIndicator4Desc },
+  ];
+
   return (
     <div className="relative z-10 mx-auto -mt-16 max-w-6xl px-6">
       <div className="grid gap-6 rounded-2xl bg-primary px-8 py-10 shadow-cardHover sm:grid-cols-2 lg:grid-cols-4">
-        {INDICATORS.map(({ icon: Icon, title, desc }) => (
-          <div key={title} className="flex items-start gap-3">
-            <Icon className="mt-0.5 h-6 w-6 shrink-0 text-accent" />
+        {indicators.map(({ icon: Icon, title, desc }) => (
+          <div key={title} className="flex flex-col items-center gap-2 text-center sm:flex-row sm:items-start sm:gap-3 sm:text-left">
+            <Icon className="h-6 w-6 shrink-0 text-accent sm:mt-0.5" />
             <div>
               <p className="font-heading text-sm font-semibold text-white">{title}</p>
               <p className="mt-1 text-xs text-white/70">{desc}</p>

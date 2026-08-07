@@ -7,6 +7,7 @@ import { revalidatePublicSite } from "@/lib/revalidate";
 import {
   syncPricingTiers,
   syncHighlights,
+  syncFaqs,
   syncAddons,
   syncActivities,
   syncExperienceTypes,
@@ -15,6 +16,7 @@ import {
   productScalarsToRow,
   type PricingTierInput,
   type HighlightInput,
+  type FaqInput,
   type AddonInput,
   type ProductScalarsInput,
 } from "./productShared";
@@ -44,6 +46,7 @@ export interface TourInput extends ProductScalarsInput {
   ogImage: string;
   pricingTiers: PricingTierInput[];
   highlights: HighlightInput[];
+  faqs: FaqInput[];
   addons: AddonInput[];
   activityIds: string[];
   experienceTypeIds: string[];
@@ -97,6 +100,7 @@ function toRow(input: TourInput) {
 async function syncTourRelations(supabase: any, tourId: string, input: TourInput) {
   await syncPricingTiers(supabase, "tour_pricing_tiers", "tour_id", tourId, input.pricingTiers);
   await syncHighlights(supabase, "tour_highlights", "tour_id", tourId, input.highlights);
+  await syncFaqs(supabase, "tour_faqs", "tour_id", tourId, input.faqs);
   await syncAddons(supabase, "tour_addons", "tour_id", tourId, input.addons);
   await syncActivities(supabase, "tour_activities", "tour_id", tourId, input.activityIds);
   await syncExperienceTypes(supabase, "tour_experience_types", "tour_id", tourId, input.experienceTypeIds);

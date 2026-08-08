@@ -16,20 +16,28 @@ function FieldError({ message }: { message?: string }) {
   return <p className="mt-1 px-2 text-xs text-red-600">{message}</p>;
 }
 
-export default function TripPlannerForm() {
+interface Props {
+  initialDestination?: string;
+  initialTravelers?: string;
+}
+
+export default function TripPlannerForm({ initialDestination, initialTravelers }: Props = {}) {
   const [state, formAction, pending] = useActionState<EnquiryFormState, FormData>(
     submitTripPlannerRequest,
     {}
   );
+  const matchedDestination = initialDestination
+    ? DESTINATIONS.find((d) => d.toLowerCase() === initialDestination.toLowerCase())
+    : undefined;
   // Keep the trip parameters in state so the success screen can pre-fill the
   // WhatsApp share message with what the visitor asked for.
   const [params, setParams] = useState({
     name: "",
     email: "",
-    destination: DESTINATIONS[0],
+    destination: matchedDestination ?? DESTINATIONS[0],
     budgetUsd: "",
     days: "",
-    travelers: "",
+    travelers: initialTravelers ?? "",
     travelStyle: STYLES[0],
     luxuryLevel: "",
     extras: [] as string[],

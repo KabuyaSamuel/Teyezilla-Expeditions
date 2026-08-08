@@ -24,7 +24,7 @@ export default async function CategoryOverview() {
   ) as typeof CATEGORY_OVERVIEW_DEFAULTS;
 
   return (
-    <section className="section">
+    <section className="mx-auto max-w-7xl px-6 pb-16 pt-10 md:pb-24 md:pt-14">
       <ScrollReveal>
         <h2 className="h2-section">Explore Teyezilla</h2>
         <p className="mt-2 text-foreground/70">Seven ways to discover Africa, all in one place.</p>

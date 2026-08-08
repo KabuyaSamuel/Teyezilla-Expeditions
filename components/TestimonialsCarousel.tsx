@@ -1,18 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Review } from "@/types";
 import ReviewCard from "./ReviewCard";
 
-const PER_PAGE = 3;
+const PER_PAGE_DESKTOP = 3;
+const PER_PAGE_MOBILE = 1;
+const MOBILE_QUERY = "(max-width: 639px)";
 
-// Shows PER_PAGE testimonials at once. Circular: Next from the last page
-// wraps to the first, Prev from the first page wraps to the last, via
-// modulo arithmetic on the page index.
+// Shows perPage testimonials at once -- 3 on desktop, 1 on mobile so cards
+// don't spill over a narrow screen. Circular: Next from the last page wraps
+// to the first, Prev from the first page wraps to the last, via modulo
+// arithmetic on the page index.
 export default function TestimonialsCarousel({ reviews }: { reviews: Review[] }) {
-  const pageCount = Math.max(1, Math.ceil(reviews.length / PER_PAGE));
+  // Lazy initializer (not an effect) reads the viewport synchronously on
+  // first client render, same pattern as HeroCarousel's prefers-reduced-
+  // motion check -- window is unavailable during SSR, so this only ever
+  // runs client-side anyway.
+  const [perPage, setPerPage] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia(MOBILE_QUERY).matches
+      ? PER_PAGE_MOBILE
+      : PER_PAGE_DESKTOP
+  );
   const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    const query = window.matchMedia(MOBILE_QUERY);
+    const onChange = (e: MediaQueryListEvent) => setPerPage(e.matches ? PER_PAGE_MOBILE : PER_PAGE_DESKTOP);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+
+  const pageCount = Math.max(1, Math.ceil(reviews.length / perPage));
+
+  // perPage changing (crossing the breakpoint) can push the current page
+  // out of range -- clamp it back onto the last valid page instead of
+  // rendering an empty slice.
+  useEffect(() => {
+    setPage((p) => Math.min(p, pageCount - 1));
+  }, [pageCount]);
 
   if (reviews.length === 0) return null;
 
@@ -23,7 +50,7 @@ export default function TestimonialsCarousel({ reviews }: { reviews: Review[] })
     setPage((p) => (p + 1) % pageCount);
   }
 
-  const visible = reviews.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
+  const visible = reviews.slice(page * perPage, page * perPage + perPage);
 
   return (
     <div className="mt-10">

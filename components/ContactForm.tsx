@@ -17,12 +17,12 @@ export default function ContactForm() {
     submitContactMessage,
     {}
   );
-  const [fields, setFields] = useState({ name: "", email: "", message: "" });
+  const [fields, setFields] = useState({ name: "", email: "", phone: "", message: "" });
   const errors = state.fieldErrors ?? {};
 
   if (state.success) {
     return (
-      <div className="mt-8 rounded-2xl bg-primary/5 p-8 text-center">
+      <div className="rounded-2xl bg-primary/5 p-8 text-center">
         <p className="font-heading text-xl font-semibold text-primary">Message sent, thank you!</p>
         <p className="mt-2 text-sm text-foreground/70">
           Our team will reply within 24 hours. Prefer a faster answer?
@@ -40,38 +40,53 @@ export default function ContactForm() {
   }
 
   return (
-    <form action={formAction} onReset={(e) => e.preventDefault()} className="mt-8 space-y-4" noValidate>
-      <div>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          autoComplete="name"
-          placeholder="Full name"
-          value={fields.name}
-          onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))}
-          className={inputClass}
-        />
-        <FieldError message={errors.name} />
+    <form action={formAction} onReset={(e) => e.preventDefault()} className="space-y-4" noValidate>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            placeholder="Full name"
+            value={fields.name}
+            onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))}
+            className={inputClass}
+          />
+          <FieldError message={errors.name} />
+        </div>
+        <div>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="Email"
+            value={fields.email}
+            onChange={(e) => setFields((f) => ({ ...f, email: e.target.value }))}
+            className={inputClass}
+          />
+          <FieldError message={errors.email} />
+        </div>
       </div>
       <div>
         <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          placeholder="Email"
-          value={fields.email}
-          onChange={(e) => setFields((f) => ({ ...f, email: e.target.value }))}
+          id="phone"
+          name="phone"
+          type="tel"
+          autoComplete="tel"
+          placeholder="Phone / WhatsApp (optional)"
+          value={fields.phone}
+          onChange={(e) => setFields((f) => ({ ...f, phone: e.target.value }))}
           className={inputClass}
         />
-        <FieldError message={errors.email} />
+        <FieldError message={errors.phone} />
       </div>
       <div>
         <textarea
           id="message"
           name="message"
-          placeholder="Message"
+          placeholder="How can we help?"
           rows={5}
           value={fields.message}
           onChange={(e) => setFields((f) => ({ ...f, message: e.target.value }))}

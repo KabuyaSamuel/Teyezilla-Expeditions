@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSiteSetting } from "@/lib/settings";
 import { whatsappLink } from "@/lib/enquiry-shared";
 import { buildSocialLinks } from "@/components/SocialIcons";
+import FooterLinkGroup from "@/components/FooterLinkGroup";
 
 const EXPLORE_LINKS = [
   { label: "Safaris", href: "/safari" },
@@ -74,58 +75,40 @@ export default async function Footer() {
           )}
         </div>
 
-        <div>
-          <h4 className="font-heading text-sm font-semibold uppercase tracking-wide text-accent">Explore</h4>
-          <ul className="mt-3 space-y-2 text-sm text-white/80">
-            {EXPLORE_LINKS.map((link) => (
-              <li key={link.href}><Link href={link.href}>{link.label}</Link></li>
-            ))}
-          </ul>
-        </div>
+        <FooterLinkGroup label="Explore">
+          {EXPLORE_LINKS.map((link) => (
+            <li key={link.href}><Link href={link.href}>{link.label}</Link></li>
+          ))}
+        </FooterLinkGroup>
 
-        <div>
-          <h4 className="font-heading text-sm font-semibold uppercase tracking-wide text-accent">
-            Travel With Us
-          </h4>
-          <ul className="mt-3 space-y-2 text-sm text-white/80">
-            {TRAVEL_WITH_US_LINKS.map((link) => (
-              <li key={link.href}><Link href={link.href}>{link.label}</Link></li>
-            ))}
-          </ul>
-        </div>
+        <FooterLinkGroup label="Travel With Us">
+          {TRAVEL_WITH_US_LINKS.map((link) => (
+            <li key={link.href}><Link href={link.href}>{link.label}</Link></li>
+          ))}
+        </FooterLinkGroup>
 
-        <div>
-          <h4 className="font-heading text-sm font-semibold uppercase tracking-wide text-accent">
-            Inspiration
-          </h4>
-          <ul className="mt-3 space-y-2 text-sm text-white/80">
-            {INSPIRATION_LINKS.map((link) => (
-              <li key={link.href}><Link href={link.href}>{link.label}</Link></li>
-            ))}
-          </ul>
-        </div>
+        <FooterLinkGroup label="Inspiration">
+          {INSPIRATION_LINKS.map((link) => (
+            <li key={link.href}><Link href={link.href}>{link.label}</Link></li>
+          ))}
+        </FooterLinkGroup>
 
-        <div>
-          <h4 className="font-heading text-sm font-semibold uppercase tracking-wide text-accent">
-            Support
-          </h4>
-          <ul className="mt-3 space-y-2 text-sm text-white/80">
-            <li><Link href="/contact">Contact Us</Link></li>
-            <li>
-              <a
-                href={whatsappLink("Hi! I have a question about Teyezilla Expeditions.")}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                WhatsApp
-              </a>
-            </li>
-            <li><Link href="/booking-information">Booking Information</Link></li>
-            <li><Link href="/cancellation-policy">Cancellation Policy</Link></li>
-            <li><Link href="/terms">Terms & Conditions</Link></li>
-            <li><Link href="/privacy-policy">Privacy Policy</Link></li>
-          </ul>
-        </div>
+        <FooterLinkGroup label="Support">
+          <li><Link href="/contact">Contact Us</Link></li>
+          <li>
+            <a
+              href={whatsappLink("Hi! I have a question about Teyezilla Expeditions.")}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              WhatsApp
+            </a>
+          </li>
+          <li><Link href="/booking-information">Booking Information</Link></li>
+          <li><Link href="/cancellation-policy">Cancellation Policy</Link></li>
+          <li><Link href="/terms">Terms & Conditions</Link></li>
+          <li><Link href="/privacy-policy">Privacy Policy</Link></li>
+        </FooterLinkGroup>
       </div>
 
       <div className="border-t border-white/20 px-6 py-6 text-center text-xs text-white/70">

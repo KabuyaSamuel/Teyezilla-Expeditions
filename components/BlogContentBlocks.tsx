@@ -1,4 +1,5 @@
 import type { ContentBlock } from "@/lib/blogBlocks";
+import { getYoutubeVideoId } from "@/lib/youtube";
 import InlineMarkdown from "./InlineMarkdown";
 
 // Groups runs of consecutive list-like blocks (bulleted/numbered/todo) into
@@ -112,6 +113,31 @@ export default function BlogContentBlocks({ blocks }: { blocks: ContentBlock[] }
                 </pre>
               </div>
             );
+          case "video": {
+            const videoId = getYoutubeVideoId(block.url ?? "");
+            if (!videoId) return null;
+            return (
+              <figure key={block.id}>
+                {/* w-full + aspect-video keeps this locked to the article
+                    column's width (max-w-prose on the page) instead of the
+                    iframe's native size overflowing the layout. */}
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-card">
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+                    title={block.text || "YouTube video"}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="absolute inset-0 h-full w-full"
+                  />
+                </div>
+                {block.text && (
+                  <figcaption className="mt-2 text-center text-sm text-foreground/60">
+                    <InlineMarkdown text={block.text} />
+                  </figcaption>
+                )}
+              </figure>
+            );
+          }
           case "toggle":
             return (
               <details key={block.id} className="rounded-2xl border border-secondary/30 p-4">

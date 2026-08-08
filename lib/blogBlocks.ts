@@ -16,6 +16,7 @@ export const BLOCK_TYPES = [
   "quote",
   "callout",
   "code",
+  "video",
 ] as const;
 
 export type BlockType = (typeof BLOCK_TYPES)[number];
@@ -32,6 +33,7 @@ export const BLOCK_TYPE_LABELS: Record<BlockType, string> = {
   quote: "Quote",
   callout: "Callout",
   code: "Code",
+  video: "YouTube Video",
 };
 
 export interface ContentBlock {
@@ -42,6 +44,7 @@ export interface ContentBlock {
   checked?: boolean; // todo only
   emoji?: string; // callout only
   language?: string; // code only, a plain label, no syntax highlighting engine
+  url?: string; // video only, a YouTube watch/share/embed URL
 }
 
 export function newBlock(type: BlockType = "paragraph"): ContentBlock {

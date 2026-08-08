@@ -14,7 +14,7 @@ export default async function Hero() {
   ) as typeof HERO_TEXT_DEFAULTS;
 
   return (
-    <section className="relative -mt-20 flex min-h-[720px] items-center overflow-hidden text-white">
+    <section className="relative -mt-20 flex min-h-[600px] items-center overflow-hidden text-white sm:min-h-[calc(100svh-150px)]">
       <HeroCarousel slides={slides} />
       {/* Base darkening, strongest at the bottom where the text sits. */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/10" />

@@ -18,6 +18,7 @@ export async function submitContactMessage(
   const parsed = contactSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
+    phone: formData.get("phone"),
     message: formData.get("message"),
   });
   if (!parsed.success) {
@@ -45,6 +46,7 @@ export async function submitContactMessage(
       source: "contact_form",
       customer_name: input.name,
       customer_email: input.email,
+      customer_phone: input.phone || null,
       message: input.message,
       status: "new",
       utm_source: attribution.utmSource,
@@ -72,6 +74,7 @@ export async function submitContactMessage(
       fields: [
         { label: "Name", value: input.name },
         { label: "Email", value: input.email },
+        ...(input.phone ? [{ label: "Phone", value: input.phone }] : []),
         { label: "Message", value: input.message },
       ],
     }),

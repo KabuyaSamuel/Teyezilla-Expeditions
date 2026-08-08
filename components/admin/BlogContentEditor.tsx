@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { BLOCK_TYPES, BLOCK_TYPE_LABELS, newBlock, type BlockType, type ContentBlock } from "@/lib/blogBlocks";
 
 const fieldClass =
@@ -14,8 +15,32 @@ export default function BlogContentEditor({
   blocks: ContentBlock[];
   onChange: (blocks: ContentBlock[]) => void;
 }) {
+  // Keyed by block id (not index) so a ref never goes stale after a
+  // reorder/delete shifts array positions out from under it.
+  const textRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
+  const [linkPopoverId, setLinkPopoverId] = useState<string | null>(null);
+  const [linkDraft, setLinkDraft] = useState({ text: "", url: "" });
+
   function updateBlock(index: number, patch: Partial<ContentBlock>) {
     onChange(blocks.map((b, i) => (i === index ? { ...b, ...patch } : b)));
+  }
+
+  function openLinkPopover(block: ContentBlock) {
+    const el = textRefs.current[block.id];
+    const selected = el ? block.text.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0) : "";
+    setLinkDraft({ text: selected, url: "" });
+    setLinkPopoverId(block.id);
+  }
+
+  function insertLink(index: number) {
+    const block = blocks[index];
+    const el = textRefs.current[block.id];
+    const start = el?.selectionStart ?? block.text.length;
+    const end = el?.selectionEnd ?? block.text.length;
+    const label = linkDraft.text.trim() || linkDraft.url.trim();
+    const markdown = `[${label}](${linkDraft.url.trim()})`;
+    updateBlock(index, { text: block.text.slice(0, start) + markdown + block.text.slice(end) });
+    setLinkPopoverId(null);
   }
 
   function setType(index: number, type: BlockType) {
@@ -51,8 +76,9 @@ export default function BlogContentEditor({
         <code className="rounded bg-secondary/15 px-1">**bold**</code>,{" "}
         <code className="rounded bg-secondary/15 px-1">*italic*</code>,{" "}
         <code className="rounded bg-secondary/15 px-1">~~strike~~</code>,{" "}
-        <code className="rounded bg-secondary/15 px-1">`code`</code>, or{" "}
-        <code className="rounded bg-secondary/15 px-1">[text](url)</code> for links.
+        <code className="rounded bg-secondary/15 px-1">`code`</code>, or the{" "}
+        <strong>Add Link</strong> button below any field to link to another page or an outside
+        source. Add a <strong>YouTube Video</strong> block to embed a video.
       </p>
 
       <div className="mt-4 space-y-3">
@@ -116,8 +142,18 @@ export default function BlogContentEditor({
                 />
               )}
 
+              {block.type === "video" && (
+                <input
+                  value={block.url ?? ""}
+                  onChange={(e) => updateBlock(i, { url: e.target.value })}
+                  placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                  className={fieldClass}
+                />
+              )}
+
               {["heading1", "heading2", "heading3", "bulleted_list", "numbered_list"].includes(block.type) ? (
                 <input
+                  ref={(el) => { textRefs.current[block.id] = el; }}
                   value={block.text}
                   onChange={(e) => updateBlock(i, { text: e.target.value })}
                   placeholder={block.type === "toggle" ? "Hidden content" : "Text"}
@@ -125,12 +161,62 @@ export default function BlogContentEditor({
                 />
               ) : (
                 <textarea
+                  ref={(el) => { textRefs.current[block.id] = el; }}
                   value={block.text}
                   onChange={(e) => updateBlock(i, { text: e.target.value })}
-                  placeholder={block.type === "toggle" ? "Hidden content" : "Text"}
+                  placeholder={
+                    block.type === "toggle"
+                      ? "Hidden content"
+                      : block.type === "video"
+                        ? "Caption (optional)"
+                        : "Text"
+                  }
                   rows={block.type === "code" ? 4 : 2}
                   className={`${areaClass} ${block.type === "code" ? "font-mono" : ""}`}
                 />
+              )}
+
+              {block.type !== "code" && (
+                <button
+                  type="button"
+                  onClick={() => openLinkPopover(block)}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  🔗 Add link
+                </button>
+              )}
+
+              {linkPopoverId === block.id && (
+                <div className="flex flex-wrap items-center gap-2 rounded-xl bg-white p-2 ring-1 ring-secondary/30">
+                  <input
+                    autoFocus
+                    value={linkDraft.text}
+                    onChange={(e) => setLinkDraft((d) => ({ ...d, text: e.target.value }))}
+                    placeholder="Link text"
+                    className="min-w-0 flex-1 rounded-full border border-secondary/40 px-3 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <input
+                    value={linkDraft.url}
+                    onChange={(e) => setLinkDraft((d) => ({ ...d, url: e.target.value }))}
+                    placeholder="https://... or /destinations/kenya"
+                    className="min-w-0 flex-1 rounded-full border border-secondary/40 px-3 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <button
+                    type="button"
+                    disabled={!linkDraft.url.trim()}
+                    onClick={() => insertLink(i)}
+                    className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-white disabled:opacity-40"
+                  >
+                    Insert
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLinkPopoverId(null)}
+                    className="text-xs text-foreground/50 hover:underline"
+                  >
+                    Cancel
+                  </button>
+                </div>
               )}
             </div>
           </div>

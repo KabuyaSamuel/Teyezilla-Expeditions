@@ -221,7 +221,7 @@ export default async function JourneyPage({ params }: Props) {
               cancellationPolicy={journey.cancellationPolicy}
             />
             <ProductTeyezillaMoment text={journey.teyezillaMoment} />
-            <ProductPricingTiers tiers={journey.pricingTiers} bookingHref={bookingHref} />
+            <ProductPricingTiers tiers={journey.pricingTiers} bookingHref={bookingHref} kind="journey" />
             <ProductAddons addons={journey.addons} bookingHref={bookingHref} />
 
             <ProductFaqAccordion faqs={faqs} />

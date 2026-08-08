@@ -7,9 +7,11 @@ import type { PricingTier } from "@/lib/productShared";
 export default function ProductPricingTiers({
   tiers,
   bookingHref,
+  kind,
 }: {
   tiers: PricingTier[];
   bookingHref: string;
+  kind: "tour" | "journey";
 }) {
   // Middle tier is highlighted by default (typically the recommended
   // option); hovering another tier moves the highlight there instead,
@@ -26,7 +28,9 @@ export default function ProductPricingTiers({
 
   return (
     <div>
-      <h2 className="font-heading text-2xl font-bold text-foreground">Choose Your Journey</h2>
+      <h2 className="font-heading text-2xl font-bold text-foreground">
+        {kind === "tour" ? "Choose Your Experience" : "Choose Your Journey"}
+      </h2>
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         {tiers.map((tier, i) => (
           <div

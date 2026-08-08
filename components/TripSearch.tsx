@@ -12,7 +12,12 @@ export default function TripSearch({
   defaultTravelers,
 }: Props) {
   return (
-    <div className="mx-auto max-w-6xl px-6 pt-12">
+    // No top padding here -- that's a caller concern. Baking in a fixed
+    // pt-12 double-counted with CategoryOverview's own bottom padding on
+    // the homepage (the two stacked into a ~130px gap, way past the
+    // site's normal ~64-96px section rhythm) since this sits directly
+    // beneath it there.
+    <div className="mx-auto max-w-6xl px-6">
       <form action="/search" method="GET" className="grid gap-3 rounded-2xl bg-white p-4 text-foreground shadow-card md:grid-cols-4">
         <input
           id="search-destination"

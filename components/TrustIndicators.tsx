@@ -1,5 +1,5 @@
 import { Award, ShieldCheck, Gem, Leaf } from "lucide-react";
-import { getSiteSetting } from "@/lib/settings";
+import { getSiteSetting, resolveSiteText } from "@/lib/settings";
 import { TRUST_INDICATORS_DEFAULTS, type TrustIndicatorKey } from "@/lib/homepageContent";
 
 // Icons are fixed per position (structural, not editable) -- only the
@@ -9,9 +9,7 @@ const ICONS = [Award, ShieldCheck, Gem, Leaf];
 export default async function TrustIndicators() {
   const keys = Object.keys(TRUST_INDICATORS_DEFAULTS) as TrustIndicatorKey[];
   const values = await Promise.all(keys.map((key) => getSiteSetting(key)));
-  const text = Object.fromEntries(
-    keys.map((key, i) => [key, values[i] || TRUST_INDICATORS_DEFAULTS[key]])
-  ) as typeof TRUST_INDICATORS_DEFAULTS;
+  const text = resolveSiteText(TRUST_INDICATORS_DEFAULTS, keys, values);
 
   const indicators = [
     { icon: ICONS[0], title: text.trustIndicator1Title, desc: text.trustIndicator1Desc },

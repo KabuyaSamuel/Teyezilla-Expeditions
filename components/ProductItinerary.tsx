@@ -5,7 +5,7 @@ export default function ProductItinerary({ days, singleDay }: { days: ItineraryD
 
   return (
     <div>
-      <h2 className="font-heading text-2xl font-bold text-foreground">Your Journey</h2>
+      <h2 className="font-heading text-2xl font-bold text-foreground">The Flow</h2>
       <div className="mt-6 space-y-6">
         {days.map((d, i) => (
           <div key={i} className="card p-6">

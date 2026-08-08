@@ -89,7 +89,15 @@ export default async function HomePage() {
       <CategoryOverview />
       <TripSearch />
 
-      <section className="section">
+      {/* This section, Featured Journeys, Featured Experiences, and
+          WhyChoose share a reduced py-12/16 (instead of the default
+          .section py-16/24) -- Featured Journeys only renders when there
+          are featured journeys, so any of these can end up directly
+          adjacent to any other. Keeping all four symmetric and equally
+          reduced avoids a ~192px dead gap wherever two of them meet on the
+          same cream background, without needing to special-case which
+          pair is actually touching. */}
+      <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
         <ScrollReveal>
           <h2 className="h2-section">
             Featured Destinations
@@ -113,7 +121,7 @@ export default async function HomePage() {
       </section>
 
       {featuredJourneys.length > 0 && (
-        <section className="section bg-secondary/10">
+        <section className="mx-auto max-w-7xl px-6 py-12 md:py-16 bg-secondary/10">
           <ScrollReveal>
             <h2 className="h2-section">
               Featured Journeys
@@ -137,7 +145,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section className="section">
+      <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
         <ScrollReveal>
           <h2 className="h2-section">
             Featured Experiences

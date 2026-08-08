@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import ScrollReveal from "./ScrollReveal";
-import { getSiteSetting } from "@/lib/settings";
+import { getSiteSetting, resolveSiteText } from "@/lib/settings";
 import { CATEGORY_OVERVIEW_DEFAULTS, type CategoryOverviewKey } from "@/lib/homepageContent";
 
 // label/href are structural (tied to real routes), so they stay fixed;
@@ -19,9 +19,7 @@ const CATEGORIES = [
 export default async function CategoryOverview() {
   const keys = Object.keys(CATEGORY_OVERVIEW_DEFAULTS) as CategoryOverviewKey[];
   const values = await Promise.all(keys.map((key) => getSiteSetting(key)));
-  const text = Object.fromEntries(
-    keys.map((key, i) => [key, values[i] || CATEGORY_OVERVIEW_DEFAULTS[key]])
-  ) as typeof CATEGORY_OVERVIEW_DEFAULTS;
+  const text = resolveSiteText(CATEGORY_OVERVIEW_DEFAULTS, keys, values);
 
   return (
     <section className="mx-auto max-w-7xl px-6 pb-16 pt-10 md:pb-24 md:pt-14">
@@ -45,10 +43,17 @@ export default async function CategoryOverview() {
                 className="object-cover transition-transform duration-500 ease-smooth group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
-              <div className="relative">
-                <h3 className="font-heading text-lg font-bold uppercase tracking-wide">{category.label}</h3>
-                <p className="mt-1 text-xs text-white/80">{text[category.descKey]}</p>
-                <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-accent">
+              {/* Fixed row heights (title row content-sized, description row
+                  pinned to exactly 4rem) is the "standard positioning" --
+                  every card's title sits at the same spot and every card's
+                  "Explore" sits at the same spot, regardless of how many
+                  lines that card's own description happens to need. The
+                  admin field enforces CATEGORY_DESCRIPTION_MAX_LENGTH so
+                  descriptions fit within those 4 lines without clipping. */}
+              <div className="relative grid grid-rows-[auto_4rem_auto] gap-1">
+                <h3 className="self-end font-heading text-lg font-bold uppercase tracking-wide">{category.label}</h3>
+                <p className="line-clamp-4 text-xs text-white/80">{text[category.descKey]}</p>
+                <span className="inline-flex w-fit items-center gap-1 text-xs font-semibold uppercase tracking-wide text-accent">
                   Explore
                   <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-1">→</span>
                 </span>

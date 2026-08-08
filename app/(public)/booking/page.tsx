@@ -123,7 +123,7 @@ export default async function BookingPage({
   return (
     <div className="section max-w-3xl">
       <h1 className="h1-page">
-        Enquire About {product ? "This Journey" : "Your Journey"}
+        Enquire About {product ? (product.kind === "tour" ? "This Experience" : "This Journey") : "Your Trip"}
       </h1>
       <p className="mt-3 text-foreground/70">
         Share a few details and our travel team will reply within 24 hours with a personal

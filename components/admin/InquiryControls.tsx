@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { StaffMember } from "@/lib/admin/data/staff";
 import { updateInquiryStatus, assignInquiry, deleteInquiry } from "@/lib/admin/actions/inquiries";
+import { useToast } from "./Toast";
 
 const STATUSES = ["new", "in_progress", "quoted", "converted", "closed"] as const;
 
@@ -21,6 +22,7 @@ export default function InquiryControls({
   assignedStaffId?: string;
   staff: StaffMember[];
 }) {
+  const { toast } = useToast();
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,19 +33,33 @@ export default function InquiryControls({
       await deleteInquiry(id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete inquiry.");
+      const message = err instanceof Error ? err.message : "Failed to delete inquiry.";
+      setError(message);
+      toast.error(message);
       setDeleting(false);
     }
+  }
+
+  async function handleAssign(e: React.ChangeEvent<HTMLSelectElement>) {
+    const result = await assignInquiry(id, new FormData(e.currentTarget.form!));
+    if (result.error) toast.error(result.error);
+    else toast.success("Assignment updated.");
+  }
+
+  async function handleStatusChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const result = await updateInquiryStatus(id, new FormData(e.currentTarget.form!));
+    if (result.error) toast.error(result.error);
+    else toast.success("Status updated.");
   }
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
-        <form action={assignInquiry.bind(null, id)} className="contents">
+        <form className="contents">
           <select
             name="staffId"
             defaultValue={assignedStaffId ?? ""}
-            onChange={(e) => e.currentTarget.form?.requestSubmit()}
+            onChange={handleAssign}
             className="rounded-full border border-secondary/40 px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="">Assign to staff...</option>
@@ -52,11 +68,11 @@ export default function InquiryControls({
             ))}
           </select>
         </form>
-        <form action={updateInquiryStatus.bind(null, id)} className="contents">
+        <form className="contents">
           <select
             name="status"
             defaultValue={status}
-            onChange={(e) => e.currentTarget.form?.requestSubmit()}
+            onChange={handleStatusChange}
             className="rounded-full border border-secondary/40 px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
           >
             {STATUSES.map((s) => (

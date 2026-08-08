@@ -21,6 +21,7 @@ import VehiclesPicker from "./VehiclesPicker";
 import AccommodationsPicker from "./AccommodationsPicker";
 import MediaPickerField from "./MediaPickerField";
 import RelatedContentEditor from "./RelatedContentEditor";
+import { useToast } from "./Toast";
 
 export default function TourForm({
   existingTour,
@@ -45,6 +46,7 @@ export default function TourForm({
   journeys: { id: string; title: string }[];
   blogPosts: { id: string; title: string }[];
 }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [heroImage, setHeroImage] = useState(existingTour?.heroImage ?? "");
@@ -142,7 +144,9 @@ export default function TourForm({
       if (err && typeof err === "object" && "digest" in err && String(err.digest).startsWith("NEXT_REDIRECT")) {
         throw err;
       }
-      setError(err instanceof Error ? err.message : "Failed to save tour.");
+      const message = err instanceof Error ? err.message : "Failed to save tour.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -157,7 +161,9 @@ export default function TourForm({
       if (err && typeof err === "object" && "digest" in err && String(err.digest).startsWith("NEXT_REDIRECT")) {
         throw err;
       }
-      setError(err instanceof Error ? err.message : "Failed to delete tour.");
+      const message = err instanceof Error ? err.message : "Failed to delete tour.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -245,7 +251,7 @@ export default function TourForm({
           <textarea id="shortDescription" name="shortDescription" maxLength={250} defaultValue={existingTour?.shortDescription} rows={3} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div className="mt-4">
-          <label htmlFor="overview" className="text-xs font-medium text-foreground/60">Journey Story (Full Description)</label>
+          <label htmlFor="overview" className="text-xs font-medium text-foreground/60">Tour Story (Full Description)</label>
           <textarea id="overview" name="overview" defaultValue={existingTour?.overview} rows={4} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       </section>

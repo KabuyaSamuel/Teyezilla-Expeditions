@@ -6,6 +6,7 @@ import { Video } from "lucide-react";
 import type { MediaItem } from "@/lib/admin/data/media";
 import { updateHeroSlides, type HeroSlideInput } from "@/lib/admin/actions/hero";
 import { SortableList, SortableItem, arrayMoveIndex } from "./SortableList";
+import { useToast } from "./Toast";
 
 function SlideMediaPicker({
   value,
@@ -88,6 +89,7 @@ export default function HeroSlidesEditor({
   slides: HeroSlideInput[];
   mediaItems: MediaItem[];
 }) {
+  const { toast } = useToast();
   const [slides, setSlides] = useState<HeroSlideInput[]>(initialSlides);
   const [ids, setIds] = useState<string[]>(() => initialSlides.map(() => crypto.randomUUID()));
   const [saving, setSaving] = useState(false);
@@ -120,8 +122,11 @@ export default function HeroSlidesEditor({
     try {
       await updateHeroSlides(slides);
       setSaved(true);
+      toast.success("Hero slides saved.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save hero slides.");
+      const message = err instanceof Error ? err.message : "Failed to save hero slides.";
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }

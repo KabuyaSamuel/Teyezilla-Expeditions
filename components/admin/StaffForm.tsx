@@ -6,6 +6,7 @@ import type { StaffMember } from "@/lib/admin/data/staff";
 import type { StaffRole } from "@/lib/admin/permissions";
 import { ROLE_LABELS } from "@/lib/admin/permissions";
 import { createStaffMember, updateStaffMember, deleteStaffMember } from "@/lib/admin/actions/staff";
+import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -14,6 +15,7 @@ function isRedirectError(err: unknown): boolean {
 const ROLES = Object.keys(ROLE_LABELS) as StaffRole[];
 
 export default function StaffForm({ existingStaff }: { existingStaff?: StaffMember }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tempPassword, setTempPassword] = useState<string | null>(null);
@@ -39,7 +41,9 @@ export default function StaffForm({ existingStaff }: { existingStaff?: StaffMemb
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to save staff member.");
+      const message = err instanceof Error ? err.message : "Failed to save staff member.";
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -53,7 +57,9 @@ export default function StaffForm({ existingStaff }: { existingStaff?: StaffMemb
       await deleteStaffMember(existingStaff.id, existingStaff.authUserId);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete staff member.");
+      const message = err instanceof Error ? err.message : "Failed to delete staff member.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }

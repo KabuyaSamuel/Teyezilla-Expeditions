@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { adjustLoyaltyPoints } from "@/lib/admin/actions/loyalty";
 import type { LoyaltyTransaction } from "@/lib/admin/data/loyalty";
+import { useToast } from "./Toast";
 
 export default function LoyaltyPanel({
   customerId,
@@ -16,6 +17,7 @@ export default function LoyaltyPanel({
   /** Manual adjustment is a direct balance write, scoped to admin/manager only (see permissions.ts). */
   canAdjust: boolean;
 }) {
+  const { toast } = useToast();
   const [delta, setDelta] = useState("");
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
@@ -27,10 +29,13 @@ export default function LoyaltyPanel({
     setError(null);
     try {
       await adjustLoyaltyPoints(customerId, Number(delta), reason);
+      toast.success("Points adjusted.");
       setDelta("");
       setReason("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to adjust points.");
+      const message = err instanceof Error ? err.message : "Failed to adjust points.";
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }

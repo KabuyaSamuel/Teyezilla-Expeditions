@@ -7,6 +7,7 @@ import type { AdminCollectionDetail } from "@/lib/admin/data/collections";
 import type { MediaItem } from "@/lib/admin/data/media";
 import { createCollection, updateCollection, deleteCollection } from "@/lib/admin/actions/collections";
 import MediaPickerField from "./MediaPickerField";
+import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -23,6 +24,7 @@ export default function CollectionForm({
   journeys: AdminJourneyListItem[];
   mediaItems: MediaItem[];
 }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [heroImage, setHeroImage] = useState(existingCollection?.heroImage ?? "");
@@ -57,7 +59,9 @@ export default function CollectionForm({
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to save collection.");
+      const message = err instanceof Error ? err.message : "Failed to save collection.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -70,7 +74,9 @@ export default function CollectionForm({
       await deleteCollection(existingCollection.id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete collection.");
+      const message = err instanceof Error ? err.message : "Failed to delete collection.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { sendInquiryReply } from "@/lib/admin/actions/inquiries";
 import type { InquiryReply } from "@/lib/admin/data/inquiry-replies";
+import { useToast } from "./Toast";
 
 export default function InquiryReplyForm({
   id,
@@ -19,6 +20,7 @@ export default function InquiryReplyForm({
   customerPhone: string;
   source: string;
 }) {
+  const { toast } = useToast();
   const [reply, setReply] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,14 +48,16 @@ export default function InquiryReplyForm({
 
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
     setEmailFailed(!result.emailSent);
-    setConfirmation(
-      result.emailSent
-        ? "Reply sent to the customer by email."
-        : `Reply saved, but the email failed: ${result.emailFailureReason ?? "unknown error"}.`
-    );
+    const message = result.emailSent
+      ? "Reply sent to the customer by email."
+      : `Reply saved, but the email failed: ${result.emailFailureReason ?? "unknown error"}.`;
+    setConfirmation(message);
+    if (result.emailSent) toast.success(message);
+    else toast.error(message);
     setReply("");
   }
 

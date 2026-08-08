@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePublicSite } from "@/lib/revalidate";
+import { redirectWithSaved } from "./saved-redirect";
 
 export interface ActivityInput {
   name: string;
@@ -40,7 +40,7 @@ export async function createActivity(input: ActivityInput): Promise<void> {
 
   revalidatePath("/admin/activities");
   revalidatePublicSite();
-  redirect("/admin/activities");
+  redirectWithSaved("/admin/activities", `"${input.name}" created.`);
 }
 
 export async function updateActivity(id: string, input: ActivityInput): Promise<void> {
@@ -52,7 +52,7 @@ export async function updateActivity(id: string, input: ActivityInput): Promise<
 
   revalidatePath("/admin/activities");
   revalidatePublicSite();
-  redirect("/admin/activities");
+  redirectWithSaved("/admin/activities", `"${input.name}" saved.`);
 }
 
 export async function deleteActivity(id: string): Promise<void> {
@@ -65,5 +65,5 @@ export async function deleteActivity(id: string): Promise<void> {
 
   revalidatePath("/admin/activities");
   revalidatePublicSite();
-  redirect("/admin/activities");
+  redirectWithSaved("/admin/activities", "Activity deleted.");
 }

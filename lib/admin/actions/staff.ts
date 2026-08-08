@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { getAdminSession } from "@/lib/admin/session";
 import type { StaffRole } from "@/lib/admin/permissions";
+import { redirectWithSaved } from "./saved-redirect";
 
 export interface StaffInput {
   fullName: string;
@@ -90,7 +90,7 @@ export async function updateStaffMember(id: string, input: { fullName: string; r
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/staff");
-  redirect("/admin/staff");
+  redirectWithSaved("/admin/staff", `"${input.fullName}" saved.`);
 }
 
 export async function deleteStaffMember(id: string, authUserId: string): Promise<void> {
@@ -111,5 +111,5 @@ export async function deleteStaffMember(id: string, authUserId: string): Promise
   if (authError) throw new Error(authError.message);
 
   revalidatePath("/admin/staff");
-  redirect("/admin/staff");
+  redirectWithSaved("/admin/staff", "Staff member deleted.");
 }

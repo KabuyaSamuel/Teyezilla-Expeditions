@@ -3,12 +3,14 @@
 import { useState } from "react";
 import type { AdminActivity } from "@/lib/admin/data/activities";
 import { createActivity, updateActivity, deleteActivity } from "@/lib/admin/actions/activities";
+import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
 }
 
 export default function ActivityForm({ existingActivity }: { existingActivity?: AdminActivity }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +36,9 @@ export default function ActivityForm({ existingActivity }: { existingActivity?: 
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to save activity.");
+      const message = err instanceof Error ? err.message : "Failed to save activity.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -47,7 +51,9 @@ export default function ActivityForm({ existingActivity }: { existingActivity?: 
       await deleteActivity(existingActivity.id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete activity.");
+      const message = err instanceof Error ? err.message : "Failed to delete activity.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }

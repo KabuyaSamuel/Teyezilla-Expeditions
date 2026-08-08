@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePublicSite } from "@/lib/revalidate";
+import { redirectWithSaved } from "./saved-redirect";
 
 export interface ReviewInput {
   authorName: string;
@@ -35,7 +35,7 @@ export async function createReview(input: ReviewInput): Promise<void> {
   revalidatePath("/admin/reviews");
   revalidatePath("/reviews");
   revalidatePublicSite();
-  redirect("/admin/reviews");
+  redirectWithSaved("/admin/reviews", `Review from "${input.authorName}" created.`);
 }
 
 export async function updateReview(id: string, input: ReviewInput): Promise<void> {
@@ -48,7 +48,7 @@ export async function updateReview(id: string, input: ReviewInput): Promise<void
   revalidatePath("/admin/reviews");
   revalidatePath("/reviews");
   revalidatePublicSite();
-  redirect("/admin/reviews");
+  redirectWithSaved("/admin/reviews", `Review from "${input.authorName}" saved.`);
 }
 
 export async function deleteReview(id: string): Promise<void> {
@@ -61,7 +61,7 @@ export async function deleteReview(id: string): Promise<void> {
   revalidatePath("/admin/reviews");
   revalidatePath("/reviews");
   revalidatePublicSite();
-  redirect("/admin/reviews");
+  redirectWithSaved("/admin/reviews", "Review deleted.");
 }
 
 export async function setReviewApproval(id: string, isApproved: boolean): Promise<void> {

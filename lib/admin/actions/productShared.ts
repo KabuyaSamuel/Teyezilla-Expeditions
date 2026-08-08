@@ -81,7 +81,8 @@ export async function syncPricingTiers(
   parentId: string,
   tiers: PricingTierInput[]
 ) {
-  await supabase.from(table).delete().eq(parentColumn, parentId);
+  const { error: deleteError } = await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (deleteError) throw new Error(deleteError.message);
   if (tiers.length === 0) return;
 
   const { error } = await supabase.from(table).insert(
@@ -107,7 +108,8 @@ export async function syncHighlights(
   parentId: string,
   highlights: HighlightInput[]
 ) {
-  await supabase.from(table).delete().eq(parentColumn, parentId);
+  const { error: deleteError } = await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (deleteError) throw new Error(deleteError.message);
   if (highlights.length === 0) return;
 
   const { error } = await supabase.from(table).insert(
@@ -128,7 +130,8 @@ export async function syncFaqs(
   parentId: string,
   faqs: FaqInput[]
 ) {
-  await supabase.from(table).delete().eq(parentColumn, parentId);
+  const { error: deleteError } = await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (deleteError) throw new Error(deleteError.message);
   if (faqs.length === 0) return;
 
   const { error } = await supabase.from(table).insert(
@@ -149,7 +152,8 @@ export async function syncAddons(
   parentId: string,
   addons: AddonInput[]
 ) {
-  await supabase.from(table).delete().eq(parentColumn, parentId);
+  const { error: deleteError } = await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (deleteError) throw new Error(deleteError.message);
   if (addons.length === 0) return;
 
   const { error } = await supabase.from(table).insert(
@@ -176,7 +180,8 @@ export async function syncActivities(
   parentId: string,
   activityIds: string[]
 ) {
-  await supabase.from(table).delete().eq(parentColumn, parentId);
+  const { error: deleteError } = await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (deleteError) throw new Error(deleteError.message);
   if (activityIds.length === 0) return;
 
   const { error } = await supabase.from(table).insert(
@@ -196,7 +201,8 @@ export async function syncVehicles(
   parentId: string,
   vehicleIds: string[]
 ) {
-  await supabase.from(table).delete().eq(parentColumn, parentId);
+  const { error: deleteError } = await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (deleteError) throw new Error(deleteError.message);
   if (vehicleIds.length === 0) return;
 
   const { error } = await supabase.from(table).insert(
@@ -216,7 +222,8 @@ export async function syncAccommodations(
   parentId: string,
   accommodationIds: string[]
 ) {
-  await supabase.from(table).delete().eq(parentColumn, parentId);
+  const { error: deleteError } = await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (deleteError) throw new Error(deleteError.message);
   if (accommodationIds.length === 0) return;
 
   const { error } = await supabase.from(table).insert(
@@ -236,7 +243,8 @@ export async function syncExperienceTypes(
   parentId: string,
   experienceTypeIds: string[]
 ) {
-  await supabase.from(table).delete().eq(parentColumn, parentId);
+  const { error: deleteError } = await supabase.from(table).delete().eq(parentColumn, parentId);
+  if (deleteError) throw new Error(deleteError.message);
   if (experienceTypeIds.length === 0) return;
 
   const { error } = await supabase.from(table).insert(

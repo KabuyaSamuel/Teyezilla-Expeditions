@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePublicSite } from "@/lib/revalidate";
 import type { ContentBlock } from "@/lib/blogBlocks";
+import { redirectWithSaved } from "./saved-redirect";
 
 export interface BlogPostInput {
   title: string;
@@ -67,7 +67,7 @@ export async function createBlogPost(input: BlogPostInput): Promise<void> {
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
   revalidatePublicSite();
-  redirect("/admin/blog");
+  redirectWithSaved("/admin/blog", `"${input.title}" created.`);
 }
 
 export async function updateBlogPost(id: string, input: BlogPostInput): Promise<void> {
@@ -80,7 +80,7 @@ export async function updateBlogPost(id: string, input: BlogPostInput): Promise<
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
   revalidatePublicSite();
-  redirect("/admin/blog");
+  redirectWithSaved("/admin/blog", `"${input.title}" saved.`);
 }
 
 export async function deleteBlogPost(id: string): Promise<void> {
@@ -93,5 +93,5 @@ export async function deleteBlogPost(id: string): Promise<void> {
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
   revalidatePublicSite();
-  redirect("/admin/blog");
+  redirectWithSaved("/admin/blog", "Post deleted.");
 }

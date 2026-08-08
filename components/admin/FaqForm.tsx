@@ -3,12 +3,14 @@
 import { useState } from "react";
 import type { AdminFaq } from "@/lib/admin/data/faqs";
 import { createFaq, updateFaq, deleteFaq } from "@/lib/admin/actions/faqs";
+import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
 }
 
 export default function FaqForm({ existingFaq }: { existingFaq?: AdminFaq }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +36,9 @@ export default function FaqForm({ existingFaq }: { existingFaq?: AdminFaq }) {
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to save FAQ.");
+      const message = err instanceof Error ? err.message : "Failed to save FAQ.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -47,7 +51,9 @@ export default function FaqForm({ existingFaq }: { existingFaq?: AdminFaq }) {
       await deleteFaq(existingFaq.id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete FAQ.");
+      const message = err instanceof Error ? err.message : "Failed to delete FAQ.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }

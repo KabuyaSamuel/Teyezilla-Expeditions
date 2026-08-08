@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { redirectWithSaved } from "./saved-redirect";
 import { sendCustomerConfirmation } from "@/lib/email";
 import { staffReplyEmail } from "@/lib/email-templates";
 
@@ -18,37 +18,48 @@ export async function deleteInquiry(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/inquiries");
-  redirect("/admin/inquiries");
+  redirectWithSaved("/admin/inquiries", "Inquiry deleted.");
 }
 
-export async function updateInquiryStatus(id: string, formData: FormData): Promise<void> {
+export interface InquiryActionResult {
+  error?: string;
+}
+
+// Returns a result instead of throwing, same reasoning as
+// sendInquiryReply below: a thrown Server Action error gets redacted to a
+// generic message in production, and these two don't redirect (they're
+// inline dropdowns on the same page), so the caller needs an actual result
+// to show a toast for.
+export async function updateInquiryStatus(id: string, formData: FormData): Promise<InquiryActionResult> {
   const status = String(formData.get("status") ?? "");
-  if (!status) return;
+  if (!status) return {};
 
   const supabase = await getSupabaseServerClient();
-  if (!supabase) throw new Error("Supabase not configured.");
+  if (!supabase) return { error: "Supabase not configured." };
 
   const { error } = await supabase.from("inquiries").update({ status }).eq("id", id);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   revalidatePath("/admin/inquiries");
   revalidatePath(`/admin/inquiries/${id}`);
+  return {};
 }
 
-export async function assignInquiry(id: string, formData: FormData): Promise<void> {
+export async function assignInquiry(id: string, formData: FormData): Promise<InquiryActionResult> {
   const staffId = String(formData.get("staffId") ?? "");
 
   const supabase = await getSupabaseServerClient();
-  if (!supabase) throw new Error("Supabase not configured.");
+  if (!supabase) return { error: "Supabase not configured." };
 
   const { error } = await supabase
     .from("inquiries")
     .update({ assigned_staff_id: staffId || null })
     .eq("id", id);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   revalidatePath("/admin/inquiries");
   revalidatePath(`/admin/inquiries/${id}`);
+  return {};
 }
 
 export interface SendInquiryReplyResult {

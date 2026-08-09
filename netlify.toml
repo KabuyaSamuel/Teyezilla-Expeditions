@@ -1,3 +1,28 @@
+# Canonicalizes the Netlify subdomain to the real domain -- e.g. a link
+# shared before DNS cutover, a stray bookmark, or a bot that resolved the
+# *.netlify.app URL. Must come before any catch-all/SPA fallback redirect
+# in this file (Netlify evaluates [[redirects]] in order, first match
+# wins) since this needs to intercept every path first. force = true is
+# required because otherwise Netlify only falls back to a redirect when no
+# static file/Next.js route matches the request first -- without it, this
+# rule would never fire for any real page.
+[[redirects]]
+  from = "https://teyezillaexpeditions.netlify.app/*"
+  to = "https://teyezillaexpeditions.com/:splat"
+  status = 301
+  force = true
+
+# public/*.png (logo, og-image) otherwise serve with max-age=0,must-revalidate,
+# one of the Lighthouse "efficient cache lifetimes" findings. A day, not a
+# year/immutable -- these are plain filenames, not content-hashed like
+# _next/static, so a long cache risks repeating the stale-logo confusion
+# this project already ran into once. llms.txt is deliberately left
+# uncached so crawlers always see the current version.
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, must-revalidate"
+
 [build.environment]
   # Netlify's secrets scanner flags any env var value it finds baked into
   # the build output. Everything listed here is confirmed non-sensitive

@@ -16,7 +16,7 @@ export default function FooterLinkGroup({ label, children }: { label: string; ch
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between py-1 text-left font-heading text-sm font-semibold uppercase tracking-wide text-accent lg:pointer-events-none lg:py-0"
+        className="flex w-full items-center justify-between py-1 text-left font-heading text-sm font-semibold uppercase tracking-wide text-white lg:pointer-events-none lg:py-0"
       >
         {label}
         <ChevronDown

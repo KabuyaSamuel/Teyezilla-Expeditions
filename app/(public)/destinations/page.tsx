@@ -61,11 +61,17 @@ export default async function DestinationsPage({ searchParams }: Props) {
           <p className="mt-2 text-sm text-foreground/70">Check back soon, or explore what&rsquo;s already open.</p>
         </div>
       ) : (
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {destinations.map((destination) => (
-            <DestinationCard key={destination.id} destination={destination} />
-          ))}
-        </div>
+        <>
+          {/* Each DestinationCard has its own h3 (also used correctly
+              nested under a section h2 on the homepage) -- without this,
+              a bare h1 followed directly by h3s skips a heading level. */}
+          <h2 className="sr-only">Destinations</h2>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {destinations.map((destination) => (
+              <DestinationCard key={destination.id} destination={destination} />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

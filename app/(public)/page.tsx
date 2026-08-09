@@ -51,7 +51,7 @@ function pickBalancedDestinations(
 }
 
 export default async function HomePage() {
-  const [destinations, regions, featuredDestinationsAll, featuredTours, allTours, featuredJourneysAll, journeysAll, reviews, featuredReview, happyTravelersCount] =
+  const [destinationsAll, regions, featuredDestinationsAllRaw, featuredToursRaw, allToursRaw, featuredJourneysAllRaw, journeysAllRaw, reviews, featuredReview, happyTravelersCount] =
     await Promise.all([
       getDestinations(),
       getRegionsWithDestinations(),
@@ -64,6 +64,22 @@ export default async function HomePage() {
       getFeaturedReview(),
       getSiteSetting("happy_travelers_count"),
     ]);
+
+  // A destination/tour/journey without a hero image can't be featured on
+  // the homepage -- an empty/placeholder card in these grids undercuts the
+  // whole point of a curated, photo-led homepage. Scoped to the homepage's
+  // own featured selections only (via withImage below), not the shared
+  // getDestinations/getTours/getJourneys used by the full listing pages,
+  // where an image-less item should still be visible.
+  const withImage = <T extends { heroImage: string }>(items: T[]): T[] =>
+    items.filter((item) => item.heroImage);
+
+  const destinations = withImage(destinationsAll);
+  const featuredDestinationsAll = withImage(featuredDestinationsAllRaw);
+  const featuredTours = withImage(featuredToursRaw);
+  const allTours = withImage(allToursRaw);
+  const featuredJourneysAll = withImage(featuredJourneysAllRaw);
+  const journeysAll = withImage(journeysAllRaw);
 
   // Manually-curated (destinations.featured) takes priority; any picks
   // beyond that are topped up from the balanced round-robin pick rather

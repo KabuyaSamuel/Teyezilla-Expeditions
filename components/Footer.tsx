@@ -44,8 +44,8 @@ export default async function Footer() {
             <Image
               src="/logo.png"
               alt="Teyezilla Expeditions"
-              width={160}
-              height={155}
+              width={132}
+              height={127}
               className="h-12 w-auto brightness-0 invert"
             />
           </Link>
@@ -54,7 +54,7 @@ export default async function Footer() {
 
           {socialLinks.length > 0 && (
             <div className="mt-6">
-              <h4 className="font-heading text-sm font-semibold uppercase tracking-wide text-accent">
+              <h4 className="font-heading text-sm font-semibold uppercase tracking-wide text-white">
                 Follow Teyezilla
               </h4>
               <div className="mt-3 flex gap-3">

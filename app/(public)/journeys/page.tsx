@@ -78,6 +78,9 @@ export default async function JourneysPage({ searchParams }: Props) {
         </div>
       ) : (
         <>
+          {/* Each JourneyCard has its own h3; without this, a bare h1
+              followed directly by h3s skips a heading level. */}
+          <h2 className="sr-only">Journeys</h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {journeys.map((journey) => (
               <JourneyCard key={journey.id} journey={journey} />

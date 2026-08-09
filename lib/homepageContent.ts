@@ -31,21 +31,29 @@ export const TRUST_INDICATORS_DEFAULTS = {
 
 export type TrustIndicatorKey = keyof typeof TRUST_INDICATORS_DEFAULTS;
 
+// Reuses real Media Library uploads (already used elsewhere for
+// destinations/tours/journeys/blog posts) instead of picsum.photos
+// placeholders -- repeating a real photo across a couple of cards reads
+// better than random stock placeholder images. See also the same
+// replacement applied directly to picsum rows in the destinations/tours/
+// journeys/blog_posts tables.
+const MEDIA_BASE = "https://qqcolygpeoymlshsnyir.supabase.co/storage/v1/object/public/media/";
+
 export const CATEGORY_OVERVIEW_DEFAULTS = {
   categoryDestinationsDescription: "Diverse lands. Diverse cultures. Unforgettable experiences.",
-  categoryDestinationsImage: "https://picsum.photos/seed/category-destinations/600/800",
+  categoryDestinationsImage: `${MEDIA_BASE}930b866b-bc15-4837-83d8-c1e40034e44b.jpg`,
   categoryJourneysDescription: "Curated itineraries for every kind of traveler.",
-  categoryJourneysImage: "https://picsum.photos/seed/category-journeys/600/800",
+  categoryJourneysImage: `${MEDIA_BASE}cb11321a-9f2f-49f3-aeb1-6cd0530adae3.jpg`,
   categoryExperiencesDescription: "Handpicked activities that bring Africa to life.",
-  categoryExperiencesImage: "https://picsum.photos/seed/category-experiences/600/800",
+  categoryExperiencesImage: `${MEDIA_BASE}4da737ba-b37e-40b1-85c0-68b1af6088e1.jpeg`,
   categoryCollectionsDescription: "Curated collections, each a distinct way to experience Africa.",
-  categoryCollectionsImage: "https://picsum.photos/seed/category-collections/600/800",
+  categoryCollectionsImage: `${MEDIA_BASE}sample-journey-tanzania-1785298804.jpg`,
   categorySafariDescription: "The art of the African safari, perfectly crafted.",
-  categorySafariImage: "https://picsum.photos/seed/category-safari/600/800",
+  categorySafariImage: `${MEDIA_BASE}98fa177e-1e65-4e2c-b064-28ba86a2af0c.jpeg`,
   categoryBespokeDescription: "Your journey. Your way. Designed around you.",
-  categoryBespokeImage: "https://picsum.photos/seed/category-bespoke/600/800",
+  categoryBespokeImage: `${MEDIA_BASE}sample-journey-morocco-1785298807.jpg`,
   categoryJournalDescription: "Travel stories, guides and inspiration from Africa.",
-  categoryJournalImage: "https://picsum.photos/seed/category-journal/600/800",
+  categoryJournalImage: `${MEDIA_BASE}blog-africa-travel-tips.jpg`,
 } as const;
 
 export type CategoryOverviewKey = keyof typeof CATEGORY_OVERVIEW_DEFAULTS;

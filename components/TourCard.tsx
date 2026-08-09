@@ -36,7 +36,7 @@ export default function TourCard({ tour }: { tour: Tour }) {
         <div className="mt-auto pt-4">
           <div className="flex items-center justify-between text-sm text-foreground/60">
             <span>{formatTourDuration(tour)}</span>
-            <span className="font-heading font-semibold text-accent">
+            <span className="font-heading font-semibold text-accent-ink">
               From {tour.currency} {tour.priceFrom}
             </span>
           </div>

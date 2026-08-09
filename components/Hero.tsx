@@ -25,25 +25,28 @@ export default async function Hero() {
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-col items-center gap-4 px-6 pb-20 pt-36 text-center sm:items-start sm:gap-5 sm:pb-24 sm:pt-40 sm:text-left">
         {text.heroBadgeText && (
-          <span className="animate-fadeUp inline-block max-w-[85vw] rounded-full bg-black/55 px-4 py-1.5 text-center text-[10px] font-medium uppercase leading-relaxed tracking-[0.2em] text-accent sm:pl-4 sm:pr-5 sm:text-xs">
+          <span className="animate-heroFadeUp inline-block max-w-[85vw] rounded-full bg-black/55 px-4 py-1.5 text-center text-[10px] font-medium uppercase leading-relaxed tracking-[0.2em] text-accent sm:pl-4 sm:pr-5 sm:text-xs">
             {text.heroBadgeText}
           </span>
         )}
 
-        <h1 className="h1-hero flex max-w-2xl flex-col items-center gap-1 sm:items-start">
-          <span className="animate-fadeUp inline-block text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] [animation-delay:100ms]">
+        {/* Animated as one unit, not per-line -- the two lines sit only
+            gap-1 (4px) apart, so animating each independently made them
+            visibly slide through each other's resting position. */}
+        <h1 className="h1-hero animate-heroFadeUp flex max-w-2xl flex-col items-center gap-1 [animation-delay:120ms] sm:items-start">
+          <span className="inline-block text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
             {text.heroHeadlineLine1}
           </span>
-          <span className="h1-hero-line2 animate-fadeUp inline-block font-normal italic text-accent drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] [animation-delay:200ms] sm:whitespace-nowrap">
+          <span className="h1-hero-line2 inline-block font-normal italic text-accent drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] sm:whitespace-nowrap">
             {text.heroHeadlineLine2}
           </span>
         </h1>
 
-        <p className="animate-fadeUp max-w-xl text-base leading-relaxed text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)] [animation-delay:300ms] sm:text-lg">
+        <p className="animate-heroFadeUp max-w-xl text-base leading-relaxed text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)] [animation-delay:240ms] sm:text-lg">
           {text.heroSubtitle}
         </p>
 
-        <div className="animate-fadeUp mt-1 flex flex-wrap justify-center gap-3 [animation-delay:400ms] sm:justify-start sm:gap-4">
+        <div className="animate-heroFadeUp mt-1 flex flex-wrap justify-center gap-3 [animation-delay:360ms] sm:justify-start sm:gap-4">
           <Link href={text.heroCta1Href} className="btn-primary text-sm sm:text-base">
             {text.heroCta1Label}
           </Link>

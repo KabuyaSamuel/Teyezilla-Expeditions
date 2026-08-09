@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import type { HeroSlide } from "@/lib/hero";
 
 const SLIDE_MS = 9000;
@@ -76,8 +77,20 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                   <source src={slide.mediaUrl} type="video/mp4" />
                 </video>
               ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={slide.mediaUrl} alt={slide.altText} className="h-full w-full object-cover" />
+                // Full-viewport background image and (usually) this page's
+                // LCP element -- unlike a raw <img>, next/image gives it
+                // responsive srcset sizing, WebP/AVIF conversion via
+                // Netlify's image CDN, and priority hinting on the active
+                // slide instead of shipping the original upload at full
+                // resolution.
+                <Image
+                  src={slide.mediaUrl}
+                  alt={slide.altText}
+                  fill
+                  sizes="100vw"
+                  priority={isActive}
+                  className="object-cover"
+                />
               ))}
           </div>
         );

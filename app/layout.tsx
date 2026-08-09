@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 import { SITE_URL } from "@/lib/site";
 import { env } from "@/lib/env";
@@ -64,8 +62,6 @@ export default function RootLayout({
     >
       <body className="min-h-screen flex flex-col" suppressHydrationWarning>
         {children}
-        <Analytics />
-        <SpeedInsights />
         {env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <GoogleAnalytics gaId={env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         )}

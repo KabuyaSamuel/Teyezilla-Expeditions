@@ -7,5 +7,9 @@
   # and ADMIN_NOTIFICATION_EMAIL/EMAIL_FROM are plain email addresses.
   # Excluded by name rather than disabling the scan entirely, which would
   # also stop protecting the real secrets (Supabase service role key,
-  # Resend API key, Sentry auth token, Upstash Redis token).
-  SECRETS_SCAN_OMIT_KEYS = "ADMIN_NOTIFICATION_EMAIL,EMAIL_FROM,NEXT_PUBLIC_GA_MEASUREMENT_ID,SENTRY_PROJECT,NEXT_PUBLIC_WHATSAPP_NUMBER,NEXT_PUBLIC_GTM_ID,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SENTRY_DSN"
+  # Resend API key, Sentry auth token, Upstash Redis token). SENTRY_DSN
+  # is server/edge-only (sentry.server.config.ts, sentry.edge.config.ts)
+  # and every flagged match was in a server or edge chunk, never a
+  # client-shipped file -- and DSNs aren't secret credentials by design,
+  # just a write-only ingest endpoint.
+  SECRETS_SCAN_OMIT_KEYS = "ADMIN_NOTIFICATION_EMAIL,EMAIL_FROM,NEXT_PUBLIC_GA_MEASUREMENT_ID,SENTRY_PROJECT,NEXT_PUBLIC_WHATSAPP_NUMBER,NEXT_PUBLIC_GTM_ID,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SENTRY_DSN,SENTRY_DSN"

@@ -311,6 +311,7 @@ create table journey_journey_types (
 create table experience_types (
   id uuid primary key default gen_random_uuid(),
   name text not null unique, slug text unique not null, icon text, display_order integer default 0,
+  description text,
   created_at timestamptz default now()
 );
 create table tour_experience_types (

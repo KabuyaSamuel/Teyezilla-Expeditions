@@ -5,6 +5,7 @@ export interface ExperienceType {
   id: string;
   name: string;
   slug: string;
+  description: string | null;
 }
 
 export async function getExperienceTypes(): Promise<ExperienceType[]> {
@@ -16,7 +17,7 @@ export async function getExperienceTypes(): Promise<ExperienceType[]> {
 
   const { data, error } = await supabase
     .from("experience_types")
-    .select("id, name, slug")
+    .select("id, name, slug, description")
     .order("display_order");
 
   if (error || !data) {
@@ -57,7 +58,7 @@ export async function getExperienceTypeBySlug(slug: string): Promise<ExperienceT
 
   const { data, error } = await supabase
     .from("experience_types")
-    .select("id, name, slug")
+    .select("id, name, slug, description")
     .eq("slug", slug)
     .maybeSingle();
 

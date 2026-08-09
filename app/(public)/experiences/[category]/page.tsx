@@ -20,6 +20,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!type) return {};
 
   return {
+    // Kept short and distinct from the on-page `description` field, which
+    // is a long-form paragraph meant for body content -- dumping that into
+    // a <meta name="description"> would blow past Google's ~155-160
+    // character display limit and just get truncated.
     title: `${type.name} in Africa`,
     description: `${type.name} tours and experiences across Africa with Teyezilla Expeditions.`,
   };
@@ -35,7 +39,8 @@ export default async function ExperienceCategoryPage({ params }: Props) {
   return (
     <div className="section">
       <h1 className="h1-page">{type.name}</h1>
-      <p className="mt-3 max-w-2xl text-foreground/70">
+      {type.description && <p className="mt-3 max-w-2xl text-foreground/70">{type.description}</p>}
+      <p className="mt-3 max-w-2xl text-sm text-foreground/50">
         {tours.length} experience{tours.length !== 1 ? "s" : ""} in this category.
       </p>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -13,10 +13,16 @@ name: CI
 # check (see lib/env.ts) -- everything still degrades gracefully at
 # runtime either way, this only affects whether the build fails fast.
 #
-# `npm run lint` is deliberately not run here: it currently fails with 121
-# pre-existing @typescript-eslint/no-explicit-any errors scattered across
-# the codebase (none from recent work), so wiring it in now would make this
-# workflow red from its first run. Add it back once that's cleaned up.
+# `npm run lint` (whole repo) is still not run here: it currently fails
+# with 135+ pre-existing @typescript-eslint/no-explicit-any errors
+# scattered across the codebase (mostly Supabase row mappers typed as
+# Record<string, any> by design -- see lib/productShared.ts), so wiring
+# the full lint in now would make this workflow red from its first run.
+# The `lint` job below is a ratchet instead: it lints only files changed
+# in the current push/PR, so old debt doesn't block CI but no *new*
+# @typescript-eslint/no-explicit-any (or any other lint error) can land
+# from here on. Run `npm run lint` on the whole repo and fix it file by
+# file to eventually retire this job in favor of linting everything.
 #
 # Dependabot-triggered pull_request runs never receive repo secrets --
 # GitHub withholds them by default so a compromised/malicious dependency
@@ -58,6 +64,35 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # Lints only files changed in this push/PR (see the comment on `build`
+  # above for why the whole repo isn't linted yet) -- no Supabase secrets
+  # needed, so this runs for Dependabot PRs too.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Get changed TS/TSX files
+        id: changed
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            **/*.ts
+            **/*.tsx
+
+      - name: Lint changed files
+        if: steps.changed.outputs.any_changed == 'true'
+        run: npx eslint ${{ steps.changed.outputs.all_changed_files }}
 
   # RLS regression tests (tests/rls/*.test.ts) run against the real
   # Supabase project -- there's no separate test project for this app.

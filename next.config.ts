@@ -36,6 +36,11 @@ const nextConfig: NextConfig = {
     // can change reasonably often, and this project has already hit a
     // stale-asset surprise once with an aggressively-cached logo file.
     minimumCacheTTL: 60 * 60 * 24,
+    // Default-only quality is 75; Lighthouse's "improve image delivery"
+    // flagged tour card photography as over-compressed for its actual
+    // display size. 70 is the extra bucket TourCard opts into below --
+    // visually indistinguishable at card size, smaller transfer.
+    qualities: [70, 75],
   },
   experimental: {
     serverActions: {

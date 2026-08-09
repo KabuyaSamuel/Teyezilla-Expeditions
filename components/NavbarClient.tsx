@@ -121,8 +121,8 @@ export default function NavbarClient({
           <Image
             src="/logo.png"
             alt="Teyezilla Expeditions"
-            width={132}
-            height={127}
+            width={50}
+            height={48}
             priority
             className={`h-10 w-auto lg:h-12 transition-all duration-300 ${
               transparent ? "brightness-0 invert" : ""

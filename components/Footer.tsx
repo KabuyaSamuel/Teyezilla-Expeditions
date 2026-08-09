@@ -44,8 +44,8 @@ export default async function Footer() {
             <Image
               src="/logo.png"
               alt="Teyezilla Expeditions"
-              width={132}
-              height={127}
+              width={50}
+              height={48}
               className="h-12 w-auto brightness-0 invert"
             />
           </Link>

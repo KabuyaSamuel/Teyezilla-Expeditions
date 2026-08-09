@@ -27,6 +27,13 @@
     "resend": "^6.18.0",
     "zod": "^4.4.3"
   },
+  "browserslist": [
+    "chrome >= 109",
+    "edge >= 109",
+    "firefox >= 109",
+    "safari >= 16",
+    "not dead"
+  ],
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
     "@types/node": "^20",

@@ -47,6 +47,17 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(16px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        // Hero-specific: a smaller translateY than fadeUp so staggered
+        // elements don't visually cross through each other mid-animation --
+        // fadeUp's 16px travel is 4x the hero headline's own line gap
+        // (gap-1 = 4px), so two lines animating independently at 16px each
+        // slide up through one another's resting position. Kept separate
+        // from fadeUp (also used on the admin login page) rather than
+        // tuning it globally.
+        heroFadeUp: {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
         float: {
           "0%, 100%": { transform: "translate(0, 0)" },
           "50%": { transform: "translate(-2%, 3%)" },
@@ -58,6 +69,7 @@ const config: Config = {
       },
       animation: {
         fadeUp: "fadeUp 0.6s ease-out forwards",
+        heroFadeUp: "heroFadeUp 0.5s ease-out forwards",
         float: "float 10s ease-in-out infinite",
         toastIn: "toastIn 0.2s ease-out forwards",
       },

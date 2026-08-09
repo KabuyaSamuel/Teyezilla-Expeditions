@@ -21,6 +21,15 @@ const config: Config = {
         accent: {
           DEFAULT: "#C9A227", // Luxury Gold
           hover: "#B38F1E",
+          // The gold itself fails WCAG AA (4.5:1) wherever it's paired
+          // directly with white or the dark green footer -- 2.4:1 and
+          // 3.25:1 respectively (contrast ratio is symmetric, so this
+          // applies to bg-accent+text-white just as much as text-accent
+          // on a light surface). This darker shade (~6.1:1 on white) fixes
+          // the specific text-on-card-background case Lighthouse flagged;
+          // text-accent/bg-accent are left unchanged elsewhere pending a
+          // wider look at every other pairing.
+          ink: "#7A5E15",
         },
         background: "#F8F6F1", // Warm Ivory
         foreground: "#222222", // Charcoal

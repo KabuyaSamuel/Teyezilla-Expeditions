@@ -37,7 +37,7 @@ export default function JourneyCard({ journey }: { journey: Journey }) {
         <div className="mt-auto pt-4">
           <div className="flex items-center justify-between text-sm text-foreground/60">
             <span>{journey.durationDays} day{journey.durationDays !== 1 ? "s" : ""}</span>
-            <span className="font-heading font-semibold text-accent">
+            <span className="font-heading font-semibold text-accent-ink">
               From {journey.currency} {journey.priceFrom.toLocaleString()}
             </span>
           </div>

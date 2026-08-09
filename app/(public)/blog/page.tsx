@@ -32,7 +32,7 @@ export default async function BlogPage({ searchParams }: Props) {
 
   return (
     <div className="section">
-      <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">The Teyezilla Journal</span>
+      <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent-ink">The Teyezilla Journal</span>
       <h1 className="mt-3 h1-page">Stories from the Field</h1>
 
       <div className="mt-6 flex flex-wrap gap-2.5">
@@ -57,6 +57,9 @@ export default async function BlogPage({ searchParams }: Props) {
         ))}
       </div>
 
+      {/* Each BlogCard has its own h3; without this, a bare h1 followed
+          directly by h3s skips a heading level. */}
+      <h2 className="sr-only">Stories</h2>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredPosts.map((post) => (
           <BlogCard key={post.slug} post={post} />

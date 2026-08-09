@@ -26,6 +26,11 @@ export default function LoginForm({ from }: { from: string }) {
           Incorrect password for that email.
         </p>
       )}
+      {state.error === "rate_limited" && (
+        <p className="mt-4 rounded-xl bg-error/10 px-4 py-2 text-sm text-error">
+          Too many login attempts. Please wait a bit before trying again.
+        </p>
+      )}
 
       {/* Uncontrolled inputs, submitted via a Server Action through
           useActionState -- since a failed login returns state instead of

@@ -4,9 +4,10 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient, getSupabaseServiceClient } from "@/lib/supabase/server";
 import { SESSION_EXPIRY_COOKIE, DEFAULT_SESSION_MS, REMEMBER_ME_SESSION_MS } from "@/lib/admin/sessionExpiry";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export interface LoginState {
-  error?: "email" | "password" | "config";
+  error?: "email" | "password" | "config" | "rate_limited";
   email?: string;
 }
 
@@ -19,6 +20,27 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
   const password = String(formData.get("password") || "");
   const from = String(formData.get("from") || "/admin");
   const remember = formData.get("remember") === "on";
+
+  // Security audit (Part 4): this endpoint had zero rate limiting of any
+  // kind -- every public form (contact/trip-planner/booking) already
+  // calls checkRateLimit, but the one endpoint actually gated behind
+  // credentials had none. Limits on two dimensions rather than one:
+  // by IP (getClientIp -- see that function's own comment on why this is
+  // NOT fully trustworthy on Netlify, unlike Vercel) catches a
+  // credential-spray hitting many staff emails from one source, and by
+  // the submitted email itself catches a single account getting
+  // brute-forced across rotating IPs, which an IP-only limit would miss
+  // entirely if x-forwarded-for spoofing turns out to bypass the IP
+  // dimension on Netlify. Fails open (allowed: true) if Upstash isn't
+  // configured, matching every other checkRateLimit call in this app.
+  const ip = await getClientIp();
+  const [ipLimit, emailLimit] = await Promise.all([
+    checkRateLimit("login-ip", ip),
+    email ? checkRateLimit("login-email", email.toLowerCase()) : Promise.resolve({ allowed: true, remaining: Infinity }),
+  ]);
+  if (!ipLimit.allowed || !emailLimit.allowed) {
+    return { error: "rate_limited", email };
+  }
 
   const supabase = await getSupabaseServerClient();
   if (!supabase) {

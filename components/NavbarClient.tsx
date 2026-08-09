@@ -163,19 +163,33 @@ export default function NavbarClient({
                 onMouseEnter={() => setOpenDropdown(item.label)}
                 onMouseLeave={() => setOpenDropdown(null)}
               >
-                <button
-                  type="button"
-                  onClick={() => setOpenDropdown((v) => (v === item.label ? null : item.label))}
-                  aria-expanded={openDropdown === item.label}
-                  className={`flex items-center gap-1 text-sm font-medium transition-colors ${
-                    transparent ? "text-white hover:text-accent" : "text-foreground hover:text-primary"
+                {/* Label navigates straight to item.href on click (hover
+                    already previews the dropdown on desktop); the chevron
+                    is a separate toggle for touch/keyboard use where
+                    hover isn't available. */}
+                <div
+                  className={`flex items-center gap-1 text-sm font-medium ${
+                    transparent ? "text-white" : "text-foreground"
                   }`}
                 >
-                  {item.label}
-                  <ChevronDown
-                    className={`h-3.5 w-3.5 transition-transform ${openDropdown === item.label ? "rotate-180" : ""}`}
-                  />
-                </button>
+                  <Link
+                    href={item.href}
+                    className={`transition-colors ${transparent ? "hover:text-accent" : "hover:text-primary"}`}
+                  >
+                    {item.label}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setOpenDropdown((v) => (v === item.label ? null : item.label))}
+                    aria-expanded={openDropdown === item.label}
+                    aria-label={`Toggle ${item.label} menu`}
+                    className={`transition-colors ${transparent ? "hover:text-accent" : "hover:text-primary"}`}
+                  >
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 transition-transform ${openDropdown === item.label ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                </div>
 
                 {openDropdown === item.label && (
                   <div className="absolute left-1/2 top-full z-10 w-[36rem] -translate-x-1/2 pt-3">
@@ -217,19 +231,29 @@ export default function NavbarClient({
                 onMouseEnter={() => setOpenDropdown(item.label)}
                 onMouseLeave={() => setOpenDropdown(null)}
               >
-                <button
-                  type="button"
-                  onClick={() => setOpenDropdown((v) => (v === item.label ? null : item.label))}
-                  aria-expanded={openDropdown === item.label}
-                  className={`flex items-center gap-1 text-sm font-medium transition-colors ${
-                    transparent ? "text-white hover:text-accent" : "text-foreground hover:text-primary"
+                <div
+                  className={`flex items-center gap-1 text-sm font-medium ${
+                    transparent ? "text-white" : "text-foreground"
                   }`}
                 >
-                  {item.label}
-                  <ChevronDown
-                    className={`h-3.5 w-3.5 transition-transform ${openDropdown === item.label ? "rotate-180" : ""}`}
-                  />
-                </button>
+                  <Link
+                    href={item.href}
+                    className={`transition-colors ${transparent ? "hover:text-accent" : "hover:text-primary"}`}
+                  >
+                    {item.label}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setOpenDropdown((v) => (v === item.label ? null : item.label))}
+                    aria-expanded={openDropdown === item.label}
+                    aria-label={`Toggle ${item.label} menu`}
+                    className={`transition-colors ${transparent ? "hover:text-accent" : "hover:text-primary"}`}
+                  >
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 transition-transform ${openDropdown === item.label ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                </div>
 
                 {openDropdown === item.label && (
                   <div className="absolute left-1/2 top-full z-10 w-56 -translate-x-1/2 pt-3">

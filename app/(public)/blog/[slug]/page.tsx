@@ -102,7 +102,7 @@ export default async function BlogPostPage({ params }: Props) {
           <p className="mt-1 text-sm text-foreground/70">
             Let our travel team craft a personal itinerary around what you just read.
           </p>
-          <Link href="/trip-planner" className="btn-primary mt-4 inline-block">
+          <Link href="/booking" className="btn-primary mt-4 inline-block">
             Plan My Journey
           </Link>
         </div>

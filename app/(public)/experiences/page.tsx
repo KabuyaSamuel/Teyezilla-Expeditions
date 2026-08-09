@@ -81,6 +81,16 @@ export default async function ExperiencesPage({ searchParams }: Props) {
       <p className="mt-3 max-w-2xl text-foreground/70">
         From street food in Nairobi to safaris in the Mara and desert camps in the Sahara.
       </p>
+      <p className="mt-3 max-w-2xl text-foreground/70">
+        Every trip here starts as a real itinerary, not a template: a private safari through the Maasai Mara
+        timed to the wildebeest migration, a Zanzibar beach stay built around Stone Town and the reef, a
+        Sahara crossing by camel and 4x4, or a few unhurried days eating and wandering through Marrakech or
+        Nairobi. Filter by experience type or destination below, or browse by category above -- wildlife and
+        safari, beach and islands, culture and heritage, adventure, food and lifestyle, or city life -- to
+        find the shape of trip you&rsquo;re after. Every listing links through to a full itinerary with pricing,
+        duration, and what&rsquo;s included, and our travel team is happy to adjust any of them to fit your dates
+        and interests.
+      </p>
 
       <div className="mt-8 flex flex-wrap gap-2">
         <Link href={buildHref({ productType: undefined })} className={pillClass(!productType)}>

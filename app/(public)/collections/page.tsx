@@ -20,6 +20,13 @@ export default async function CollectionsPage() {
         {collections.length} curated way{collections.length !== 1 ? "s" : ""} to experience the magic of Africa,
         each one hand-curated by our team.
       </p>
+      <p className="mt-3 max-w-2xl text-foreground/70">
+        Instead of browsing every tour and journey individually, these collections group trips by the kind of
+        experience you&rsquo;re after -- an ocean escape, a heritage-focused journey, a hands-on adventure -- so you
+        can start from the feeling you want the trip to have rather than a destination or date. Each
+        collection is picked and maintained by our travel team, not generated automatically, and every trip
+        inside it links through to a full itinerary you can book or ask us to adjust.
+      </p>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {collections.map((collection) => (
           <Link key={collection.id} href={`/collections/${collection.slug}`} className="card p-6">

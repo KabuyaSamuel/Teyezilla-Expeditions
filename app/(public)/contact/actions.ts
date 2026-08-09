@@ -6,7 +6,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { createNotification } from "@/lib/admin/actions/notifications";
 import { sendAdminNotification, sendCustomerConfirmation } from "@/lib/email";
 import { adminEnquiryEmail, customerContactConfirmationEmail } from "@/lib/email-templates";
-import { contactSchema, zodFieldErrors, type EnquiryFormState } from "@/lib/enquiry-shared";
+import { contactSchema, zodFieldErrors, sanitizeForEmailSubject, type EnquiryFormState } from "@/lib/enquiry-shared";
 import { captureServerActionError } from "@/lib/monitoring";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { ATTRIBUTION_COOKIE, parseAttributionCookie } from "@/lib/attribution";
@@ -68,7 +68,7 @@ export async function submitContactMessage(
   });
 
   await sendAdminNotification({
-    subject: `New contact form message from ${input.name}`,
+    subject: `New contact form message from ${sanitizeForEmailSubject(input.name)}`,
     html: adminEnquiryEmail({
       heading: `New contact form message from ${input.name}`,
       fields: [

@@ -56,6 +56,7 @@ export const env = createEnv({
     NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string().optional(),
     // Not wired -- GA4 is loaded directly, not through a GTM container.
     NEXT_PUBLIC_GTM_ID: z.string().optional(),
+    NEXT_PUBLIC_CLARITY_PROJECT_ID: z.string().optional(),
   },
   // Next.js inlines NEXT_PUBLIC_* at build time via static analysis, which
   // can't see into a loop/spread -- every var has to be listed explicitly
@@ -80,6 +81,7 @@ export const env = createEnv({
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
+    NEXT_PUBLIC_CLARITY_PROJECT_ID: process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID,
   },
   // .env.example (and a freshly-copied .env.local before it's filled in)
   // has every optional var present but set to "" -- without this, "" fails

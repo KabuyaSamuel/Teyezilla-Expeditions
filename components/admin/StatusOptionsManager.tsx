@@ -7,6 +7,7 @@ import {
   deleteStatusOption,
   reorderStatusOptions,
   updateStatusOption,
+  type ActionResult,
 } from "@/lib/admin/actions/status-options";
 import type { StatusCategory, StatusOption, StatusTone } from "@/lib/admin/data/status-options";
 import { useToast } from "./Toast";
@@ -33,11 +34,16 @@ export default function StatusOptionsManager({
   // successMessage is only passed for deliberate actions (add/delete) --
   // reordering and inline label/tone edits stay quiet on success (a toast
   // per arrow click or blur would be noise) but still surface errors.
-  async function run(fn: () => Promise<void>, successMessage?: string) {
+  async function run(fn: () => Promise<ActionResult>, successMessage?: string) {
     setBusy(true);
     setError(null);
     try {
-      await fn();
+      const result = await fn();
+      if (!result.ok) {
+        setError(result.error);
+        toast.error(result.error);
+        return;
+      }
       if (successMessage) toast.success(successMessage);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong.";
@@ -153,9 +159,12 @@ export default function StatusOptionsManager({
           disabled={busy || !newLabel.trim()}
           onClick={() =>
             run(async () => {
-              await createStatusOption(category, newLabel, newTone);
-              setNewLabel("");
-              setNewTone("neutral");
+              const result = await createStatusOption(category, newLabel, newTone);
+              if (result.ok) {
+                setNewLabel("");
+                setNewTone("neutral");
+              }
+              return result;
             }, `"${newLabel}" added.`)
           }
           className="btn-primary px-4 py-1.5 text-sm disabled:opacity-40"

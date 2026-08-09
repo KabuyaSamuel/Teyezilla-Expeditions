@@ -6,6 +6,7 @@ import BlogCard from "@/components/BlogCard";
 export const metadata: Metadata = {
   title: "The Teyezilla Journal",
   description: "Safari guides, destination comparisons, and travel tips from Teyezilla Expeditions.",
+  alternates: { canonical: "/blog" },
 };
 
 export const revalidate = 3600;

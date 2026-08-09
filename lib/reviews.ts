@@ -34,6 +34,26 @@ export async function getApprovedReviews(): Promise<Review[]> {
   return data.map(mapRow);
 }
 
+// Used to attach an AggregateRating to a tour's TouristTrip JSON-LD (see
+// app/(public)/tours/[slug]/page.tsx) so star ratings can show up in search
+// results for that specific tour, not just the sitewide /reviews page.
+export async function getApprovedReviewsByTourId(tourId: string): Promise<Review[]> {
+  const supabase = getSupabasePublicClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("id, author_name, source, rating, quote, tour:tours(title)")
+    .eq("tour_id", tourId);
+
+  if (error || !data) {
+    console.warn("[reviews] Supabase query failed:", error?.message);
+    return [];
+  }
+
+  return data.map(mapRow);
+}
+
 // The single review an admin has chosen to highlight on the homepage (see
 // components/WhyChoose.tsx). Falls back to the newest approved review if
 // none is marked featured yet, so the section never renders empty.

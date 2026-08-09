@@ -7,6 +7,7 @@ import type { MediaItem } from "@/lib/admin/data/media";
 import { updateHeroSlides, type HeroSlideInput } from "@/lib/admin/actions/hero";
 import { SortableList, SortableItem, arrayMoveIndex } from "./SortableList";
 import { useToast } from "./Toast";
+import InlineMediaUpload from "./InlineMediaUpload";
 
 function SlideMediaPicker({
   value,
@@ -41,13 +42,21 @@ function SlideMediaPicker({
                 ✕
               </button>
             </div>
+
+            <div className="mt-4">
+              <InlineMediaUpload
+                accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+                onUploaded={(url) => {
+                  onChange(url);
+                  setOpen(false);
+                }}
+              />
+              <p className="mt-1 text-[11px] text-foreground/40">Keep video clips short and compressed to stay well under the limit.</p>
+            </div>
+
             {options.length === 0 ? (
               <p className="mt-4 text-sm text-foreground/50">
-                No images or videos in the Media Library yet. Upload one in{" "}
-                <a href="/admin/media" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                  Media Library
-                </a>{" "}
-                (opens in a new tab), then reopen this picker.
+                No images or videos in the Media Library yet -- upload one above.
               </p>
             ) : (
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { maxBytesForFile, formatMB } from "@/lib/mediaLimits";
 
 export interface MediaUsageRef {
   label: string;
@@ -59,7 +60,16 @@ export async function checkMediaUsage(fileUrl: string): Promise<MediaUsageRef[]>
   return refs;
 }
 
-export async function uploadMedia(formData: FormData): Promise<void> {
+export interface UploadedMedia {
+  id: string;
+  fileUrl: string;
+  fileType: "image" | "video" | "pdf";
+}
+
+// Returns the created row (not just void) so callers that upload straight
+// from wherever they're editing -- not a trip to the Media Library first --
+// can immediately use the new file's URL without a second round trip.
+export async function uploadMedia(formData: FormData): Promise<UploadedMedia> {
   const file = formData.get("file");
   const altText = String(formData.get("altText") ?? "");
   const tags = String(formData.get("tags") ?? "")
@@ -69,6 +79,16 @@ export async function uploadMedia(formData: FormData): Promise<void> {
 
   if (!(file instanceof File) || file.size === 0) {
     throw new Error("Choose a file to upload.");
+  }
+
+  // The storage bucket itself only enforces one ceiling for every file
+  // type (20MB, wide enough to cover video); images/PDFs get a stricter
+  // 10MB cap here instead, since the bucket can't apply different limits
+  // per mime type.
+  const maxBytes = maxBytesForFile(file);
+  if (file.size > maxBytes) {
+    const kind = file.type.startsWith("video/") ? "Videos" : "This file type";
+    throw new Error(`${kind} must be ${formatMB(maxBytes)} or smaller (this file is ${formatMB(file.size)}).`);
   }
 
   const supabase = await getSupabaseServerClient();
@@ -89,21 +109,26 @@ export async function uploadMedia(formData: FormData): Promise<void> {
 
   const fileType = file.type === "application/pdf" ? "pdf" : file.type.startsWith("video/") ? "video" : "image";
 
-  const { error: insertError } = await supabase.from("media").insert({
-    file_url: publicUrl,
-    file_type: fileType,
-    alt_text: altText || file.name,
-    tags,
-    storage_path: path,
-  });
-  if (insertError) {
+  const { data: inserted, error: insertError } = await supabase
+    .from("media")
+    .insert({
+      file_url: publicUrl,
+      file_type: fileType,
+      alt_text: altText || file.name,
+      tags,
+      storage_path: path,
+    })
+    .select("id")
+    .single();
+  if (insertError || !inserted) {
     // Roll back the upload so we don't leave an orphaned file if the DB
     // insert failed (e.g. RLS rejection, bad column).
     await supabase.storage.from("media").remove([path]);
-    throw new Error(insertError.message);
+    throw new Error(insertError?.message ?? "Failed to save upload.");
   }
 
   revalidatePath("/admin/media");
+  return { id: inserted.id, fileUrl: publicUrl, fileType };
 }
 
 export async function deleteMedia(id: string, storagePath: string | null): Promise<void> {

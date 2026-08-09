@@ -15,7 +15,7 @@ import { maxBytesForFile, formatMB, MAX_IMAGE_EDGE_PX } from "@/lib/mediaLimits"
 // pass through untouched. Falls back to the original buffer if sharp
 // can't decode the file at all, so a corrupt/exotic upload never blocks
 // an admin -- it just skips the optimization.
-async function resizeImageIfNeeded(
+export async function resizeImageIfNeeded(
   buffer: Buffer,
   contentType: string
 ): Promise<{ buffer: Buffer; contentType: string }> {

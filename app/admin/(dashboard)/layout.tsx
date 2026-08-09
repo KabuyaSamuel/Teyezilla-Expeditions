@@ -6,6 +6,7 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminMobileNav from "@/components/admin/AdminMobileNav";
 import { ToastProvider } from "@/components/admin/Toast";
 import SavedToastWatcher from "@/components/admin/SavedToastWatcher";
+import EmDashGuard from "@/components/admin/EmDashGuard";
 
 export default async function AdminLayout({
   children,
@@ -27,6 +28,7 @@ export default async function AdminLayout({
       <Suspense fallback={null}>
         <SavedToastWatcher />
       </Suspense>
+      <EmDashGuard />
       <div className="flex min-h-screen bg-background">
         <AdminSidebar role={session.role} name={session.name} unreadNotifications={unreadNotifications} />
         <div className="flex-1">

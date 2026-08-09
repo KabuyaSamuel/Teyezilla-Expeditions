@@ -8,7 +8,17 @@
 # rule would never fire for any real page.
 [[redirects]]
   from = "https://teyezillaexpeditions.netlify.app/*"
-  to = "https://teyezillaexpeditions.com/:splat"
+  to = "https://www.teyezillaexpeditions.com/:splat"
+  status = 301
+  force = true
+
+# lib/site.ts's SITE_URL (used for every canonical tag, the sitemap, and
+# JSON-LD) is the www subdomain -- without this, the apex domain staying
+# independently crawlable/indexable splits ranking signals across two
+# domain variants for the same content.
+[[redirects]]
+  from = "https://teyezillaexpeditions.com/*"
+  to = "https://www.teyezillaexpeditions.com/:splat"
   status = 301
   force = true
 

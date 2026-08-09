@@ -1,9 +1,11 @@
 [build.environment]
   # Netlify's secrets scanner flags any env var value it finds baked into
-  # the build output. These three are confirmed non-sensitive (two plain
-  # email addresses, one intentionally-public GA tracking ID) and are
-  # meant to be public, so they're excluded by name rather than disabling
-  # the scan entirely -- which would also stop protecting the real
-  # secrets (Supabase service role key, Resend API key, Sentry auth
-  # token, Upstash Redis token).
-  SECRETS_SCAN_OMIT_KEYS = "ADMIN_NOTIFICATION_EMAIL,EMAIL_FROM,NEXT_PUBLIC_GA_MEASUREMENT_ID"
+  # the build output. Everything listed here is confirmed non-sensitive
+  # and meant to be public: every NEXT_PUBLIC_* var is inlined into the
+  # client bundle by Next.js's own design (that's what the prefix means),
+  # SENTRY_PROJECT is just a project slug used by the Sentry build plugin,
+  # and ADMIN_NOTIFICATION_EMAIL/EMAIL_FROM are plain email addresses.
+  # Excluded by name rather than disabling the scan entirely, which would
+  # also stop protecting the real secrets (Supabase service role key,
+  # Resend API key, Sentry auth token, Upstash Redis token).
+  SECRETS_SCAN_OMIT_KEYS = "ADMIN_NOTIFICATION_EMAIL,EMAIL_FROM,NEXT_PUBLIC_GA_MEASUREMENT_ID,SENTRY_PROJECT,NEXT_PUBLIC_WHATSAPP_NUMBER,NEXT_PUBLIC_GTM_ID,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SENTRY_DSN"

@@ -1,8 +1,43 @@
 "use server";
 
+import sharp from "sharp";
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { maxBytesForFile, formatMB } from "@/lib/mediaLimits";
+import { maxBytesForFile, formatMB, MAX_IMAGE_EDGE_PX } from "@/lib/mediaLimits";
+
+// Caps the longest edge to MAX_IMAGE_EDGE_PX and re-encodes at a sane
+// quality, so a DSLR-sized (4000px+, several MB) original never reaches
+// storage -- next/image + Netlify's Image CDN already handle the actual
+// per-card cropping and WebP/AVIF conversion at delivery time, so this is
+// only about the stored source, not the final delivered bytes. SVGs are
+// vector (resizing is meaningless) and GIFs are usually animated
+// (sharp's still-frame resize would silently drop the animation), so both
+// pass through untouched. Falls back to the original buffer if sharp
+// can't decode the file at all, so a corrupt/exotic upload never blocks
+// an admin -- it just skips the optimization.
+async function resizeImageIfNeeded(
+  buffer: Buffer,
+  contentType: string
+): Promise<{ buffer: Buffer; contentType: string }> {
+  if (contentType === "image/svg+xml" || contentType === "image/gif") {
+    return { buffer, contentType };
+  }
+
+  try {
+    const image = sharp(buffer)
+      .rotate() // bakes in EXIF orientation before it gets stripped below
+      .resize({ width: MAX_IMAGE_EDGE_PX, height: MAX_IMAGE_EDGE_PX, fit: "inside", withoutEnlargement: true });
+    const { format } = await image.metadata();
+    const resized =
+      format === "jpeg" ? await image.jpeg({ quality: 85, mozjpeg: true }).toBuffer()
+      : format === "png" ? await image.png({ compressionLevel: 9 }).toBuffer()
+      : format === "webp" ? await image.webp({ quality: 85 }).toBuffer()
+      : await image.toBuffer();
+    return { buffer: resized, contentType };
+  } catch {
+    return { buffer, contentType };
+  }
+}
 
 export interface MediaUsageRef {
   label: string;
@@ -97,8 +132,13 @@ export async function uploadMedia(formData: FormData): Promise<UploadedMedia> {
   const ext = file.name.includes(".") ? file.name.split(".").pop() : "";
   const path = `${crypto.randomUUID()}${ext ? `.${ext}` : ""}`;
 
-  const { error: uploadError } = await supabase.storage.from("media").upload(path, file, {
-    contentType: file.type || undefined,
+  const originalBuffer = Buffer.from(await file.arrayBuffer());
+  const { buffer, contentType } = file.type.startsWith("image/")
+    ? await resizeImageIfNeeded(originalBuffer, file.type)
+    : { buffer: originalBuffer, contentType: file.type || undefined };
+
+  const { error: uploadError } = await supabase.storage.from("media").upload(path, buffer, {
+    contentType,
     upsert: false,
   });
   if (uploadError) throw new Error(uploadError.message);

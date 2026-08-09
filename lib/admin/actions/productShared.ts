@@ -48,9 +48,9 @@ export interface ProductScalarsInput {
   transportation: string;
   guideInfo: string;
   foodAndDrinks: string;
-  importantInfo: string;
+  importantInfo: string[];
   bringList: string[];
-  cancellationPolicy: string;
+  cancellationPolicy: string[];
   availabilityNote: string;
   teyezillaMoment: string;
 }

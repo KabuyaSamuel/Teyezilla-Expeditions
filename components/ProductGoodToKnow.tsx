@@ -1,13 +1,26 @@
+function GoodToKnowList({ items }: { items: string[] }) {
+  return (
+    <ul className="mt-1 space-y-1.5 text-sm text-foreground/70">
+      {items.map((item) => (
+        <li key={item} className="flex gap-2">
+          <span className="text-accent">•</span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function ProductGoodToKnow({
   bringList,
   importantInfo,
   cancellationPolicy,
 }: {
   bringList: string[];
-  importantInfo: string;
-  cancellationPolicy: string;
+  importantInfo: string[];
+  cancellationPolicy: string[];
 }) {
-  if (bringList.length === 0 && !importantInfo && !cancellationPolicy) return null;
+  if (bringList.length === 0 && importantInfo.length === 0 && cancellationPolicy.length === 0) return null;
 
   return (
     <div className="card p-6">
@@ -16,19 +29,19 @@ export default function ProductGoodToKnow({
         {bringList.length > 0 && (
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Bring With You</p>
-            <p className="mt-1 text-sm text-foreground/70">{bringList.join(", ")}</p>
+            <GoodToKnowList items={bringList} />
           </div>
         )}
-        {importantInfo && (
+        {importantInfo.length > 0 && (
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Please Note</p>
-            <p className="mt-1 text-sm text-foreground/70">{importantInfo}</p>
+            <GoodToKnowList items={importantInfo} />
           </div>
         )}
-        {cancellationPolicy && (
+        {cancellationPolicy.length > 0 && (
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Cancellation & Refund</p>
-            <p className="mt-1 text-sm text-foreground/70">{cancellationPolicy}</p>
+            <GoodToKnowList items={cancellationPolicy} />
           </div>
         )}
       </div>

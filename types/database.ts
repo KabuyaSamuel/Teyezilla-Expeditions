@@ -1541,7 +1541,7 @@ export type Database = {
           availability_note: string | null
           best_for: string[] | null
           bring_list: string[] | null
-          cancellation_policy: string | null
+          cancellation_policy: string[] | null
           created_at: string | null
           currency: string | null
           difficulty: string | null
@@ -1553,7 +1553,7 @@ export type Database = {
           guide_info: string | null
           hero_image: string | null
           id: string
-          important_info: string | null
+          important_info: string[] | null
           inclusions: string[] | null
           itinerary: Json | null
           languages: string[] | null
@@ -1580,7 +1580,7 @@ export type Database = {
           availability_note?: string | null
           best_for?: string[] | null
           bring_list?: string[] | null
-          cancellation_policy?: string | null
+          cancellation_policy?: string[] | null
           created_at?: string | null
           currency?: string | null
           difficulty?: string | null
@@ -1592,7 +1592,7 @@ export type Database = {
           guide_info?: string | null
           hero_image?: string | null
           id?: string
-          important_info?: string | null
+          important_info?: string[] | null
           inclusions?: string[] | null
           itinerary?: Json | null
           languages?: string[] | null
@@ -1619,7 +1619,7 @@ export type Database = {
           availability_note?: string | null
           best_for?: string[] | null
           bring_list?: string[] | null
-          cancellation_policy?: string | null
+          cancellation_policy?: string[] | null
           created_at?: string | null
           currency?: string | null
           difficulty?: string | null
@@ -1631,7 +1631,7 @@ export type Database = {
           guide_info?: string | null
           hero_image?: string | null
           id?: string
-          important_info?: string | null
+          important_info?: string[] | null
           inclusions?: string[] | null
           itinerary?: Json | null
           languages?: string[] | null
@@ -2463,7 +2463,7 @@ export type Database = {
           availability_note: string | null
           best_for: string[] | null
           bring_list: string[] | null
-          cancellation_policy: string | null
+          cancellation_policy: string[] | null
           category_label: string | null
           created_at: string | null
           currency: string | null
@@ -2478,7 +2478,7 @@ export type Database = {
           guide_info: string | null
           hero_image: string | null
           id: string
-          important_info: string | null
+          important_info: string[] | null
           inclusions: string[] | null
           itinerary: Json | null
           languages: string[] | null
@@ -2505,7 +2505,7 @@ export type Database = {
           availability_note?: string | null
           best_for?: string[] | null
           bring_list?: string[] | null
-          cancellation_policy?: string | null
+          cancellation_policy?: string[] | null
           category_label?: string | null
           created_at?: string | null
           currency?: string | null
@@ -2520,7 +2520,7 @@ export type Database = {
           guide_info?: string | null
           hero_image?: string | null
           id?: string
-          important_info?: string | null
+          important_info?: string[] | null
           inclusions?: string[] | null
           itinerary?: Json | null
           languages?: string[] | null
@@ -2547,7 +2547,7 @@ export type Database = {
           availability_note?: string | null
           best_for?: string[] | null
           bring_list?: string[] | null
-          cancellation_policy?: string | null
+          cancellation_policy?: string[] | null
           category_label?: string | null
           created_at?: string | null
           currency?: string | null
@@ -2562,7 +2562,7 @@ export type Database = {
           guide_info?: string | null
           hero_image?: string | null
           id?: string
-          important_info?: string | null
+          important_info?: string[] | null
           inclusions?: string[] | null
           itinerary?: Json | null
           languages?: string[] | null

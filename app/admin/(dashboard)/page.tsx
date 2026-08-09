@@ -83,14 +83,33 @@ export default async function AdminDashboardPage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="New Enquiries" value={String(newEnquiries)} accent sublabel="awaiting first response" />
-        <StatCard label="Total Bookings" value={String(totalBookings)} sublabel="all time" />
-        <StatCard label="Revenue (recorded)" value={`$${revenueTotal.toLocaleString()}`} sublabel="bookings marked paid" />
-        <StatCard label="Upcoming Tours" value={String(upcomingTours.length)} sublabel="with a set travel date" />
+        <StatCard
+          label="New Enquiries"
+          value={String(newEnquiries)}
+          accent
+          sublabel="awaiting first response"
+          href="/admin/inquiries"
+        />
+        <StatCard label="Total Bookings" value={String(totalBookings)} sublabel="all time" href="/admin/bookings" />
+        <StatCard
+          label="Revenue (recorded)"
+          value={`$${revenueTotal.toLocaleString()}`}
+          sublabel="bookings marked paid"
+          href="/admin/reports"
+        />
+        <StatCard
+          label="Upcoming Tours"
+          value={String(upcomingTours.length)}
+          sublabel="with a set travel date"
+          href="/admin/bookings"
+        />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        <div className="card p-6 lg:col-span-2">
+        <Link
+          href="/admin/bookings"
+          className="card block border border-transparent p-6 transition-colors hover:border-primary/30 lg:col-span-2"
+        >
           <h2 className="font-heading text-lg font-semibold text-foreground">Booking Calendar</h2>
           <p className="mt-1 text-xs text-foreground/50">Upcoming departures, soonest first</p>
           <div className="mt-4 space-y-3">
@@ -107,12 +126,13 @@ export default async function AdminDashboardPage() {
               </div>
             ))}
           </div>
-          <Link href="/admin/bookings" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">
-            View all bookings →
-          </Link>
-        </div>
+          <span className="mt-4 inline-block text-sm font-medium text-primary">View all bookings →</span>
+        </Link>
 
-        <div className="card p-6">
+        <Link
+          href="/admin/bookings"
+          className="card block border border-transparent p-6 transition-colors hover:border-primary/30"
+        >
           <h2 className="font-heading text-lg font-semibold text-foreground">Popular Destinations</h2>
           <div className="mt-4 space-y-3">
             {popularDestinations.map(([name, count]) => (
@@ -122,10 +142,14 @@ export default async function AdminDashboardPage() {
               </div>
             ))}
           </div>
-        </div>
+          <span className="mt-4 inline-block text-sm font-medium text-primary">View all bookings →</span>
+        </Link>
       </div>
 
-      <div className="mt-6 card p-6">
+      <Link
+        href="/admin/inquiries"
+        className="mt-6 card block border border-transparent p-6 transition-colors hover:border-primary/30"
+      >
         <h2 className="font-heading text-lg font-semibold text-foreground">Recent Inquiries</h2>
         <div className="mt-4 space-y-3">
           {recentInquiries.map((inq) => (
@@ -138,10 +162,8 @@ export default async function AdminDashboardPage() {
             </div>
           ))}
         </div>
-        <Link href="/admin/inquiries" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">
-          View all inquiries →
-        </Link>
-      </div>
+        <span className="mt-4 inline-block text-sm font-medium text-primary">View all inquiries →</span>
+      </Link>
 
       <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">
         Visitor stats require Google Analytics 4 (wired up in a later phase). Bookings,

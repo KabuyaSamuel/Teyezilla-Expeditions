@@ -35,10 +35,7 @@
 // the intended behavior, not a regression to chase. Thresholds below are the
 // worst-page score minus a 5-point margin, same reasoning as lighthouserc.js.
 
-// TODO: switch back to the custom domain (www.teyezillaexpeditions.com)
-// once it's connected in Vercel -- not live yet, so DNS for it doesn't
-// resolve at all.
-const baseUrl = (process.env.LHCI_BASE_URL || "https://teyezillaexpeditions.vercel.app").replace(/\/$/, "");
+const baseUrl = (process.env.LHCI_BASE_URL || "https://www.teyezillaexpeditions.com").replace(/\/$/, "");
 
 if (!process.env.LHCI_ADMIN_COOKIE) {
   throw new Error(

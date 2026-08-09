@@ -207,8 +207,10 @@ export default function TourForm({
             </select>
           </div>
           <div>
-            <label htmlFor="durationDays" className="text-xs font-medium text-foreground/60">Duration (days)</label>
-            <input id="durationDays" name="durationDays" type="number" min={1} defaultValue={existingTour?.durationDays} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+            <label htmlFor="durationDays" className="text-xs font-medium text-foreground/60">
+              Duration (days), leave as 0 if using hours instead
+            </label>
+            <input id="durationDays" name="durationDays" type="number" min={0} defaultValue={existingTour?.durationDays} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
             <label htmlFor="durationHours" className="text-xs font-medium text-foreground/60">

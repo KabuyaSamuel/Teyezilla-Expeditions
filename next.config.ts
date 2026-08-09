@@ -43,6 +43,17 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  async redirects() {
+    return [
+      // /tours never had a listing page -- only /tours/[slug] detail pages
+      // exist, so it 404s. Tour listings actually live at /experiences.
+      {
+        source: "/tours",
+        destination: "/experiences",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 // org/project/authToken come from env vars rather than being hardcoded so

@@ -31,7 +31,7 @@ export default async function AdminLayout({
       <EmDashGuard />
       <div className="flex min-h-screen bg-background">
         <AdminSidebar role={session.role} name={session.name} unreadNotifications={unreadNotifications} />
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <AdminMobileNav role={session.role} unreadNotifications={unreadNotifications} />
           <main className="mx-auto max-w-6xl px-4 py-8 md:px-8">{children}</main>
         </div>

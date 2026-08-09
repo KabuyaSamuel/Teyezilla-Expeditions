@@ -28,13 +28,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!destination) return {};
 
   return {
-    title: destination.metaTitle,
-    description: destination.metaDescription,
+    title: destination.metaTitle || destination.countryName,
+    description: destination.metaDescription || destination.shortDescription,
     alternates: { canonical: `/destinations/${destination.slug}` },
     openGraph: {
-      title: destination.metaTitle,
-      description: destination.metaDescription,
-      images: [destination.ogImage],
+      title: destination.metaTitle || destination.countryName,
+      description: destination.metaDescription || destination.shortDescription,
+      images: destination.ogImage ? [destination.ogImage] : [destination.heroImage],
     },
   };
 }

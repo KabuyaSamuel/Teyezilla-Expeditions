@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "African Destinations: Kenya, Tanzania, Zanzibar, Egypt, Morocco & More",
   description:
     "Explore Teyezilla Expeditions' African destinations, from Kenya's Maasai Mara to Morocco's Sahara desert.",
+  alternates: { canonical: "/destinations" },
 };
 
 export const revalidate = 3600;

@@ -6,6 +6,7 @@ import { getTours, getTourBySlug, getRelatedTours, getToursByIds } from "@/lib/t
 import { getDestinationById } from "@/lib/destinations";
 import { getJourneysByDestination, getJourneysByIds } from "@/lib/journeys";
 import { getRelatedBlogPosts, getBlogPostsByIds } from "@/lib/blog";
+import { getApprovedReviewsByTourId } from "@/lib/reviews";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 import { formatTourDuration } from "@/lib/duration";
 import ProductItinerary from "@/components/ProductItinerary";
@@ -40,13 +41,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!tour) return {};
 
   return {
-    title: tour.metaTitle,
-    description: tour.metaDescription,
+    title: tour.metaTitle || tour.title,
+    description: tour.metaDescription || tour.shortDescription,
     alternates: { canonical: `/tours/${tour.slug}` },
     openGraph: {
-      title: tour.metaTitle,
-      description: tour.metaDescription,
-      images: [tour.ogImage],
+      title: tour.metaTitle || tour.title,
+      description: tour.metaDescription || tour.shortDescription,
+      images: tour.ogImage ? [tour.ogImage] : [tour.heroImage],
     },
   };
 }
@@ -56,7 +57,10 @@ export default async function TourPage({ params }: Props) {
   const tour = await getTourBySlug(slug);
   if (!tour) notFound();
 
-  const destination = await getDestinationById(tour.destinationId);
+  const [destination, tourReviews] = await Promise.all([
+    getDestinationById(tour.destinationId),
+    getApprovedReviewsByTourId(tour.id),
+  ]);
 
   // "Bring This to Life": staff-curated picks take priority per category;
   // any category left empty falls back to the existing destination-match
@@ -97,6 +101,15 @@ export default async function TourPage({ params }: Props) {
       price: tour.priceFrom,
       priceCurrency: tour.currency,
     },
+    ...(tourReviews.length > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: Number((tourReviews.reduce((sum, r) => sum + r.rating, 0) / tourReviews.length).toFixed(1)),
+            reviewCount: tourReviews.length,
+          },
+        }
+      : {}),
   };
 
   const faqs = [

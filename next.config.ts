@@ -36,6 +36,14 @@ const nextConfig: NextConfig = {
         ? [{ protocol: "https" as const, hostname: supabaseHostname }]
         : []),
     ],
+    // Netlify's image CDN otherwise serves optimized images with
+    // max-age=0,must-revalidate -- every repeat view re-fetches full-size
+    // photography instead of hitting cache, which is most of what
+    // Lighthouse's "image delivery"/"cache lifetime" findings were
+    // flagging. A day, not a year: admin-uploaded media (Media Library)
+    // can change reasonably often, and this project has already hit a
+    // stale-asset surprise once with an aggressively-cached logo file.
+    minimumCacheTTL: 60 * 60 * 24,
   },
   experimental: {
     serverActions: {
@@ -49,9 +57,11 @@ const nextConfig: NextConfig = {
 // this works with an empty/unconfigured Sentry setup: the Sentry build
 // plugin skips source map upload (with a warning, not a build failure)
 // when authToken is undefined, which is the expected state until a real
-// SENTRY_AUTH_TOKEN is added to Vercel. Not setting disableLogger/
-// automaticVercelMonitors -- both are webpack-only options and this
-// project builds with Turbopack, so they'd be silent no-ops either way.
+// SENTRY_AUTH_TOKEN is added to the hosting platform's env vars. Not
+// setting disableLogger/automaticVercelMonitors -- both are webpack-only
+// options and this project builds with Turbopack, so they'd be silent
+// no-ops either way (automaticVercelMonitors is also Vercel-specific and
+// a no-op on Netlify regardless).
 export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,

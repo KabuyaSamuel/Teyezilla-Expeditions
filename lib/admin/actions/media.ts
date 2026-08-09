@@ -1,25 +1,34 @@
 "use server";
 
 import sharp from "sharp";
+import { fileTypeFromBuffer } from "file-type";
 import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { maxBytesForFile, formatMB, MAX_IMAGE_EDGE_PX } from "@/lib/mediaLimits";
+import {
+  maxBytesForFile,
+  formatMB,
+  MAX_IMAGE_EDGE_PX,
+  ALLOWED_MEDIA_TYPES,
+  EXTENSION_FOR_MIME,
+  isAllowedMediaType,
+} from "@/lib/mediaLimits";
 
 // Caps the longest edge to MAX_IMAGE_EDGE_PX and re-encodes at a sane
 // quality, so a DSLR-sized (4000px+, several MB) original never reaches
 // storage -- next/image + Netlify's Image CDN already handle the actual
 // per-card cropping and WebP/AVIF conversion at delivery time, so this is
-// only about the stored source, not the final delivered bytes. SVGs are
-// vector (resizing is meaningless) and GIFs are usually animated
-// (sharp's still-frame resize would silently drop the animation), so both
-// pass through untouched. Falls back to the original buffer if sharp
-// can't decode the file at all, so a corrupt/exotic upload never blocks
-// an admin -- it just skips the optimization.
+// only about the stored source, not the final delivered bytes. GIFs are
+// usually animated (sharp's still-frame resize would silently drop the
+// animation), so they pass through untouched. SVGs are rejected entirely
+// before this is ever called -- see the allowlist check in uploadMedia --
+// so there's no SVG branch here anymore. Falls back to the original
+// buffer if sharp can't decode the file at all, so a corrupt/exotic
+// upload never blocks an admin -- it just skips the optimization.
 export async function resizeImageIfNeeded(
   buffer: Buffer,
   contentType: string
 ): Promise<{ buffer: Buffer; contentType: string }> {
-  if (contentType === "image/svg+xml" || contentType === "image/gif") {
+  if (contentType === "image/gif") {
     return { buffer, contentType };
   }
 
@@ -116,6 +125,20 @@ export async function uploadMedia(formData: FormData): Promise<UploadedMedia> {
     throw new Error("Choose a file to upload.");
   }
 
+  // Security audit (Part 3): the client-declared file.type used to be
+  // trusted outright, with no allowlist rejecting disallowed types --
+  // trivially spoofable (a renamed .html file, or any raw multipart
+  // request not going through a real browser file picker). Explicitly
+  // includes SVG's rejection: an SVG can carry an embedded <script> and is
+  // a well-known stored-XSS vector if it's ever served with a
+  // content-type a browser will execute -- "image/svg+xml" is
+  // deliberately absent from ALLOWED_MEDIA_TYPES.
+  if (!isAllowedMediaType(file.type)) {
+    throw new Error(
+      `File type "${file.type || "unknown"}" isn't allowed. Accepted: ${ALLOWED_MEDIA_TYPES.join(", ")}.`
+    );
+  }
+
   // The storage bucket itself only enforces one ceiling for every file
   // type (20MB, wide enough to cover video); images/PDFs get a stricter
   // 10MB cap here instead, since the bucket can't apply different limits
@@ -126,16 +149,36 @@ export async function uploadMedia(formData: FormData): Promise<UploadedMedia> {
     throw new Error(`${kind} must be ${formatMB(maxBytes)} or smaller (this file is ${formatMB(file.size)}).`);
   }
 
+  const originalBuffer = Buffer.from(await file.arrayBuffer());
+
+  // Confirms the file's actual bytes match its claimed type (magic-byte /
+  // file-signature check) rather than trusting file.type alone -- catches
+  // e.g. a renamed .html file relabeled as "image/png". Fails closed: a
+  // claimed image/video/pdf type with an undetectable or mismatched
+  // signature is rejected rather than allowed through, since all eight
+  // allowed types have well-known, reliably-detected signatures (verified
+  // directly against real sample files, including ffmpeg-generated
+  // mp4/webm/mov, for this audit). Runs before any Supabase call, along
+  // with every other check above -- every untrusted-input check in this
+  // function completes before an external service is ever touched.
+  const detected = await fileTypeFromBuffer(originalBuffer);
+  if (!detected || !isAllowedMediaType(detected.mime) || detected.mime !== file.type) {
+    throw new Error("This file's contents don't match its declared type and were rejected.");
+  }
+  const verifiedType = detected.mime;
+
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
-  const ext = file.name.includes(".") ? file.name.split(".").pop() : "";
-  const path = `${crypto.randomUUID()}${ext ? `.${ext}` : ""}`;
+  // Extension comes from the verified type via a fixed lookup table, never
+  // from the user-supplied filename -- so a crafted filename (e.g.
+  // containing "../" path-traversal sequences) can never influence the
+  // storage path at all. The path itself is always a fresh random UUID.
+  const path = `${crypto.randomUUID()}.${EXTENSION_FOR_MIME[verifiedType]}`;
 
-  const originalBuffer = Buffer.from(await file.arrayBuffer());
-  const { buffer, contentType } = file.type.startsWith("image/")
-    ? await resizeImageIfNeeded(originalBuffer, file.type)
-    : { buffer: originalBuffer, contentType: file.type || undefined };
+  const { buffer, contentType } = verifiedType.startsWith("image/")
+    ? await resizeImageIfNeeded(originalBuffer, verifiedType)
+    : { buffer: originalBuffer, contentType: verifiedType };
 
   const { error: uploadError } = await supabase.storage.from("media").upload(path, buffer, {
     contentType,
@@ -147,7 +190,7 @@ export async function uploadMedia(formData: FormData): Promise<UploadedMedia> {
     data: { publicUrl },
   } = supabase.storage.from("media").getPublicUrl(path);
 
-  const fileType = file.type === "application/pdf" ? "pdf" : file.type.startsWith("video/") ? "video" : "image";
+  const fileType = verifiedType === "application/pdf" ? "pdf" : verifiedType.startsWith("video/") ? "video" : "image";
 
   const { data: inserted, error: insertError } = await supabase
     .from("media")

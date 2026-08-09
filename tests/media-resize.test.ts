@@ -1,9 +1,11 @@
 // Regression coverage for the upload-time resize added alongside the
 // sharp dependency: a DSLR-sized original should never reach storage at
-// full resolution, but small images, SVGs, GIFs, and corrupt uploads all
-// need to survive untouched (or degrade gracefully) rather than block an
+// full resolution, but small images, GIFs, and corrupt uploads all need
+// to survive untouched (or degrade gracefully) rather than block an
 // admin's upload. Pure function, no live services -- unlike tests/rls/*,
-// this never touches Supabase.
+// this never touches Supabase. SVG handling isn't covered here anymore --
+// uploadMedia() rejects SVGs outright before resizeImageIfNeeded is ever
+// called (security audit, Part 3); see tests/media-upload-validation.test.ts.
 
 import { describe, it, expect } from "vitest";
 import sharp from "sharp";
@@ -31,13 +33,6 @@ describe("resizeImageIfNeeded", () => {
     const meta = await sharp(buffer).metadata();
     expect(meta.width).toBe(800);
     expect(meta.height).toBe(600);
-  });
-
-  it("passes SVGs through untouched", async () => {
-    const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>');
-    const { buffer, contentType } = await resizeImageIfNeeded(svg, "image/svg+xml");
-    expect(buffer).toEqual(svg);
-    expect(contentType).toBe("image/svg+xml");
   });
 
   it("passes GIFs through untouched (avoids dropping animation frames)", async () => {

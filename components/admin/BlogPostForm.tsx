@@ -8,6 +8,7 @@ import type { MediaItem } from "@/lib/admin/data/media";
 import { createBlogPost, updateBlogPost, deleteBlogPost } from "@/lib/admin/actions/blog";
 import BlogContentEditor from "./BlogContentEditor";
 import MediaPickerField from "./MediaPickerField";
+import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -22,6 +23,7 @@ export default function BlogPostForm({
   destinations: Destination[];
   mediaItems: MediaItem[];
 }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [blocks, setBlocks] = useState<ContentBlock[]>(existingPost?.bodyBlocks ?? []);
@@ -61,7 +63,9 @@ export default function BlogPostForm({
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to save post.");
+      const message = err instanceof Error ? err.message : "Failed to save post.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -74,7 +78,9 @@ export default function BlogPostForm({
       await deleteBlogPost(existingPost.id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete post.");
+      const message = err instanceof Error ? err.message : "Failed to delete post.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }

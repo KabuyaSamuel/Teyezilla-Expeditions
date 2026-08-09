@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { saveTravelResources, type TravelResourcesInput } from "@/lib/admin/actions/travel-resources";
+import { useToast } from "./Toast";
 
 export default function TravelResourcesForm({
   destinationId,
@@ -10,6 +11,7 @@ export default function TravelResourcesForm({
   destinationId: string;
   initial: TravelResourcesInput;
 }) {
+  const { toast } = useToast();
   const [values, setValues] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,8 +29,11 @@ export default function TravelResourcesForm({
     try {
       await saveTravelResources(destinationId, values);
       setSaved(true);
+      toast.success("Travel resources saved.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save.");
+      const message = err instanceof Error ? err.message : "Failed to save.";
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }

@@ -6,6 +6,7 @@ import type { MediaItem } from "@/lib/admin/data/media";
 import { createDestination, updateDestination, deleteDestination } from "@/lib/admin/actions/destinations";
 import { AFRICAN_COUNTRIES, flagEmojiForCode } from "@/lib/country-codes";
 import MediaPickerField from "./MediaPickerField";
+import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -18,6 +19,7 @@ export default function DestinationForm({
   existingDestination?: Destination;
   mediaItems: MediaItem[];
 }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [heroImage, setHeroImage] = useState(existingDestination?.heroImage ?? "");
@@ -49,7 +51,9 @@ export default function DestinationForm({
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to save destination.");
+      const message = err instanceof Error ? err.message : "Failed to save destination.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -67,7 +71,9 @@ export default function DestinationForm({
       await deleteDestination(existingDestination.id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete destination.");
+      const message = err instanceof Error ? err.message : "Failed to delete destination.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }

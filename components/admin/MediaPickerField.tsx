@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { MediaItem } from "@/lib/admin/data/media";
+import InlineMediaUpload from "./InlineMediaUpload";
 
 // Pairs a plain URL input (for pasting an external/CDN link directly) with
 // a "Browse" button that opens the real Media Library as a picker modal --
@@ -72,14 +73,19 @@ export default function MediaPickerField({
                 ✕
               </button>
             </div>
+
+            <div className="mt-4">
+              <InlineMediaUpload
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onUploaded={(url) => {
+                  onChange(url);
+                  setOpen(false);
+                }}
+              />
+            </div>
+
             {images.length === 0 ? (
-              <p className="mt-4 text-sm text-foreground/50">
-                No images in the Media Library yet. Upload one in{" "}
-                <a href="/admin/media" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                  Media Library
-                </a>{" "}
-                (opens in a new tab), then reopen this picker.
-              </p>
+              <p className="mt-4 text-sm text-foreground/50">No images in the Media Library yet -- upload one above.</p>
             ) : (
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {images.map((item) => (

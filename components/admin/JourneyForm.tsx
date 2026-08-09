@@ -23,6 +23,7 @@ import AccommodationsPicker from "./AccommodationsPicker";
 import TourPicker from "./TourPicker";
 import MediaPickerField from "./MediaPickerField";
 import RelatedContentEditor from "./RelatedContentEditor";
+import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -55,6 +56,7 @@ export default function JourneyForm({
   otherJourneys: { id: string; title: string }[];
   blogPosts: { id: string; title: string }[];
 }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [heroImage, setHeroImage] = useState(existingJourney?.heroImage ?? "");
@@ -166,7 +168,9 @@ export default function JourneyForm({
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to save journey.");
+      const message = err instanceof Error ? err.message : "Failed to save journey.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -179,7 +183,9 @@ export default function JourneyForm({
       await deleteJourney(existingJourney.id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete journey.");
+      const message = err instanceof Error ? err.message : "Failed to delete journey.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Star, Users, Check } from "lucide-react";
 import type { Review } from "@/types";
 import ScrollReveal from "./ScrollReveal";
-import { getSiteSetting } from "@/lib/settings";
+import { getSiteSetting, resolveSiteText } from "@/lib/settings";
 import { WHY_CHOOSE_DEFAULTS, type WhyChooseKey } from "@/lib/homepageContent";
 
 export default async function WhyChoose({
@@ -15,9 +15,7 @@ export default async function WhyChoose({
 }) {
   const keys = Object.keys(WHY_CHOOSE_DEFAULTS) as WhyChooseKey[];
   const values = await Promise.all(keys.map((key) => getSiteSetting(key)));
-  const text = Object.fromEntries(
-    keys.map((key, i) => [key, values[i] || WHY_CHOOSE_DEFAULTS[key]])
-  ) as typeof WHY_CHOOSE_DEFAULTS;
+  const text = resolveSiteText(WHY_CHOOSE_DEFAULTS, keys, values);
 
   const checklist = [
     text.whyChooseChecklist1,
@@ -26,8 +24,13 @@ export default async function WhyChoose({
     text.whyChooseChecklist4,
   ].filter(Boolean);
 
+  // Shares the reduced py-12/16 rhythm with the Featured Destinations /
+  // Journeys / Experiences sections right above it on the homepage (its
+  // only caller) -- the default .section py-16/24 doubled up with theirs
+  // into a large dead gap since none of them have a color change to
+  // justify the extra space.
   return (
-    <section className="section grid gap-12 lg:grid-cols-2 lg:items-center">
+    <section className="mx-auto max-w-7xl px-6 py-12 md:py-16 grid gap-12 lg:grid-cols-2 lg:items-center">
       <ScrollReveal className="relative">
         <div className="relative h-[420px] w-full overflow-hidden rounded-xl2 shadow-card">
           <Image

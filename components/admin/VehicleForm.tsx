@@ -3,12 +3,14 @@
 import { useState } from "react";
 import type { AdminVehicle } from "@/lib/admin/data/vehicles";
 import { createVehicle, updateVehicle, deleteVehicle } from "@/lib/admin/actions/vehicles";
+import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
 }
 
 export default function VehicleForm({ existingVehicle }: { existingVehicle?: AdminVehicle }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +43,9 @@ export default function VehicleForm({ existingVehicle }: { existingVehicle?: Adm
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to save vehicle.");
+      const message = err instanceof Error ? err.message : "Failed to save vehicle.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -54,7 +58,9 @@ export default function VehicleForm({ existingVehicle }: { existingVehicle?: Adm
       await deleteVehicle(existingVehicle.id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete vehicle.");
+      const message = err instanceof Error ? err.message : "Failed to delete vehicle.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }

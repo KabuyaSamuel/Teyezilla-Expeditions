@@ -5,6 +5,7 @@ import type { AdminTeamMember } from "@/lib/admin/data/team-members";
 import type { MediaItem } from "@/lib/admin/data/media";
 import { createTeamMember, updateTeamMember, deleteTeamMember } from "@/lib/admin/actions/team-members";
 import MediaPickerField from "./MediaPickerField";
+import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -17,6 +18,7 @@ export default function TeamMemberForm({
   existingTeamMember?: AdminTeamMember;
   mediaItems: MediaItem[];
 }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [photo, setPhoto] = useState(existingTeamMember?.photo ?? "");
@@ -44,7 +46,9 @@ export default function TeamMemberForm({
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to save team member.");
+      const message = err instanceof Error ? err.message : "Failed to save team member.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -57,7 +61,9 @@ export default function TeamMemberForm({
       await deleteTeamMember(existingTeamMember.id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete team member.");
+      const message = err instanceof Error ? err.message : "Failed to delete team member.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }

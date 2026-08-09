@@ -45,7 +45,7 @@ export default function ItineraryEditor({
   return (
     <section className="card p-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-heading text-lg font-semibold text-foreground">Itinerary Builder</h2>
+        <h2 className="font-heading text-lg font-semibold text-foreground">The Flow Builder</h2>
         <button type="button" onClick={add} className="text-sm font-medium text-primary hover:underline">
           + Add Day
         </button>

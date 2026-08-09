@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePublicSite } from "@/lib/revalidate";
+import { redirectWithSaved } from "./saved-redirect";
 
 export interface DestinationInput {
   countryName: string;
@@ -64,7 +64,7 @@ export async function createDestination(input: DestinationInput): Promise<void> 
   revalidatePath("/admin/destinations");
   revalidatePath("/destinations");
   revalidatePublicSite();
-  redirect("/admin/destinations");
+  redirectWithSaved("/admin/destinations", `"${input.countryName}" created.`);
 }
 
 export async function updateDestination(id: string, input: DestinationInput): Promise<void> {
@@ -77,7 +77,7 @@ export async function updateDestination(id: string, input: DestinationInput): Pr
   revalidatePath("/admin/destinations");
   revalidatePath("/destinations");
   revalidatePublicSite();
-  redirect("/admin/destinations");
+  redirectWithSaved("/admin/destinations", `"${input.countryName}" saved.`);
 }
 
 export async function deleteDestination(id: string): Promise<void> {
@@ -90,5 +90,5 @@ export async function deleteDestination(id: string): Promise<void> {
   revalidatePath("/admin/destinations");
   revalidatePath("/destinations");
   revalidatePublicSite();
-  redirect("/admin/destinations");
+  redirectWithSaved("/admin/destinations", "Destination deleted.");
 }

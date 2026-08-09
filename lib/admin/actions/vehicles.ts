@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePublicSite } from "@/lib/revalidate";
+import { redirectWithSaved } from "./saved-redirect";
 
 export interface VehicleInput {
   name: string;
@@ -46,7 +46,7 @@ export async function createVehicle(input: VehicleInput): Promise<void> {
 
   revalidatePath("/admin/vehicles");
   revalidatePublicSite();
-  redirect("/admin/vehicles");
+  redirectWithSaved("/admin/vehicles", `"${input.name}" created.`);
 }
 
 export async function updateVehicle(id: string, input: VehicleInput): Promise<void> {
@@ -58,7 +58,7 @@ export async function updateVehicle(id: string, input: VehicleInput): Promise<vo
 
   revalidatePath("/admin/vehicles");
   revalidatePublicSite();
-  redirect("/admin/vehicles");
+  redirectWithSaved("/admin/vehicles", `"${input.name}" saved.`);
 }
 
 export async function deleteVehicle(id: string): Promise<void> {
@@ -71,5 +71,5 @@ export async function deleteVehicle(id: string): Promise<void> {
 
   revalidatePath("/admin/vehicles");
   revalidatePublicSite();
-  redirect("/admin/vehicles");
+  redirectWithSaved("/admin/vehicles", "Vehicle deleted.");
 }

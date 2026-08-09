@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { redirectWithSaved } from "./saved-redirect";
 
 export interface CustomerInput {
   fullName: string;
@@ -35,7 +35,7 @@ export async function createCustomer(input: CustomerInput): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/customers");
-  redirect("/admin/customers");
+  redirectWithSaved("/admin/customers", `"${input.fullName}" created.`);
 }
 
 export async function updateCustomer(id: string, input: CustomerInput): Promise<void> {
@@ -60,5 +60,5 @@ export async function deleteCustomer(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/customers");
-  redirect("/admin/customers");
+  redirectWithSaved("/admin/customers", "Customer deleted.");
 }

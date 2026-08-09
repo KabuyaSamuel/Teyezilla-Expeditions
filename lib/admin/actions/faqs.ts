@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePublicSite } from "@/lib/revalidate";
+import { redirectWithSaved } from "./saved-redirect";
 
 export interface FaqInput {
   category: string;
@@ -32,7 +32,7 @@ export async function createFaq(input: FaqInput): Promise<void> {
 
   revalidatePath("/admin/faqs");
   revalidatePublicSite();
-  redirect("/admin/faqs");
+  redirectWithSaved("/admin/faqs", `"${input.question}" created.`);
 }
 
 export async function updateFaq(id: string, input: FaqInput): Promise<void> {
@@ -44,7 +44,7 @@ export async function updateFaq(id: string, input: FaqInput): Promise<void> {
 
   revalidatePath("/admin/faqs");
   revalidatePublicSite();
-  redirect("/admin/faqs");
+  redirectWithSaved("/admin/faqs", `"${input.question}" saved.`);
 }
 
 export async function deleteFaq(id: string): Promise<void> {
@@ -56,5 +56,5 @@ export async function deleteFaq(id: string): Promise<void> {
 
   revalidatePath("/admin/faqs");
   revalidatePublicSite();
-  redirect("/admin/faqs");
+  redirectWithSaved("/admin/faqs", "FAQ deleted.");
 }

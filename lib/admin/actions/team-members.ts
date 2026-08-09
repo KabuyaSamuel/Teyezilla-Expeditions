@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePublicSite } from "@/lib/revalidate";
+import { redirectWithSaved } from "./saved-redirect";
 
 export interface TeamMemberInput {
   fullName: string;
@@ -34,7 +34,7 @@ export async function createTeamMember(input: TeamMemberInput): Promise<void> {
 
   revalidatePath("/admin/team-members");
   revalidatePublicSite();
-  redirect("/admin/team-members");
+  redirectWithSaved("/admin/team-members", `"${input.fullName}" created.`);
 }
 
 export async function updateTeamMember(id: string, input: TeamMemberInput): Promise<void> {
@@ -46,7 +46,7 @@ export async function updateTeamMember(id: string, input: TeamMemberInput): Prom
 
   revalidatePath("/admin/team-members");
   revalidatePublicSite();
-  redirect("/admin/team-members");
+  redirectWithSaved("/admin/team-members", `"${input.fullName}" saved.`);
 }
 
 export async function deleteTeamMember(id: string): Promise<void> {
@@ -58,5 +58,5 @@ export async function deleteTeamMember(id: string): Promise<void> {
 
   revalidatePath("/admin/team-members");
   revalidatePublicSite();
-  redirect("/admin/team-members");
+  redirectWithSaved("/admin/team-members", "Team member deleted.");
 }

@@ -25,9 +25,22 @@ export async function updateSiteSetting(formData: FormData): Promise<void> {
   revalidatePublicSite();
 }
 
-export async function updateSiteSettings(formData: FormData): Promise<void> {
+export interface UpdateSiteSettingsState {
+  success?: boolean;
+  error?: string;
+}
+
+// Takes/returns a (prevState, formData) => state shape so the client side
+// can drive it through useActionState -- that's what gets this raw
+// <form action={}> flow a pending state and a result to toast, without it
+// the form gave zero feedback either way (success or failure looked
+// identical: the page just sat there).
+export async function updateSiteSettings(
+  _prevState: UpdateSiteSettingsState,
+  formData: FormData
+): Promise<UpdateSiteSettingsState> {
   const supabase = await getSupabaseServerClient();
-  if (!supabase) throw new Error("Supabase not configured.");
+  if (!supabase) return { error: "Supabase not configured." };
 
   const now = new Date().toISOString();
   const rows = Array.from(formData.entries())
@@ -38,8 +51,9 @@ export async function updateSiteSettings(formData: FormData): Promise<void> {
     .map(([key, value]) => ({ key, value: value.trim(), updated_at: now }));
 
   const { error } = await supabase.from("site_settings").upsert(rows);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   revalidatePath("/admin/settings");
   revalidatePublicSite();
+  return { success: true };
 }

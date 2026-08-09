@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { AdminAccommodation } from "@/lib/admin/data/accommodations";
 import { createAccommodation, updateAccommodation, deleteAccommodation } from "@/lib/admin/actions/accommodations";
 import type { Destination } from "@/types";
+import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -16,6 +17,7 @@ export default function AccommodationForm({
   destinations: Destination[];
   existingAccommodation?: AdminAccommodation;
 }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,7 +46,9 @@ export default function AccommodationForm({
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to save accommodation.");
+      const message = err instanceof Error ? err.message : "Failed to save accommodation.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -57,7 +61,9 @@ export default function AccommodationForm({
       await deleteAccommodation(existingAccommodation.id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete accommodation.");
+      const message = err instanceof Error ? err.message : "Failed to delete accommodation.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }

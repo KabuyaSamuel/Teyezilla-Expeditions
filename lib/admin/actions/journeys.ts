@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePublicSite } from "@/lib/revalidate";
+import { redirectWithSaved } from "./saved-redirect";
 import {
   syncPricingTiers,
   syncHighlights,
@@ -97,10 +97,36 @@ function toRow(input: JourneyInput) {
   };
 }
 
+// Replaces a journey's rows in a related-content join table wholesale:
+// clear, then re-insert whatever's currently selected, in the order given.
+async function syncJourneyRelatedTable(
+  supabase: NonNullable<Awaited<ReturnType<typeof getSupabaseServerClient>>>,
+  table: string,
+  journeyId: string,
+  relatedIds: string[],
+  relatedColumn: string
+) {
+  const { error: deleteError } = await supabase.from(table).delete().eq("journey_id", journeyId);
+  if (deleteError) throw new Error(deleteError.message);
+  if (relatedIds.length === 0) return;
+
+  const { error } = await supabase.from(table).insert(
+    relatedIds.map((relatedId, index) => ({
+      journey_id: journeyId,
+      [relatedColumn]: relatedId,
+      display_order: index,
+    }))
+  );
+  if (error) throw new Error(error.message);
+}
+
 // Many-to-many editing pattern: wipe this journey's rows in each join table
 // and re-insert from the form's current selection. Simpler and just as safe
 // as diffing, since these join tables carry no data beyond the relationship
-// itself (display_order/is_primary are derived fresh from form state each save).
+// itself (display_order/is_primary are derived fresh from form state each
+// save). Every one of these only depends on the already-known journeyId,
+// not on each other's results, so they run as one batch of parallel round
+// trips instead of ~15 sequential ones.
 async function syncJourneyRelations(
   supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>,
   journeyId: string,
@@ -108,96 +134,85 @@ async function syncJourneyRelations(
 ) {
   if (!supabase) return;
 
-  await supabase.from("journey_destinations").delete().eq("journey_id", journeyId);
-  if (input.destinationIds.length > 0) {
-    const primaryId = input.destinationIds.includes(input.primaryDestinationId)
-      ? input.primaryDestinationId
-      : input.destinationIds[0];
-    const { error } = await supabase.from("journey_destinations").insert(
-      input.destinationIds.map((destinationId, index) => ({
-        journey_id: journeyId,
-        destination_id: destinationId,
-        display_order: index,
-        is_primary: destinationId === primaryId,
-      }))
-    );
-    if (error) throw new Error(error.message);
-  }
+  await Promise.all([
+    (async () => {
+      const { error: deleteError } = await supabase.from("journey_destinations").delete().eq("journey_id", journeyId);
+      if (deleteError) throw new Error(deleteError.message);
+      if (input.destinationIds.length === 0) return;
 
-  await supabase.from("journey_journey_types").delete().eq("journey_id", journeyId);
-  if (input.journeyTypeIds.length > 0) {
-    const { error } = await supabase
-      .from("journey_journey_types")
-      .insert(input.journeyTypeIds.map((journeyTypeId) => ({ journey_id: journeyId, journey_type_id: journeyTypeId })));
-    if (error) throw new Error(error.message);
-  }
+      const primaryId = input.destinationIds.includes(input.primaryDestinationId)
+        ? input.primaryDestinationId
+        : input.destinationIds[0];
+      const { error } = await supabase.from("journey_destinations").insert(
+        input.destinationIds.map((destinationId, index) => ({
+          journey_id: journeyId,
+          destination_id: destinationId,
+          display_order: index,
+          is_primary: destinationId === primaryId,
+        }))
+      );
+      if (error) throw new Error(error.message);
+    })(),
 
-  await supabase.from("journey_experience_types").delete().eq("journey_id", journeyId);
-  if (input.experienceTypeIds.length > 0) {
-    const { error } = await supabase.from("journey_experience_types").insert(
-      input.experienceTypeIds.map((experienceTypeId) => ({
-        journey_id: journeyId,
-        experience_type_id: experienceTypeId,
-      }))
-    );
-    if (error) throw new Error(error.message);
-  }
+    (async () => {
+      const { error: deleteError } = await supabase.from("journey_journey_types").delete().eq("journey_id", journeyId);
+      if (deleteError) throw new Error(deleteError.message);
+      if (input.journeyTypeIds.length === 0) return;
 
-  await supabase.from("journey_safari_themes").delete().eq("journey_id", journeyId);
-  if (input.safariThemeIds.length > 0) {
-    const { error } = await supabase.from("journey_safari_themes").insert(
-      input.safariThemeIds.map((safariThemeId) => ({ journey_id: journeyId, safari_theme_id: safariThemeId }))
-    );
-    if (error) throw new Error(error.message);
-  }
+      const { error } = await supabase
+        .from("journey_journey_types")
+        .insert(input.journeyTypeIds.map((journeyTypeId) => ({ journey_id: journeyId, journey_type_id: journeyTypeId })));
+      if (error) throw new Error(error.message);
+    })(),
 
-  await syncPricingTiers(supabase, "journey_pricing_tiers", "journey_id", journeyId, input.pricingTiers);
-  await syncHighlights(supabase, "journey_highlights", "journey_id", journeyId, input.highlights);
-  await syncFaqs(supabase, "journey_faqs", "journey_id", journeyId, input.faqs);
-  await syncAddons(supabase, "journey_addons", "journey_id", journeyId, input.addons);
-  await syncActivities(supabase, "journey_activities", "journey_id", journeyId, input.activityIds);
-  await syncVehicles(supabase, "journey_vehicles", "journey_id", journeyId, input.vehicleIds);
-  await syncAccommodations(supabase, "journey_accommodations", "journey_id", journeyId, input.accommodationIds);
+    (async () => {
+      const { error: deleteError } = await supabase.from("journey_experience_types").delete().eq("journey_id", journeyId);
+      if (deleteError) throw new Error(deleteError.message);
+      if (input.experienceTypeIds.length === 0) return;
 
-  await supabase.from("journey_tours").delete().eq("journey_id", journeyId);
-  if (input.tourIds.length > 0) {
-    const { error } = await supabase.from("journey_tours").insert(
-      input.tourIds.map((tourId, index) => ({ journey_id: journeyId, tour_id: tourId, display_order: index }))
-    );
-    if (error) throw new Error(error.message);
-  }
+      const { error } = await supabase.from("journey_experience_types").insert(
+        input.experienceTypeIds.map((experienceTypeId) => ({
+          journey_id: journeyId,
+          experience_type_id: experienceTypeId,
+        }))
+      );
+      if (error) throw new Error(error.message);
+    })(),
 
-  await supabase.from("journey_related_journeys").delete().eq("journey_id", journeyId);
-  if (input.relatedJourneyIds.length > 0) {
-    const { error } = await supabase.from("journey_related_journeys").insert(
-      input.relatedJourneyIds.map((relatedJourneyId, index) => ({
-        journey_id: journeyId,
-        related_journey_id: relatedJourneyId,
-        display_order: index,
-      }))
-    );
-    if (error) throw new Error(error.message);
-  }
+    (async () => {
+      const { error: deleteError } = await supabase.from("journey_safari_themes").delete().eq("journey_id", journeyId);
+      if (deleteError) throw new Error(deleteError.message);
+      if (input.safariThemeIds.length === 0) return;
 
-  await supabase.from("journey_related_tours").delete().eq("journey_id", journeyId);
-  if (input.relatedTourIds.length > 0) {
-    const { error } = await supabase.from("journey_related_tours").insert(
-      input.relatedTourIds.map((tourId, index) => ({ journey_id: journeyId, tour_id: tourId, display_order: index }))
-    );
-    if (error) throw new Error(error.message);
-  }
+      const { error } = await supabase.from("journey_safari_themes").insert(
+        input.safariThemeIds.map((safariThemeId) => ({ journey_id: journeyId, safari_theme_id: safariThemeId }))
+      );
+      if (error) throw new Error(error.message);
+    })(),
 
-  await supabase.from("journey_related_blog_posts").delete().eq("journey_id", journeyId);
-  if (input.relatedBlogPostIds.length > 0) {
-    const { error } = await supabase.from("journey_related_blog_posts").insert(
-      input.relatedBlogPostIds.map((blogPostId, index) => ({
-        journey_id: journeyId,
-        blog_post_id: blogPostId,
-        display_order: index,
-      }))
-    );
-    if (error) throw new Error(error.message);
-  }
+    syncPricingTiers(supabase, "journey_pricing_tiers", "journey_id", journeyId, input.pricingTiers),
+    syncHighlights(supabase, "journey_highlights", "journey_id", journeyId, input.highlights),
+    syncFaqs(supabase, "journey_faqs", "journey_id", journeyId, input.faqs),
+    syncAddons(supabase, "journey_addons", "journey_id", journeyId, input.addons),
+    syncActivities(supabase, "journey_activities", "journey_id", journeyId, input.activityIds),
+    syncVehicles(supabase, "journey_vehicles", "journey_id", journeyId, input.vehicleIds),
+    syncAccommodations(supabase, "journey_accommodations", "journey_id", journeyId, input.accommodationIds),
+
+    (async () => {
+      const { error: deleteError } = await supabase.from("journey_tours").delete().eq("journey_id", journeyId);
+      if (deleteError) throw new Error(deleteError.message);
+      if (input.tourIds.length === 0) return;
+
+      const { error } = await supabase.from("journey_tours").insert(
+        input.tourIds.map((tourId, index) => ({ journey_id: journeyId, tour_id: tourId, display_order: index }))
+      );
+      if (error) throw new Error(error.message);
+    })(),
+
+    syncJourneyRelatedTable(supabase, "journey_related_journeys", journeyId, input.relatedJourneyIds, "related_journey_id"),
+    syncJourneyRelatedTable(supabase, "journey_related_tours", journeyId, input.relatedTourIds, "tour_id"),
+    syncJourneyRelatedTable(supabase, "journey_related_blog_posts", journeyId, input.relatedBlogPostIds, "blog_post_id"),
+  ]);
 }
 
 export async function createJourney(input: JourneyInput): Promise<void> {
@@ -212,7 +227,7 @@ export async function createJourney(input: JourneyInput): Promise<void> {
   revalidatePath("/admin/journeys");
   revalidatePath("/journeys");
   revalidatePublicSite();
-  redirect("/admin/journeys");
+  redirectWithSaved("/admin/journeys", `"${input.title}" created.`);
 }
 
 export async function updateJourney(id: string, input: JourneyInput): Promise<void> {
@@ -227,7 +242,7 @@ export async function updateJourney(id: string, input: JourneyInput): Promise<vo
   revalidatePath("/admin/journeys");
   revalidatePath("/journeys");
   revalidatePublicSite();
-  redirect("/admin/journeys");
+  redirectWithSaved("/admin/journeys", `"${input.title}" saved.`);
 }
 
 export async function deleteJourney(id: string): Promise<void> {
@@ -242,5 +257,5 @@ export async function deleteJourney(id: string): Promise<void> {
   revalidatePath("/admin/journeys");
   revalidatePath("/journeys");
   revalidatePublicSite();
-  redirect("/admin/journeys");
+  redirectWithSaved("/admin/journeys", "Journey deleted.");
 }

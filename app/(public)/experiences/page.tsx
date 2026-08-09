@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublishedTours } from "@/lib/tours";
 import { getDestinations } from "@/lib/destinations";
+import { getExperienceTypes, getToursByExperienceType } from "@/lib/experienceTypes";
 import TourCard from "@/components/TourCard";
 import Pagination from "@/components/Pagination";
+import FilterSelect from "@/components/FilterSelect";
 
 export const metadata: Metadata = {
   title: "African Travel Experiences",
@@ -23,32 +25,41 @@ const PRODUCT_TYPES = [
 const PAGE_SIZE = 9;
 
 interface Props {
-  searchParams: Promise<{ productType?: string; destination?: string; page?: string }>;
+  searchParams: Promise<{ productType?: string; destination?: string; category?: string; page?: string }>;
 }
 
 export default async function ExperiencesPage({ searchParams }: Props) {
-  const { productType, destination, page: rawPage } = await searchParams;
-  const [allTours, destinations] = await Promise.all([getPublishedTours(), getDestinations()]);
+  const { productType, destination, category, page: rawPage } = await searchParams;
+  const [allTours, destinations, experienceTypes] = await Promise.all([
+    getPublishedTours(),
+    getDestinations(),
+    getExperienceTypes(),
+  ]);
+  // Only fetched when a category filter is actually applied -- the join
+  // query is otherwise unnecessary work on every unfiltered page view.
+  const categoryTours = category ? await getToursByExperienceType(category) : undefined;
 
   const availableDestinationIds = new Set(allTours.map((t) => t.destinationId));
   const destinationOptions = destinations
     .filter((d) => availableDestinationIds.has(d.id))
     .sort((a, b) => a.countryName.localeCompare(b.countryName));
 
-  function buildHref(overrides: { productType?: string; destination?: string; page?: number }) {
+  function buildHref(overrides: { productType?: string; destination?: string; category?: string; page?: number }) {
     const params = new URLSearchParams();
     const nextProductType = "productType" in overrides ? overrides.productType : productType;
     const nextDestination = "destination" in overrides ? overrides.destination : destination;
+    const nextCategory = "category" in overrides ? overrides.category : category;
     const nextPage = overrides.page ?? 1;
     if (nextProductType) params.set("productType", nextProductType);
     if (nextDestination) params.set("destination", nextDestination);
+    if (nextCategory) params.set("category", nextCategory);
     if (nextPage > 1) params.set("page", String(nextPage));
     const qs = params.toString();
     return qs ? `/experiences?${qs}` : "/experiences";
   }
 
   const selectedDestination = destination ? destinations.find((d) => d.slug === destination) : undefined;
-  const filteredTours = allTours.filter((t) => {
+  const filteredTours = (categoryTours ?? allTours).filter((t) => {
     if (productType && t.productType !== productType) return false;
     if (selectedDestination && t.destinationId !== selectedDestination.id) return false;
     return true;
@@ -82,16 +93,31 @@ export default async function ExperiencesPage({ searchParams }: Props) {
         ))}
       </div>
 
-      {destinationOptions.length > 0 && (
+      {/* Category and destination lists both grow as staff add more of
+          them, so they're dropdowns rather than pill rows -- the fixed set
+          of 3 product types above reads fine as pills. */}
+      {(experienceTypes.length > 0 || destinationOptions.length > 0) && (
         <div className="mt-3 flex flex-wrap gap-2">
-          <Link href={buildHref({ destination: undefined })} className={pillClass(!destination)}>
-            All destinations
-          </Link>
-          {destinationOptions.map((d) => (
-            <Link key={d.id} href={buildHref({ destination: d.slug })} className={pillClass(destination === d.slug)}>
-              {d.countryName}
-            </Link>
-          ))}
+          {experienceTypes.length > 0 && (
+            <FilterSelect
+              ariaLabel="Filter by category"
+              value={category ?? ""}
+              options={[
+                { value: "", label: "All Categories", href: buildHref({ category: undefined }) },
+                ...experienceTypes.map((t) => ({ value: t.slug, label: t.name, href: buildHref({ category: t.slug }) })),
+              ]}
+            />
+          )}
+          {destinationOptions.length > 0 && (
+            <FilterSelect
+              ariaLabel="Filter by destination"
+              value={destination ?? ""}
+              options={[
+                { value: "", label: "All Destinations", href: buildHref({ destination: undefined }) },
+                ...destinationOptions.map((d) => ({ value: d.slug, label: d.countryName, href: buildHref({ destination: d.slug }) })),
+              ]}
+            />
+          )}
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import HeroCarousel from "./HeroCarousel";
-import { getSiteSetting } from "@/lib/settings";
+import { getSiteSetting, resolveSiteText } from "@/lib/settings";
 import { getHeroSlides, HERO_TEXT_DEFAULTS, type HeroTextKey } from "@/lib/hero";
 
 export default async function Hero() {
@@ -9,9 +9,7 @@ export default async function Hero() {
     getHeroSlides(),
     ...keys.map((key) => getSiteSetting(key)),
   ]);
-  const text = Object.fromEntries(
-    keys.map((key, i) => [key, values[i] || HERO_TEXT_DEFAULTS[key]])
-  ) as typeof HERO_TEXT_DEFAULTS;
+  const text = resolveSiteText(HERO_TEXT_DEFAULTS, keys, values);
 
   return (
     <section className="relative -mt-20 flex min-h-[600px] items-center overflow-hidden text-white sm:min-h-[calc(100svh-150px)]">
@@ -26,10 +24,11 @@ export default async function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_70%_at_20%_75%,rgba(0,0,0,0.55),transparent_70%)]" />
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-col items-center gap-4 px-6 pb-20 pt-36 text-center sm:items-start sm:gap-5 sm:pb-24 sm:pt-40 sm:text-left">
-        <span className="animate-fadeUp inline-flex items-center gap-2 rounded-full bg-black/55 py-1.5 pl-3.5 pr-4 text-[10px] font-medium uppercase tracking-[0.2em] text-accent sm:gap-3 sm:pl-4 sm:pr-5 sm:text-xs">
-          {text.heroBadgeText}
-          <span className="h-px w-8 bg-accent sm:w-12" />
-        </span>
+        {text.heroBadgeText && (
+          <span className="animate-fadeUp inline-block max-w-[85vw] rounded-full bg-black/55 px-4 py-1.5 text-center text-[10px] font-medium uppercase leading-relaxed tracking-[0.2em] text-accent sm:pl-4 sm:pr-5 sm:text-xs">
+            {text.heroBadgeText}
+          </span>
+        )}
 
         <h1 className="h1-hero flex max-w-2xl flex-col items-center gap-1 sm:items-start">
           <span className="animate-fadeUp inline-block text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] [animation-delay:100ms]">

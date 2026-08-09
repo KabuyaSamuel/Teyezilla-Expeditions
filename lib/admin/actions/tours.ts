@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePublicSite } from "@/lib/revalidate";
+import { redirectWithSaved } from "./saved-redirect";
 import {
   syncPricingTiers,
   syncHighlights,
@@ -97,51 +97,47 @@ function toRow(input: TourInput) {
   };
 }
 
+// Replaces a tour's rows in a related-content join table wholesale: clear,
+// then re-insert whatever's currently selected, in the order given.
+async function syncRelatedTable(
+  supabase: any,
+  table: string,
+  tourId: string,
+  relatedIds: string[],
+  relatedColumn: string
+) {
+  const { error: deleteError } = await supabase.from(table).delete().eq("tour_id", tourId);
+  if (deleteError) throw new Error(deleteError.message);
+  if (relatedIds.length === 0) return;
+
+  const { error } = await supabase.from(table).insert(
+    relatedIds.map((relatedId, index) => ({
+      tour_id: tourId,
+      [relatedColumn]: relatedId,
+      display_order: index,
+    }))
+  );
+  if (error) throw new Error(error.message);
+}
+
+// Every one of these only depends on the already-known tourId, not on each
+// other's results, so they run as one batch of parallel round trips instead
+// of ~11 sequential ones -- this was the single biggest contributor to a
+// tour save feeling slow.
 async function syncTourRelations(supabase: any, tourId: string, input: TourInput) {
-  await syncPricingTiers(supabase, "tour_pricing_tiers", "tour_id", tourId, input.pricingTiers);
-  await syncHighlights(supabase, "tour_highlights", "tour_id", tourId, input.highlights);
-  await syncFaqs(supabase, "tour_faqs", "tour_id", tourId, input.faqs);
-  await syncAddons(supabase, "tour_addons", "tour_id", tourId, input.addons);
-  await syncActivities(supabase, "tour_activities", "tour_id", tourId, input.activityIds);
-  await syncExperienceTypes(supabase, "tour_experience_types", "tour_id", tourId, input.experienceTypeIds);
-  await syncVehicles(supabase, "tour_vehicles", "tour_id", tourId, input.vehicleIds);
-  await syncAccommodations(supabase, "tour_accommodations", "tour_id", tourId, input.accommodationIds);
-
-  await supabase.from("tour_related_journeys").delete().eq("tour_id", tourId);
-  if (input.relatedJourneyIds.length > 0) {
-    const { error } = await supabase.from("tour_related_journeys").insert(
-      input.relatedJourneyIds.map((relatedJourneyId, index) => ({
-        tour_id: tourId,
-        related_journey_id: relatedJourneyId,
-        display_order: index,
-      }))
-    );
-    if (error) throw new Error(error.message);
-  }
-
-  await supabase.from("tour_related_tours").delete().eq("tour_id", tourId);
-  if (input.relatedTourIds.length > 0) {
-    const { error } = await supabase.from("tour_related_tours").insert(
-      input.relatedTourIds.map((relatedTourId, index) => ({
-        tour_id: tourId,
-        related_tour_id: relatedTourId,
-        display_order: index,
-      }))
-    );
-    if (error) throw new Error(error.message);
-  }
-
-  await supabase.from("tour_related_blog_posts").delete().eq("tour_id", tourId);
-  if (input.relatedBlogPostIds.length > 0) {
-    const { error } = await supabase.from("tour_related_blog_posts").insert(
-      input.relatedBlogPostIds.map((blogPostId, index) => ({
-        tour_id: tourId,
-        blog_post_id: blogPostId,
-        display_order: index,
-      }))
-    );
-    if (error) throw new Error(error.message);
-  }
+  await Promise.all([
+    syncPricingTiers(supabase, "tour_pricing_tiers", "tour_id", tourId, input.pricingTiers),
+    syncHighlights(supabase, "tour_highlights", "tour_id", tourId, input.highlights),
+    syncFaqs(supabase, "tour_faqs", "tour_id", tourId, input.faqs),
+    syncAddons(supabase, "tour_addons", "tour_id", tourId, input.addons),
+    syncActivities(supabase, "tour_activities", "tour_id", tourId, input.activityIds),
+    syncExperienceTypes(supabase, "tour_experience_types", "tour_id", tourId, input.experienceTypeIds),
+    syncVehicles(supabase, "tour_vehicles", "tour_id", tourId, input.vehicleIds),
+    syncAccommodations(supabase, "tour_accommodations", "tour_id", tourId, input.accommodationIds),
+    syncRelatedTable(supabase, "tour_related_journeys", tourId, input.relatedJourneyIds, "related_journey_id"),
+    syncRelatedTable(supabase, "tour_related_tours", tourId, input.relatedTourIds, "related_tour_id"),
+    syncRelatedTable(supabase, "tour_related_blog_posts", tourId, input.relatedBlogPostIds, "blog_post_id"),
+  ]);
 }
 
 export async function createTour(input: TourInput): Promise<void> {
@@ -155,7 +151,7 @@ export async function createTour(input: TourInput): Promise<void> {
 
   revalidatePath("/admin/tours");
   revalidatePublicSite();
-  redirect("/admin/tours");
+  redirectWithSaved("/admin/tours", `"${input.title}" created.`);
 }
 
 export async function updateTour(id: string, input: TourInput): Promise<void> {
@@ -169,7 +165,7 @@ export async function updateTour(id: string, input: TourInput): Promise<void> {
 
   revalidatePath("/admin/tours");
   revalidatePublicSite();
-  redirect("/admin/tours");
+  redirectWithSaved("/admin/tours", `"${input.title}" saved.`);
 }
 
 export async function deleteTour(id: string): Promise<void> {
@@ -181,5 +177,5 @@ export async function deleteTour(id: string): Promise<void> {
 
   revalidatePath("/admin/tours");
   revalidatePublicSite();
-  redirect("/admin/tours");
+  redirectWithSaved("/admin/tours", "Tour deleted.");
 }

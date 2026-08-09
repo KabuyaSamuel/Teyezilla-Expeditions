@@ -198,7 +198,7 @@ export default async function TourPage({ params }: Props) {
 
             {tour.overview && (
               <div>
-                <h2 className="font-heading text-2xl font-bold text-foreground">The Journey Story</h2>
+                <h2 className="font-heading text-2xl font-bold text-foreground">The Experience</h2>
                 <p className="mt-3 whitespace-pre-line text-foreground/70">{tour.overview}</p>
               </div>
             )}
@@ -228,7 +228,7 @@ export default async function TourPage({ params }: Props) {
               cancellationPolicy={tour.cancellationPolicy}
             />
             <ProductTeyezillaMoment text={tour.teyezillaMoment} />
-            <ProductPricingTiers tiers={tour.pricingTiers} bookingHref={bookingHref} />
+            <ProductPricingTiers tiers={tour.pricingTiers} bookingHref={bookingHref} kind="tour" />
             <ProductAddons addons={tour.addons} bookingHref={bookingHref} />
 
             {tour.featuredInJourneys.length > 0 && (

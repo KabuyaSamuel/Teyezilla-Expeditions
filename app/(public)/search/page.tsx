@@ -62,12 +62,14 @@ export default async function SearchPage({ searchParams }: Props) {
         {travelers && ` Travelers: ${travelers}.`}
       </p>
 
-      <TripSearch
-        defaultDestination={destination}
-        defaultExperience={experience}
-        defaultTravelDate={travelDate}
-        defaultTravelers={travelers}
-      />
+      <div className="mt-8">
+        <TripSearch
+          defaultDestination={destination}
+          defaultExperience={experience}
+          defaultTravelDate={travelDate}
+          defaultTravelers={travelers}
+        />
+      </div>
 
       {!hasQuery && (
         <div className="mt-10 rounded-2xl bg-secondary/10 p-8 text-center">

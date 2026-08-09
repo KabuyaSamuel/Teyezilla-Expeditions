@@ -9,6 +9,7 @@ import {
   updateStatusOption,
 } from "@/lib/admin/actions/status-options";
 import type { StatusCategory, StatusOption, StatusTone } from "@/lib/admin/data/status-options";
+import { useToast } from "./Toast";
 
 const TONES: StatusTone[] = ["neutral", "info", "pending", "success", "error"];
 
@@ -23,18 +24,25 @@ export default function StatusOptionsManager({
   description: string;
   options: StatusOption[];
 }) {
+  const { toast } = useToast();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newLabel, setNewLabel] = useState("");
   const [newTone, setNewTone] = useState<StatusTone>("neutral");
 
-  async function run(fn: () => Promise<void>) {
+  // successMessage is only passed for deliberate actions (add/delete) --
+  // reordering and inline label/tone edits stay quiet on success (a toast
+  // per arrow click or blur would be noise) but still surface errors.
+  async function run(fn: () => Promise<void>, successMessage?: string) {
     setBusy(true);
     setError(null);
     try {
       await fn();
+      if (successMessage) toast.success(successMessage);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      const message = err instanceof Error ? err.message : "Something went wrong.";
+      setError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -109,7 +117,7 @@ export default function StatusOptionsManager({
               type="button"
               disabled={busy}
               onClick={() => {
-                if (confirm(`Delete "${o.label}"?`)) run(() => deleteStatusOption(o.id));
+                if (confirm(`Delete "${o.label}"?`)) run(() => deleteStatusOption(o.id), `"${o.label}" deleted.`);
               }}
               className="ml-auto text-xs font-medium text-error hover:underline disabled:opacity-40"
             >
@@ -148,7 +156,7 @@ export default function StatusOptionsManager({
               await createStatusOption(category, newLabel, newTone);
               setNewLabel("");
               setNewTone("neutral");
-            })
+            }, `"${newLabel}" added.`)
           }
           className="btn-primary px-4 py-1.5 text-sm disabled:opacity-40"
         >

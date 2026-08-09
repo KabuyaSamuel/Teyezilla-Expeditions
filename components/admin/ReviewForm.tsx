@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Tour } from "@/types";
 import type { AdminReview } from "@/lib/admin/data/reviews";
 import { createReview, updateReview, deleteReview } from "@/lib/admin/actions/reviews";
+import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
@@ -16,6 +17,7 @@ export default function ReviewForm({
   existingReview?: AdminReview;
   tours: Tour[];
 }) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +44,9 @@ export default function ReviewForm({
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to save review.");
+      const message = err instanceof Error ? err.message : "Failed to save review.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }
@@ -55,7 +59,9 @@ export default function ReviewForm({
       await deleteReview(existingReview.id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      setError(err instanceof Error ? err.message : "Failed to delete review.");
+      const message = err instanceof Error ? err.message : "Failed to delete review.";
+      setError(message);
+      toast.error(message);
       setSaving(false);
     }
   }

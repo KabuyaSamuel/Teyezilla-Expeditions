@@ -83,3 +83,49 @@ export const BESPOKE_PAGE_DEFAULTS = {
 } as const;
 
 export type BespokePageKey = keyof typeof BESPOKE_PAGE_DEFAULTS;
+
+// The four catalog hub pages (/experiences, /journeys, /collections,
+// /safari) had their intro copy hardcoded directly in each page.tsx --
+// fine when it was placeholder text, but the real descriptive copy added
+// for SEO needs to be staff-editable without a code change, same as every
+// other on-page text in this file (each gets its own defaults object,
+// matching BESPOKE_PAGE_DEFAULTS above rather than one shared bag, so
+// resolveSiteText's key list always exactly matches the object's own
+// keys per page). Collections' page has a second, count-based sentence
+// ("N curated ways...") that isn't included here -- that one is
+// generated from the live collections count in code, so making it an
+// editable static string would let it drift out of sync with the real
+// count.
+export const EXPERIENCES_PAGE_DEFAULTS = {
+  experiencesHeadline: "Experiences",
+  experiencesIntro1: "From street food in Nairobi to safaris in the Mara and desert camps in the Sahara.",
+  experiencesIntro2:
+    "Every trip here starts as a real itinerary, not a template: a private safari through the Maasai Mara timed to the wildebeest migration, a Zanzibar beach stay built around Stone Town and the reef, a Sahara crossing by camel and 4x4, or a few unhurried days eating and wandering through Marrakech or Nairobi. Filter by experience type or destination below, or browse by category above -- wildlife and safari, beach and islands, culture and heritage, adventure, food and lifestyle, or city life -- to find the shape of trip you're after. Every listing links through to a full itinerary with pricing, duration, and what's included, and our travel team is happy to adjust any of them to fit your dates and interests.",
+} as const;
+
+export type ExperiencesPageKey = keyof typeof EXPERIENCES_PAGE_DEFAULTS;
+
+export const JOURNEYS_PAGE_DEFAULTS = {
+  journeysHeadline: "Journeys",
+  journeysIntro:
+    "Thoughtfully designed, multi-day itineraries, from signature single-country trips to multi-country expeditions across Africa.",
+} as const;
+
+export type JourneysPageKey = keyof typeof JOURNEYS_PAGE_DEFAULTS;
+
+export const COLLECTIONS_PAGE_DEFAULTS = {
+  collectionsHeadline: "The Teyezilla Collections",
+  collectionsIntro:
+    "Instead of browsing every tour and journey individually, these collections group trips by the kind of experience you're after -- an ocean escape, a heritage-focused journey, a hands-on adventure -- so you can start from the feeling you want the trip to have rather than a destination or date. Each collection is picked and maintained by our travel team, not generated automatically, and every trip inside it links through to a full itinerary you can book or ask us to adjust.",
+} as const;
+
+export type CollectionsPageKey = keyof typeof COLLECTIONS_PAGE_DEFAULTS;
+
+export const SAFARI_PAGE_DEFAULTS = {
+  safariEyebrow: "Safari",
+  safariHeadline: "The Art of the African Safari",
+  safariIntro:
+    "Go deeper into the wild with Teyezilla, from the Great Migration to gorilla trekking, every safari is planned by guides who know these landscapes firsthand.",
+} as const;
+
+export type SafariPageKey = keyof typeof SAFARI_PAGE_DEFAULTS;

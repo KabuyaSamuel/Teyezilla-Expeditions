@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getJourneys, getJourneyTypes } from "@/lib/journeys";
+import { getSiteSetting, resolveSiteText } from "@/lib/settings";
+import { JOURNEYS_PAGE_DEFAULTS, type JourneysPageKey } from "@/lib/homepageContent";
 import JourneyCard from "@/components/JourneyCard";
 import Pagination from "@/components/Pagination";
 
@@ -13,6 +15,7 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 const PAGE_SIZE = 9;
+const TEXT_KEYS = Object.keys(JOURNEYS_PAGE_DEFAULTS) as JourneysPageKey[];
 
 interface Props {
   searchParams: Promise<{ type?: string; page?: string }>;
@@ -20,7 +23,12 @@ interface Props {
 
 export default async function JourneysPage({ searchParams }: Props) {
   const { type, page: rawPage } = await searchParams;
-  const [allJourneys, journeyTypes] = await Promise.all([getJourneys(), getJourneyTypes()]);
+  const [allJourneys, journeyTypes, ...textValues] = await Promise.all([
+    getJourneys(),
+    getJourneyTypes(),
+    ...TEXT_KEYS.map((key) => getSiteSetting(key)),
+  ]);
+  const text = resolveSiteText(JOURNEYS_PAGE_DEFAULTS, TEXT_KEYS, textValues);
   const filteredJourneys = type ? allJourneys.filter((j) => j.journeyTypes.includes(type)) : allJourneys;
 
   const totalPages = Math.max(1, Math.ceil(filteredJourneys.length / PAGE_SIZE));
@@ -37,11 +45,8 @@ export default async function JourneysPage({ searchParams }: Props) {
 
   return (
     <div className="section">
-      <h1 className="h1-page">Journeys</h1>
-      <p className="mt-3 max-w-2xl text-foreground/70">
-        Thoughtfully designed, multi-day itineraries, from signature single-country trips to
-        multi-country expeditions across Africa.
-      </p>
+      <h1 className="h1-page">{text.journeysHeadline}</h1>
+      <p className="mt-3 max-w-2xl whitespace-pre-line text-foreground/70">{text.journeysIntro}</p>
 
       <div className="mt-8 flex flex-wrap gap-2">
         <Link

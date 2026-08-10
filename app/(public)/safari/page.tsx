@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublishedTours } from "@/lib/tours";
 import { getSafariThemes, getSafariGuideFaqs, getTourIdsBySafariThemeSlug } from "@/lib/safari";
+import { getSiteSetting, resolveSiteText } from "@/lib/settings";
+import { SAFARI_PAGE_DEFAULTS, type SafariPageKey } from "@/lib/homepageContent";
 import TourCard from "@/components/TourCard";
 import JsonLd from "@/components/JsonLd";
 import { faqPageJsonLd } from "@/lib/jsonld";
@@ -14,18 +16,22 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600;
 
+const TEXT_KEYS = Object.keys(SAFARI_PAGE_DEFAULTS) as SafariPageKey[];
+
 export default async function SafariPage({
   searchParams,
 }: {
   searchParams: Promise<{ theme?: string }>;
 }) {
   const { theme } = await searchParams;
-  const [tours, themes, faqs, themeTourIds] = await Promise.all([
+  const [tours, themes, faqs, themeTourIds, ...textValues] = await Promise.all([
     getPublishedTours(),
     getSafariThemes(),
     getSafariGuideFaqs(),
     theme ? getTourIdsBySafariThemeSlug(theme) : Promise.resolve<string[] | null>(null),
+    ...TEXT_KEYS.map((key) => getSiteSetting(key)),
   ]);
+  const text = resolveSiteText(SAFARI_PAGE_DEFAULTS, TEXT_KEYS, textValues);
   const selectedTheme = theme ? themes.find((t) => t.slug === theme) : undefined;
   const safariTours = tours
     .filter((t) => t.productType === "safari")
@@ -36,14 +42,11 @@ export default async function SafariPage({
     <div>
       {faqJsonLd && <JsonLd data={faqJsonLd} />}
       <div className="section max-w-3xl">
-        <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">Safari</span>
+        <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">{text.safariEyebrow}</span>
         <h1 className="mt-3 h1-page">
-          The Art of the African Safari
+          {text.safariHeadline}
         </h1>
-        <p className="mt-6 intro-text text-foreground/70">
-          Go deeper into the wild with Teyezilla, from the Great Migration to gorilla trekking,
-          every safari is planned by guides who know these landscapes firsthand.
-        </p>
+        <p className="mt-6 intro-text whitespace-pre-line text-foreground/70">{text.safariIntro}</p>
       </div>
 
       <div id="signature-safari" className="bg-secondary/10">

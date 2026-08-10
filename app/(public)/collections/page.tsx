@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCollections } from "@/lib/collections";
+import { getSiteSetting, resolveSiteText } from "@/lib/settings";
+import { COLLECTIONS_PAGE_DEFAULTS, type CollectionsPageKey } from "@/lib/homepageContent";
 
 export const metadata: Metadata = {
   title: "The Teyezilla Collections",
@@ -10,23 +12,26 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600;
 
+const TEXT_KEYS = Object.keys(COLLECTIONS_PAGE_DEFAULTS) as CollectionsPageKey[];
+
 export default async function CollectionsPage() {
-  const collections = await getCollections();
+  const [collections, ...textValues] = await Promise.all([
+    getCollections(),
+    ...TEXT_KEYS.map((key) => getSiteSetting(key)),
+  ]);
+  const text = resolveSiteText(COLLECTIONS_PAGE_DEFAULTS, TEXT_KEYS, textValues);
 
   return (
     <div className="section">
-      <h1 className="h1-page">The Teyezilla Collections</h1>
+      <h1 className="h1-page">{text.collectionsHeadline}</h1>
+      {/* Count-based, so it's generated here rather than being part of the
+          editable copy below -- a static admin-entered string would drift
+          out of sync with the real collections count. */}
       <p className="mt-3 max-w-2xl text-foreground/70">
         {collections.length} curated way{collections.length !== 1 ? "s" : ""} to experience the magic of Africa,
         each one hand-curated by our team.
       </p>
-      <p className="mt-3 max-w-2xl text-foreground/70">
-        Instead of browsing every tour and journey individually, these collections group trips by the kind of
-        experience you&rsquo;re after -- an ocean escape, a heritage-focused journey, a hands-on adventure -- so you
-        can start from the feeling you want the trip to have rather than a destination or date. Each
-        collection is picked and maintained by our travel team, not generated automatically, and every trip
-        inside it links through to a full itinerary you can book or ask us to adjust.
-      </p>
+      <p className="mt-3 max-w-2xl whitespace-pre-line text-foreground/70">{text.collectionsIntro}</p>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {collections.map((collection) => (
           <Link key={collection.id} href={`/collections/${collection.slug}`} className="card p-6">

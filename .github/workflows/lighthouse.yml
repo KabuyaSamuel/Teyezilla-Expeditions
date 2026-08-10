@@ -1,31 +1,44 @@
 name: Lighthouse
 
 # Performance/accessibility/SEO audits against a real deployment. Not run
-# on every push -- Lighthouse audits are slow and this is meant to track
-# trends and catch regressions after a deploy, not gate every commit.
-# Assertions in lighthouserc*.js are deliberately loose "warn" thresholds
-# for now (no real baseline has been benchmarked yet); reports upload to
-# temporary-public-storage and the shareable link is printed in the job
-# log either way.
+# on every push in the sense of gating it -- Lighthouse audits are slow
+# and this is meant to track trends and catch regressions after a deploy,
+# not block a commit. Assertions in lighthouserc*.js are deliberately
+# loose "warn" thresholds for now (no real baseline has been benchmarked
+# yet); reports upload to temporary-public-storage and the shareable link
+# is printed in the job log either way.
 #
-# deployment_status runs are restricted to the Production environment:
-# Preview deployments sit behind Vercel's own Deployment Protection SSO
-# wall, so a script hitting a preview URL lands on vercel.com/login
-# instead of the real app (confirmed directly -- this is what broke the
-# admin job before this restriction was added). Revisit if preview checks
-# are wanted later via Vercel's Protection Bypass for Automation.
+# Previously triggered on `deployment_status`, restricted to Vercel's
+# Production environment -- that only ever worked because Vercel's GitHub
+# App creates a formal Deployments-API object or every push, which is
+# what deployment_status actually fires on. Netlify's default GitHub
+# integration doesn't do that (it posts a commit status, a different and
+# older mechanism) -- confirmed directly: after the Vercel->Netlify
+# hosting migration, this workflow only kept running at all because
+# Vercel's GitHub App was still connected and still deploying in
+# parallel, auditing an increasingly stale target that no longer
+# reflects the real site. Disconnect Vercel's GitHub App from this repo
+# (Vercel dashboard -> Project -> Settings -> Git) once this is merged --
+# nothing here depends on it anymore, and leaving it connected means
+# every push keeps showing a misleading "Vercel - Deployment" check.
 #
-# Even for Production, the LHCI_BASE_URL steps below deliberately ignore
-# deployment_status's environment_url/target_url: Vercel reports its own
-# auto-generated per-deployment *.vercel.app alias there, and that alias
-# sits behind Deployment Protection too, same as Preview -- only the real
-# custom domain is actually public (confirmed directly: a "Production"
-# deployment_status run still hit vercel.com/login on that alias). Falls
-# back to each script's own default (the real production domain) instead.
-# workflow_dispatch runs still work against any URL, preview included.
+# Now runs on push to main -- i.e. right after a merge, which is what
+# triggers Netlify's production build -- with a fixed wait for that build
+# to finish before auditing. There's no signal available to know exactly
+# when Netlify's deploy actually completes without wiring up an outgoing
+# deploy-notification webhook (Site settings -> Build & deploy -> Deploy
+# notifications -> add one for "Deploy succeeded", pointed at
+# https://api.github.com/repos/OWNER/REPO/dispatches with a GitHub PAT --
+# would let this trigger on `repository_dispatch` precisely instead of a
+# guess); the wait below is a "good enough" heuristic given this
+# workflow's own stated non-blocking, trend-tracking purpose -- a run
+# that starts slightly early just audits the previous still-live
+# deployment instead of the new one, not a broken run. workflow_dispatch
+# remains for an exact on-demand run against any URL, deployed or not.
 
 on:
-  deployment_status:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       url:
@@ -36,9 +49,6 @@ on:
 jobs:
   lighthouse-public:
     runs-on: ubuntu-latest
-    if: >-
-      github.event_name != 'deployment_status' ||
-      (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
     steps:
       - uses: actions/checkout@v7
 
@@ -48,6 +58,13 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # Netlify's own build + CDN propagation for this site typically
+      # finishes well under this -- see the comment above for why this is
+      # a heuristic rather than a precise "deploy finished" signal.
+      - name: Wait for Netlify production deploy
+        if: github.event_name == 'push'
+        run: sleep 180
 
       - name: Lighthouse (public pages)
         env:
@@ -64,9 +81,6 @@ jobs:
   # they're missing or login doesn't succeed.
   lighthouse-admin:
     runs-on: ubuntu-latest
-    if: >-
-      github.event_name != 'deployment_status' ||
-      (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
     steps:
       - uses: actions/checkout@v7
 
@@ -76,6 +90,10 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      - name: Wait for Netlify production deploy
+        if: github.event_name == 'push'
+        run: sleep 180
 
       - name: Fetch admin session cookie
         id: cookie

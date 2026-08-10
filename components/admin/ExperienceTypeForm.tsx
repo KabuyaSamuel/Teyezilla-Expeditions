@@ -68,11 +68,12 @@ export default function ExperienceTypeForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
+      <p className="text-xs text-foreground/50">Fields marked with <span className="text-error">*</span> are required.</p>
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Basic Details</h2>
         <div className="mt-4">
-          <label htmlFor="name" className="text-xs font-medium text-foreground/60">Category Name</label>
+          <label htmlFor="name" className="text-xs font-medium text-foreground/60">Category Name <span className="text-error">*</span></label>
           <input
             id="name"
             name="name"

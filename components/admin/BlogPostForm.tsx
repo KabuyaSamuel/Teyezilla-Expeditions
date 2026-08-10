@@ -88,10 +88,11 @@ export default function BlogPostForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
+      <p className="text-xs text-foreground/50">Fields marked with <span className="text-error">*</span> are required.</p>
 
       <section className="card grid gap-4 p-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="title" className="text-xs font-medium text-foreground/60">Title</label>
+          <label htmlFor="title" className="text-xs font-medium text-foreground/60">Title <span className="text-error">*</span></label>
           <input id="title" name="title" required defaultValue={existingPost?.title} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div>

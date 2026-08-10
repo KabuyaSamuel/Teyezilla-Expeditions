@@ -62,7 +62,7 @@ export default function InlineMediaUpload({
       className="flex flex-wrap items-end gap-2 rounded-xl border border-dashed border-secondary/40 p-3"
     >
       <div className="min-w-0 flex-1">
-        <label className="text-xs font-medium text-foreground/60">Upload new</label>
+        <label className="text-xs font-medium text-foreground/60">Upload new <span className="text-error">*</span></label>
         <p className="mt-0.5 text-[11px] text-foreground/40">
           Images up to {formatMB(maxBytesForFile({ type: "image/png" }))}
           {acceptsVideo && <> · Video up to {formatMB(maxBytesForFile({ type: "video/mp4" }))}</>}

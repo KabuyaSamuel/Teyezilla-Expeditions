@@ -80,14 +80,15 @@ export default function StaffForm({ existingStaff }: { existingStaff?: StaffMemb
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
+      <p className="text-xs text-foreground/50">Fields marked with <span className="text-error">*</span> are required.</p>
 
       <section className="card grid gap-4 p-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="fullName" className="text-xs font-medium text-foreground/60">Full Name</label>
+          <label htmlFor="fullName" className="text-xs font-medium text-foreground/60">Full Name <span className="text-error">*</span></label>
           <input id="fullName" name="fullName" required defaultValue={existingStaff?.fullName} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div>
-          <label htmlFor="email" className="text-xs font-medium text-foreground/60">Email</label>
+          <label htmlFor="email" className="text-xs font-medium text-foreground/60">Email <span className="text-error">*</span></label>
           <input
             id="email"
             name="email"

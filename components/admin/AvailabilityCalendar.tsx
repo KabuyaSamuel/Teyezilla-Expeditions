@@ -77,7 +77,7 @@ export default function AvailabilityCalendar({
 
       <form onSubmit={handleAdd} className="mt-4 flex flex-wrap items-end gap-3">
         <div>
-          <label htmlFor="availabilityDate" className="text-xs font-medium text-foreground/60">Date</label>
+          <label htmlFor="availabilityDate" className="text-xs font-medium text-foreground/60">Date <span className="text-error">*</span></label>
           <input
             id="availabilityDate"
             type="date"

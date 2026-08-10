@@ -81,10 +81,11 @@ export default function DestinationForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
+      <p className="text-xs text-foreground/50">Fields marked with <span className="text-error">*</span> are required.</p>
 
       <section className="card grid gap-4 p-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="countryName" className="text-xs font-medium text-foreground/60">Country Name</label>
+          <label htmlFor="countryName" className="text-xs font-medium text-foreground/60">Country Name <span className="text-error">*</span></label>
           <input id="countryName" name="countryName" required defaultValue={existingDestination?.countryName} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div>

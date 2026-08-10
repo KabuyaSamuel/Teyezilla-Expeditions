@@ -173,16 +173,17 @@ export default function TourForm({
       {error && (
         <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>
       )}
+      <p className="text-xs text-foreground/50">Fields marked with <span className="text-error">*</span> are required.</p>
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Basic Details</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="tourTitle" className="text-xs font-medium text-foreground/60">Tour Title</label>
+            <label htmlFor="tourTitle" className="text-xs font-medium text-foreground/60">Tour Title <span className="text-error">*</span></label>
             <input id="tourTitle" name="tourTitle" required defaultValue={existingTour?.title} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
-            <label htmlFor="destinationId" className="text-xs font-medium text-foreground/60">Destination</label>
+            <label htmlFor="destinationId" className="text-xs font-medium text-foreground/60">Destination <span className="text-error">*</span></label>
             <select id="destinationId" name="destinationId" required defaultValue={existingTour?.destinationId} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
               {destinations.map((d) => (
                 <option key={d.id} value={d.id}>{d.countryName}</option>

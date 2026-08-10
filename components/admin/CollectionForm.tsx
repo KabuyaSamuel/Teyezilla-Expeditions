@@ -84,12 +84,13 @@ export default function CollectionForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
+      <p className="text-xs text-foreground/50">Fields marked with <span className="text-error">*</span> are required.</p>
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Basic Details</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="name" className="text-xs font-medium text-foreground/60">Collection Name</label>
+            <label htmlFor="name" className="text-xs font-medium text-foreground/60">Collection Name <span className="text-error">*</span></label>
             <input id="name" name="name" required defaultValue={existingCollection?.name} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>

@@ -4,81 +4,61 @@ Premium African travel platform: a public marketing/booking site plus a staff-fa
 admin dashboard, both backed by a real Supabase database. Customers browse
 destinations, tours, and multi-country journeys and submit a booking enquiry, contact
 message, or AI trip planner request; staff work those enquiries through to a quote and
-confirmation in the admin dashboard. There's no online payment gateway by design — the
-business quotes by email/WhatsApp and takes payment offline.
+confirmation in the admin dashboard. There's no online payment gateway yet — the
+business quotes by email/WhatsApp and takes payment offline (see Roadmap).
 
-## The story so far
+Live at **[teyezillaexpeditions.com](https://www.teyezillaexpeditions.com)**, hosted on
+Netlify, built from the `main` branch. `Dev2` is the active development branch — every
+push there runs full CI (typecheck, build, changed-file lint, RLS + rate-limit
+regression tests) before anything is merged to `main`.
 
-The build went through three broad phases:
-
-1. **Foundation** — Next.js App Router project, design tokens, fonts, base layout.
-2. **Public website** — every marketing/booking page, SEO/AEO infrastructure.
-3. **Admin dashboard** — 20 staff-facing modules, initially reading from Supabase with
-   seed-data fallback.
-
-It's now well into **Phase 4: Integrations and real persistence**. The admin dashboard
-has moved past "reads only" — every module's forms write back to Supabase for real
-(destinations, tours, journeys, bookings, customers, blog posts, etc. all persist), the
-public blog reads live content instead of hardcoded article bodies, and
-guide/driver/vehicle assignment for upcoming departures is fully wired (see
-Operations below). What's left in Phase 4 is external integrations: analytics, search
-console, and a plan for AI-assisted itinerary generation that doesn't depend on a paid
-LLM subscription. See "Current state" and "Roadmap" below for the specifics — some
-things in earlier drafts of this document had drifted from what's actually in the code,
-so treat this version as the source of truth.
-
-## Tech stack
-
-- **Next.js 16 (App Router) + TypeScript + Tailwind CSS v3** — `tailwind.config.ts`
-  holds the brand design tokens (colors, fonts, shadows, animation)
-- **React 19**, `next/font/google` loading Poppins (headings) and Inter (body)
-- **Supabase** — Postgres + Auth + Storage. All data reads/writes go through `lib/`
-  (public site) and `lib/admin/data/` + `lib/admin/actions/` (admin), with seed-data
-  fallback when Supabase env vars are absent
-- **Sentry** — error monitoring, client + server
-- **Vercel Analytics + Speed Insights** — already live (distinct from Google Analytics,
-  see Roadmap)
-- **Upstash Redis** — rate limiting on public forms
-- **Resend** — transactional email
-- **Vitest** — RLS regression tests run against the real Supabase project (throwaway
-  rows, cleaned up after each test) plus rate-limit tests
-- **Lighthouse CI** — performance/accessibility/SEO audits against real deployments
-
-## Current state
+## What's in the app
 
 ### Public site
 
 Homepage, destinations index + `[slug]` pages, tours `[slug]` pages, journeys index +
 `[slug]` pages, collections, safaris, experiences, tailor-made trips, private travel,
-concierge, blog index + `[slug]` pages, reviews, about, contact, booking enquiry form,
-booking confirmation, booking information, cancellation policy, travel guide, FAQs, AI
-trip planner form, privacy policy, terms.
+blog index + `[slug]` pages (with image/video/code content blocks), reviews, about,
+contact, booking enquiry form, booking confirmation, booking information, cancellation
+policy, travel guide, FAQs, AI trip planner form, search, privacy policy, terms.
 
 **SEO**: `generateMetadata` on every dynamic route, `app/sitemap.ts`, `app/robots.ts`,
 canonical URLs, JSON-LD (`BreadcrumbList`, `FAQPage`, `TouristTrip`, `BlogPosting`).
 **AEO/GEO**: `public/llms.txt`, answer-first content blocks, FAQ schema, comparison-format
 blog posts.
+**Analytics**: Google Analytics 4, Google Tag Manager, and Microsoft Clarity are all
+live in production, each optional and independently configured (see Environment
+variables below) — none of the three block rendering or each other if unset.
 
 ### Admin dashboard (`/admin`)
 
 **Auth**: `proxy.ts` (Next.js 16's route-guard convention) checks a real Supabase Auth
 session on every `/admin/*` request and refreshes it as needed. `lib/admin/session.ts`
 additionally requires a matching row in the `staff` table — a Supabase Auth user alone
-isn't enough; they also need a `staff` row with a role.
+isn't enough; they also need a `staff` row with a role. Login itself is rate-limited by
+both IP and the submitted email (`app/admin/login/actions.ts`).
 
 **Roles & permissions** live in one file, `lib/admin/permissions.ts` — `ROLE_MODULE_ACCESS`
 is the single source of truth for both the sidebar and route access. Five roles: `admin`,
-`manager`, `tour_guide`, `driver`, `sales_agent`, each seeing a different subset of the 20
-modules.
+`manager`, `tour_guide`, `driver`, `sales_agent`, each seeing a different subset of the 24
+modules below.
 
-**The 20 modules, all built, all reading and writing real data**:
-Dashboard, Tour Management, Journey Management, Collections, Activities Library, Vehicle
-Library, Accommodation Library, Destination Management, Operations (assign
-guides/drivers/vehicles to upcoming departures), Booking Management, Customer Management
-(CRM), Inquiry Management (website, WhatsApp, contact form, and trip planner enquiries
-all land here), Blog Management, Reviews, Media Library, Reports & Analytics, Staff
-Management, Website Settings, Status Options (custom taxonomy for booking/payment
-statuses), Travel Resources, Notifications.
+**The 24 modules, all built, all reading and writing real data**, grouped the way the
+sidebar groups them:
+
+- **Today**: Notifications, Booking Management, Inquiry Management (website, WhatsApp,
+  contact form, and trip planner enquiries all land here), Customer Management (CRM),
+  Operations (assign guides/drivers/vehicles to upcoming departures)
+- **Catalog**: Tour Management, Journey Management, Collections, Destination Management
+- **Building Blocks**: Experience Types, Activities Library, Vehicle Library,
+  Accommodation Library
+- **Content & Marketing**: Blog Management, Reviews, FAQs, Travel Resources, Team
+  Members, Media Library (upload-time image resize + type/magic-byte validation, see
+  Security), Link Generator (trackable UTM links)
+- **Reports & Settings**: Reports & Analytics, Staff Management, Website Settings,
+  Status Options (custom taxonomy for booking/payment statuses)
+- Dashboard itself sits pinned above all five groups; every card on it links through to
+  the full view of whatever it's summarizing.
 
 **Write pattern**: every module follows the same shape —
 `lib/admin/data/<module>.ts` for reads, `lib/admin/actions/<module>.ts` for
@@ -91,44 +71,60 @@ handler. Follow this pattern for any new module.
 
 - **Coupons/discount codes** (`discount_codes` table, seeded) — no admin UI. There's no
   payment gateway to apply a discount against yet, so this isn't worth building until
-  online payment (if ever) is in scope.
+  online payment is in scope (see Roadmap).
 - **Affiliate program** (`affiliate_partners` table, no seed data, zero code references
   anywhere) — deferred; revisit if client budget allows building this out.
-- **Google Maps** (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` declared in `lib/env.ts`, unused
-  everywhere) — not needed for the current product.
 
 None of this is a bug or an oversight — these were reviewed and explicitly deprioritized.
 
-### What's genuinely still open
+## Tech stack
 
-- **AI Trip Planner**: the public form captures customer input (destination, days,
-  budget, travel style) and it lands in Inquiry Management, where staff currently
-  hand-write the suggested itinerary (`saveTripPlannerItinerary` in
-  `lib/admin/actions/trip-planner.ts` just saves whatever text staff type). No AI
-  provider is wired. The client doesn't have (or want) a paid LLM subscription, so the
-  plan is a deterministic itinerary suggestion engine built from data already in
-  Supabase (tours, journeys, accommodations, activities matched against the customer's
-  inputs) rather than a real LLM call — gives staff a real draft to start from instead
-  of a blank page, at zero ongoing cost. The seam should be built so a real LLM call can
-  replace it later without touching callers, the same way Sentry/email/rate-limiting are
-  already optional integrations that degrade gracefully.
-- **WhatsApp Business Cloud API** (`WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN` in
-  `lib/env.ts`) — for *automated* WhatsApp messaging, not yet wired. The manual
-  `wa.me` click-to-chat link (`components/WhatsAppButton.tsx`,
-  `NEXT_PUBLIC_WHATSAPP_NUMBER`) already works everywhere today and covers the core need.
-- **Google Analytics 4**: code is written but commented out (`app/layout.tsx`, look for
-  `<GoogleAnalytics>`) — waiting on a real `NEXT_PUBLIC_GA_MEASUREMENT_ID` and the
-  custom domain being connected before going live.
-- **Google Search Console**: not started. Once the domain is connected, verify via a DNS
-  TXT record (no code needed) and submit `sitemap.xml` (already live at `app/sitemap.ts`).
-- **Custom domain**: the site currently lives on `teyezillaexpeditions.vercel.app`, not
-  the custom domain. `lib/site.ts`'s `SITE_URL` already points at the intended final
-  domain (`https://www.teyezillaexpeditions.com`) since that's what should get indexed —
-  `scripts/smoke-test.mjs` and `scripts/fetch-admin-auth-cookie.mjs` have TODOs to switch
-  back to it once it's live.
-- **Real photography**: components still reference `picsum.photos` placeholder images
-  (one real photo on the homepage is CC BY 2.0 licensed from Wikimedia, credited in
-  `components/WhyChoose.tsx`). See `docs/replacing-placeholder-images.md`.
+- **Next.js 16 (App Router) + TypeScript + Tailwind CSS v3** — `tailwind.config.ts`
+  holds the brand design tokens (colors, fonts, shadows, animation)
+- **React 19**, `next/font/google` (self-hosted at build time, no runtime request to
+  Google) loading Poppins (headings) and Inter (body)
+- **Supabase** — Postgres + Auth + Storage. All data reads/writes go through `lib/`
+  (public site) and `lib/admin/data/` + `lib/admin/actions/` (admin), with seed-data
+  fallback when Supabase env vars are absent
+- **Netlify** — production hosting, including the Next.js runtime and image
+  optimization CDN
+- **Sharp** + **file-type** — upload-time image resize/re-encode and magic-byte file
+  type verification (Media Library)
+- **Sentry** — error monitoring, client + server
+- **Google Analytics 4 + Google Tag Manager + Microsoft Clarity** — all live, all
+  independently optional
+- **Upstash Redis** — rate limiting on public forms and admin login
+- **Resend** — transactional email
+- **Vitest** — RLS regression tests run against the real Supabase project (throwaway
+  rows, cleaned up after each test), rate-limit tests, and pure-function unit tests
+  (media validation, email sanitization, legacy-data fallbacks)
+- **Lighthouse CI** — performance/accessibility/SEO audits against real deployments
+
+## Security
+
+Site-wide security headers (CSP, `X-Frame-Options`, `X-Content-Type-Options`,
+`Referrer-Policy`, `Permissions-Policy`) are set in `next.config.ts`'s `headers()`. CSP
+currently ships as `Content-Security-Policy-Report-Only` — monitor a deployed preview
+for violations before switching it to enforcing (see the comment above that function for
+exactly what to check).
+
+Other hardening worth knowing about if you're extending these areas:
+
+- **Media Library uploads** (`lib/admin/actions/media.ts`) — server-side allowlist of
+  accepted MIME types, magic-byte verification of actual file content (not just the
+  client-declared type), and the storage path's extension is derived from the verified
+  type rather than the uploaded filename.
+- **Public form email** (`contact`, `trip-planner`) — user input going into an email
+  subject line is run through `sanitizeForEmailSubject()` (`lib/enquiry-shared.ts`);
+  HTML bodies already escape every user value via `escapeHtml()`
+  (`lib/email-templates.ts`).
+- **Rate limiting** (`lib/rate-limit.ts`) — prefers Netlify's platform-verified
+  `x-nf-client-connection-ip` header over the spoofable `x-forwarded-for`. Applies to
+  contact, trip planner, booking, and admin login (by IP and by the submitted email).
+- **AI integration**: no LLM is wired up yet (the trip planner is a form). Required
+  practices for whoever builds that feature are documented in
+  `docs/ai-integration-guidelines.md`, written now so it's designed safely from the
+  start.
 
 ## Getting started (new dev setup)
 
@@ -231,9 +227,12 @@ optional:
   `RESEND_API_KEY` and email vars, `SENTRY_DSN` and Sentry vars,
   `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`, WhatsApp Business API vars,
   `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `NEXT_PUBLIC_GA_MEASUREMENT_ID`,
-  `NEXT_PUBLIC_GTM_ID`.
+  `NEXT_PUBLIC_GTM_ID`, `NEXT_PUBLIC_CLARITY_PROJECT_ID`.
+- Production values for all of the above live in Netlify's Site settings → Environment
+  variables, not just `.env.local` — a var added locally has no effect on the deployed
+  site until it's also added there and a build runs.
 - CI builds without any Supabase secrets by setting `SKIP_ENV_VALIDATION=1` — that job
-  checks compile correctness only, not real data. A real build (Vercel, or a local
+  checks compile correctness only, not real data. A real build (Netlify, or a local
   `npm run build` without `.env.local`) is expected to fail loudly on the required vars.
 
 ### Verifying a production build
@@ -243,7 +242,7 @@ npm run build
 ```
 
 `next/font/google` fetches fonts from Google at build time, so the build machine needs
-outbound internet access to `fonts.googleapis.com` — works on Vercel and any normal dev
+outbound internet access to `fonts.googleapis.com` — works on Netlify and any normal dev
 machine by default.
 
 ### Tests
@@ -254,22 +253,33 @@ npm test
 
 Runs `tests/rls/*.test.ts` (RLS regression tests against the real Supabase project —
 every test creates its own throwaway rows and cleans them up, nothing reads/writes real
-content) and `tests/rate-limit.test.ts`. Both need the Supabase env vars above; the
-rate-limit test also needs the Upstash ones.
+content), `tests/rate-limit.test.ts`, and a set of pure-function unit tests needing no
+live services (Media Library validation, email sanitization, legacy-data fallbacks). The
+RLS and rate-limit tests need the Supabase/Upstash env vars above; the pure-function
+tests don't.
 
 ### Lint
 
-`npm run lint` currently fails with ~121 pre-existing `@typescript-eslint/no-explicit-any`
-errors scattered across the codebase (none from recent work) — this is why it's
-deliberately not run in CI yet (see `.github/workflows/ci.yml`). Don't let it block you;
-just don't add new `any` types in files you touch.
+```bash
+npm run lint
+```
+
+Currently fails with 135+ pre-existing `@typescript-eslint/no-explicit-any` errors
+scattered across the codebase (mostly Supabase row mappers typed as
+`Record<string, any>` by design). CI doesn't run this against the whole repo for that
+reason — instead `.github/workflows/ci.yml`'s `lint` job only lints files changed in
+each push/PR, so old debt doesn't block CI but nothing new can land uncaught. Don't let
+the full-repo failure block you locally; just don't add new lint errors in files you
+touch.
 
 ### CI
 
-- `.github/workflows/ci.yml` — typecheck + build + tests, on every push/PR to `main`/`Dev2`.
+- `.github/workflows/ci.yml` — typecheck + build, changed-file lint, and RLS/rate-limit
+  tests, on every push/PR to `main`/`Dev2`.
 - `.github/workflows/lighthouse.yml` — performance/accessibility/SEO audit against real
   Production deployments (not every push — audits are slow, this tracks trends).
 - `.github/workflows/smoke-test.yml` — post-deploy smoke test.
+- `.github/workflows/supabase-keep-alive.yml` — see below.
 
 ### Supabase keep-alive
 
@@ -311,6 +321,8 @@ silently-broken keep-alive defeats its own purpose.
 - `lib/admin/permissions.ts` — single source of truth for module list + role access.
 - `supabase/migrations/` — schema, timestamp-ordered; `supabase/seed.sql` — demo content.
 - `types/database.ts` — generated from the live schema, regenerate after migrations.
+- `docs/` — standalone guides for things too specific for this file (replacing
+  placeholder images, AI integration guidelines).
 
 **Design principle to follow**: optional integrations (email, Sentry, rate limiting,
 analytics) all fail open — the feature just doesn't activate rather than breaking
@@ -319,18 +331,25 @@ anything when unconfigured. Follow this pattern for any new external integration
 `SUPABASE_SERVICE_ROLE_KEY`, which is required and validated at boot — the app cannot
 correctly serve real traffic without it.
 
-## Roadmap
+## Roadmap — future path
 
-Remaining Phase 4 work, roughly in priority order:
+The core platform (public site, 24-module admin dashboard, real persistence,
+integrations, security hardening) is built and live. What's next, in the order it'll
+most likely get tackled:
 
-1. **AI Trip Planner** — build the deterministic itinerary-suggestion engine described
-   above (no paid LLM dependency).
-2. **Connect the custom domain**, then flip on GA4 (`app/layout.tsx`, currently commented
-   out) and verify Google Search Console.
-3. **Real photography** — replace `picsum.photos`/Wikimedia placeholders.
+1. **Customer account creation** — currently every booking is enquiry-first with no
+   customer login; a real account system (order history, saved trips, faster repeat
+   bookings) is the next foundational piece.
+2. **Payment creation** — an actual online payment gateway. Today the business quotes by
+   email/WhatsApp and takes payment offline entirely; this is the biggest single change
+   to the booking flow, and `discount_codes` (see "What's dormant" above) becomes worth
+   building once it lands.
+3. **A comprehensive CRM** — Customer Management exists today (`/admin/customers`) but
+   is catalog-adjacent, not a full CRM (no lifecycle stages, campaign history, or
+   automated follow-up sequences yet).
+4. **Automated backups** — Supabase's own point-in-time recovery covers infrastructure
+   failure, but there's no independent, app-level backup/export process yet for the
+   business's own peace of mind.
 
-Explicitly **out of scope** unless the client's budget changes: coupons/discount codes,
-affiliate management, Google Maps, WhatsApp Business API automation, any online payment
-gateway.
-
-Phase 5 (polish) follows once the above lands.
+Explicitly **out of scope** unless the client's budget changes: affiliate management,
+any feature that depends on online payment being live first (see #2).

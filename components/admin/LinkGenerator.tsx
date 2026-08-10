@@ -1,7 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { SITE_URL } from "@/lib/site";
+import { createTrackedLink, deleteTrackedLink } from "@/lib/admin/actions/link-generator";
+import type { TrackedLinkListItem } from "@/lib/admin/data/link-generator";
+import { useToast } from "./Toast";
+import ConfirmDialog from "./ConfirmDialog";
 
 const PRESETS = [
   { label: "Google Ads", source: "google", medium: "cpc" },
@@ -13,30 +18,60 @@ const PRESETS = [
   { label: "WhatsApp", source: "whatsapp", medium: "social" },
 ];
 
-export default function LinkGenerator() {
+export default function LinkGenerator({ links }: { links: TrackedLinkListItem[] }) {
+  const { toast } = useToast();
+  const router = useRouter();
   const [path, setPath] = useState("/");
   const [source, setSource] = useState("");
   const [medium, setMedium] = useState("");
   const [campaign, setCampaign] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [label, setLabel] = useState("");
+  const [customSlug, setCustomSlug] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<TrackedLinkListItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const isKnownPreset = PRESETS.some((p) => p.source === source && p.medium === medium);
 
-  const generatedUrl = useMemo(() => {
-    if (!source.trim()) return "";
-    const params = new URLSearchParams();
-    params.set("utm_source", source.trim());
-    if (medium.trim()) params.set("utm_medium", medium.trim());
-    if (campaign.trim()) params.set("utm_campaign", campaign.trim());
-    const normalizedPath = path.trim() ? (path.trim().startsWith("/") ? path.trim() : `/${path.trim()}`) : "/";
-    return `${SITE_URL}${normalizedPath}?${params.toString()}`;
-  }, [path, source, medium, campaign]);
+  async function handleCreate() {
+    if (!source.trim()) return;
+    setCreating(true);
+    try {
+      const { slug } = await createTrackedLink({
+        label,
+        destinationPath: path,
+        utmSource: source,
+        utmMedium: medium,
+        utmCampaign: campaign,
+        slug: customSlug,
+      });
+      await copyToClipboard(`${SITE_URL}/go/${slug}`, setCopiedSlug, slug);
+      toast.success("Link created and copied to clipboard.");
+      setLabel("");
+      setCampaign("");
+      setCustomSlug("");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create link.");
+    } finally {
+      setCreating(false);
+    }
+  }
 
-  async function handleCopy() {
-    if (!generatedUrl) return;
-    await navigator.clipboard.writeText(generatedUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteTrackedLink(deleteTarget.id);
+      toast.success("Link deleted.");
+      setDeleteTarget(null);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete link.");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -81,6 +116,11 @@ export default function LinkGenerator() {
 
       <section className="card grid gap-4 p-6 sm:grid-cols-2">
         <div className="sm:col-span-2">
+          <label htmlFor="label" className="text-xs font-medium text-foreground/60">Label</label>
+          <p className="mt-0.5 text-[11px] text-foreground/40">A name to recognize this link by later, e.g. &ldquo;August TikTok promo&rdquo;.</p>
+          <input id="label" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="August TikTok promo" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div className="sm:col-span-2">
           <label htmlFor="path" className="text-xs font-medium text-foreground/60">Page to link to</label>
           <p className="mt-0.5 text-[11px] text-foreground/40">e.g. / for the homepage, /destinations/kenya, /tours/serengeti-safari</p>
           <input id="path" value={path} onChange={(e) => setPath(e.target.value)} placeholder="/" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
@@ -95,26 +135,80 @@ export default function LinkGenerator() {
           <p className="mt-0.5 text-[11px] text-foreground/40">The channel type, e.g. cpc, social, email</p>
           <input id="medium" value={medium} onChange={(e) => setMedium(e.target.value)} placeholder="social" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
-        <div className="sm:col-span-2">
+        <div>
           <label htmlFor="campaign" className="text-xs font-medium text-foreground/60">Campaign name</label>
           <p className="mt-0.5 text-[11px] text-foreground/40">e.g. august-safari-promo -- whatever helps you tell campaigns apart later</p>
           <input id="campaign" value={campaign} onChange={(e) => setCampaign(e.target.value)} placeholder="august-safari-promo" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
+        <div>
+          <label htmlFor="customSlug" className="text-xs font-medium text-foreground/60">Custom short link (optional)</label>
+          <p className="mt-0.5 text-[11px] text-foreground/40">Leave blank to generate one automatically.</p>
+          <input id="customSlug" value={customSlug} onChange={(e) => setCustomSlug(e.target.value)} placeholder="tiktok-august" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div className="sm:col-span-2">
+          <button type="button" onClick={handleCreate} disabled={creating || !source.trim()} className="btn-primary text-sm disabled:opacity-50">
+            {creating ? "Creating…" : "Create Trackable Link"}
+          </button>
+        </div>
       </section>
 
       <section className="card p-6">
-        <h2 className="font-heading text-lg font-semibold text-foreground">Your link</h2>
-        {generatedUrl ? (
-          <>
-            <p className="mt-3 break-all rounded-xl bg-secondary/10 p-4 text-sm text-foreground">{generatedUrl}</p>
-            <button type="button" onClick={handleCopy} className="btn-primary mt-4 text-sm">
-              {copied ? "Copied ✓" : "Copy Link"}
-            </button>
-          </>
-        ) : (
-          <p className="mt-3 text-sm text-foreground/50">Fill in at least a source above to generate a link.</p>
-        )}
+        <h2 className="font-heading text-lg font-semibold text-foreground">Your links</h2>
+        <p className="mt-1 text-xs text-foreground/50">
+          Every click through one of these is counted here, whether or not the visitor goes on to enquire --
+          see Reports &amp; Analytics for enquiries specifically attributed to a source.
+        </p>
+        <div className="mt-4 space-y-3">
+          {links.map((link) => {
+            const url = `${SITE_URL}/go/${link.slug}`;
+            return (
+              <div key={link.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-secondary/10 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">
+                    {link.label || `${link.utmSource}${link.utmCampaign ? ` · ${link.utmCampaign}` : ""}`}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-foreground/60">{url} → {link.destinationPath}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-4">
+                  <div className="text-right">
+                    <p className="font-heading text-lg font-bold text-accent">{link.clickCount.toLocaleString()}</p>
+                    <p className="text-[11px] text-foreground/50">click{link.clickCount === 1 ? "" : "s"}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(url, setCopiedSlug, link.slug)}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    {copiedSlug === link.slug ? "Copied ✓" : "Copy"}
+                  </button>
+                  <button type="button" onClick={() => setDeleteTarget(link)} className="text-xs font-medium text-error hover:underline">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          {links.length === 0 && <p className="text-sm text-foreground/50">No trackable links yet -- create one above.</p>}
+        </div>
       </section>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Delete this link?"
+        description="Its click history will be deleted too. This can't be undone."
+        confirmLabel="Yes, delete"
+        cancelLabel="No"
+        danger
+        busy={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
+}
+
+async function copyToClipboard(text: string, setCopied: (slug: string | null) => void, slug: string) {
+  await navigator.clipboard.writeText(text);
+  setCopied(slug);
+  setTimeout(() => setCopied(null), 2000);
 }

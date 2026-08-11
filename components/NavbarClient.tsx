@@ -71,7 +71,15 @@ export default function NavbarClient({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Resets ephemeral UI state (open menu/dropdowns) whenever the route
+  // changes, so navigating away doesn't leave a stale menu open on the
+  // next page. react-hooks/set-state-in-effect flags the unconditional
+  // setState calls here, but there's no way around the extra render this
+  // causes: these are independent pieces of state, not one value a `key`
+  // prop could reset by remounting the subtree (which would also nuke
+  // state this effect has no business touching, like the search box).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMenuOpen(false);
     setOpenDropdown(null);
     setOpenMobileSection(null);

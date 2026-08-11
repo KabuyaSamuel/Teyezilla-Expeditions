@@ -388,7 +388,7 @@ export default function TourForm({
           </div>
           <div>
             <label htmlFor="metaDescription" className="text-xs font-medium text-foreground/60">Meta Description</label>
-            <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~150–160 characters (Google's snippet cuts off beyond this).</p>
+            <p className="mt-0.5 text-[11px] text-foreground/40">Aim for ~150–160 characters (Google&rsquo;s snippet cuts off beyond this).</p>
             <textarea id="metaDescription" name="metaDescription" defaultValue={existingTour?.metaDescription} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>

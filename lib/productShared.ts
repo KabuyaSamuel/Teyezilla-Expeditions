@@ -84,7 +84,67 @@ export interface ProductScalars {
   teyezillaMoment: string;
 }
 
-export function mapPricingTierRow(row: Record<string, any>): PricingTier {
+interface PricingTierRow {
+  id: string;
+  tier_name: string;
+  tagline: string | null;
+  price: number | null;
+  currency: string | null;
+  accommodation_summary: string | null;
+  features: string[] | null;
+  cta_label: string | null;
+  display_order: number | null;
+}
+
+interface ProductHighlightRow {
+  id: string;
+  title: string;
+  description: string | null;
+  display_order: number | null;
+}
+
+interface ProductFaqRow {
+  id: string;
+  question: string;
+  answer: string;
+  display_order: number | null;
+}
+
+interface ProductAddonRow {
+  id: string;
+  kind: "addon" | "extension";
+  title: string;
+  description: string | null;
+  price: number | null;
+  currency: string | null;
+  extra_days_min: number | null;
+  extra_days_max: number | null;
+  cta_label: string | null;
+  display_order: number | null;
+}
+
+// Optional, not just nullable -- every field is read through `?? default`
+// below regardless, and callers (e.g. lib/admin/data/tours.ts's own select)
+// span several different partial query shapes rather than always fetching
+// every product-scalar column.
+interface ProductScalarsRow {
+  product_type?: string | null;
+  min_guests?: number | null;
+  max_guests?: number | null;
+  fitness_level?: string | null;
+  best_for?: string[] | null;
+  languages?: string[] | null;
+  transportation?: string | null;
+  guide_info?: string | null;
+  food_and_drinks?: string | null;
+  important_info?: unknown;
+  bring_list?: string[] | null;
+  cancellation_policy?: unknown;
+  availability_note?: string | null;
+  teyezilla_moment?: string | null;
+}
+
+export function mapPricingTierRow(row: PricingTierRow): PricingTier {
   return {
     id: row.id,
     tierName: row.tier_name,
@@ -98,7 +158,7 @@ export function mapPricingTierRow(row: Record<string, any>): PricingTier {
   };
 }
 
-export function mapHighlightRow(row: Record<string, any>): ProductHighlight {
+export function mapHighlightRow(row: ProductHighlightRow): ProductHighlight {
   return {
     id: row.id,
     title: row.title,
@@ -107,7 +167,7 @@ export function mapHighlightRow(row: Record<string, any>): ProductHighlight {
   };
 }
 
-export function mapFaqRow(row: Record<string, any>): ProductFaq {
+export function mapFaqRow(row: ProductFaqRow): ProductFaq {
   return {
     id: row.id,
     question: row.question,
@@ -116,7 +176,7 @@ export function mapFaqRow(row: Record<string, any>): ProductFaq {
   };
 }
 
-export function mapAddonRow(row: Record<string, any>): ProductAddon {
+export function mapAddonRow(row: ProductAddonRow): ProductAddon {
   return {
     id: row.id,
     kind: row.kind,
@@ -142,6 +202,24 @@ export interface BookableAddon {
   currency: string;
 }
 
+// Leaves the joined tours/journeys relation as `unknown` rather than
+// declaring its shape here -- without the client parameterized to
+// <Database> (see lib/supabase/server.ts), Supabase's own inferred type
+// for an embedded relation doesn't reliably match the actual to-one
+// runtime shape a `tour_id`/`journey_id` FK produces, so a precise
+// declared type here fights the inferred one at the cast below instead
+// of matching it. Cast per-field at the point of use instead (same as
+// this code already did before), which is what it's actually relying on.
+interface AddonRow {
+  id: string;
+  title: string;
+  description: string | null;
+  price: number | null;
+  currency: string | null;
+  tours?: unknown;
+  journeys?: unknown;
+}
+
 // Powers the add-on checkboxes on the booking enquiry form. Two bulk
 // queries regardless of catalog size (not one per product), grouped by
 // slug since that's how BookingEnquiryForm/ProductOption key a product.
@@ -165,7 +243,7 @@ export async function getBookableAddonsBySlug(): Promise<Record<string, Bookable
   ]);
 
   const grouped: Record<string, BookableAddon[]> = {};
-  for (const row of (tourRes.data ?? []) as any[]) {
+  for (const row of (tourRes.data ?? []) as AddonRow[]) {
     const tour = row.tours as { slug: string; status: string } | null;
     if (!tour || tour.status !== "published") continue;
     (grouped[tour.slug] ??= []).push({
@@ -176,7 +254,7 @@ export async function getBookableAddonsBySlug(): Promise<Record<string, Bookable
       currency: row.currency ?? "USD",
     });
   }
-  for (const row of (journeyRes.data ?? []) as any[]) {
+  for (const row of (journeyRes.data ?? []) as AddonRow[]) {
     const journey = row.journeys as { slug: string; status: string } | null;
     if (!journey || journey.status !== "published") continue;
     (grouped[journey.slug] ??= []).push({
@@ -190,7 +268,7 @@ export async function getBookableAddonsBySlug(): Promise<Record<string, Bookable
   return grouped;
 }
 
-export function mapProductScalars(row: Record<string, any>): ProductScalars {
+export function mapProductScalars(row: ProductScalarsRow): ProductScalars {
   return {
     productType: row.product_type ?? "",
     minGuests: row.min_guests ?? null,

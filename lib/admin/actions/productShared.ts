@@ -3,9 +3,12 @@
 // lib/admin/actions/journeys.ts, which are. Generic over table name / parent
 // FK column since tour_X and journey_X tables are otherwise column-identical.
 
-type SupabaseLike = {
-  from: (table: string) => any;
-};
+import type { getSupabaseServerClient } from "@/lib/supabase/server";
+
+// Same pattern as lib/admin/actions/journeys.ts's own local sync helpers --
+// the real client type (deliberately un-parameterized with <Database>, see
+// lib/supabase/server.ts), not a hand-rolled shim.
+type SupabaseLike = NonNullable<Awaited<ReturnType<typeof getSupabaseServerClient>>>;
 
 export interface PricingTierInput {
   tierName: string;

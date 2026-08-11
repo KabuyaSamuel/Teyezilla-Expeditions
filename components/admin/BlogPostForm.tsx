@@ -102,7 +102,7 @@ export default function BlogPostForm({
         <div>
           <label htmlFor="destinationId" className="text-xs font-medium text-foreground/60">Destination (optional)</label>
           <p className="mt-0.5 text-[11px] text-foreground/40">
-            Powers "related tours/journeys/articles" on this post and on that country's pages. Leave blank for general articles.
+            Powers &ldquo;related tours/journeys/articles&rdquo; on this post and on that country&rsquo;s pages. Leave blank for general articles.
           </p>
           <select
             id="destinationId"

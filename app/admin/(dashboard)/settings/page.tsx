@@ -12,6 +12,10 @@ import {
   CATEGORY_OVERVIEW_DEFAULTS,
   BESPOKE_PAGE_DEFAULTS,
   CATEGORY_DESCRIPTION_MAX_LENGTH,
+  EXPERIENCES_PAGE_DEFAULTS,
+  JOURNEYS_PAGE_DEFAULTS,
+  COLLECTIONS_PAGE_DEFAULTS,
+  SAFARI_PAGE_DEFAULTS,
 } from "@/lib/homepageContent";
 import {
   DEFAULT_TERMS_CONTENT,
@@ -37,6 +41,10 @@ const SETTINGS_KEYS = [
   ...(Object.keys(TRUST_INDICATORS_DEFAULTS) as (keyof typeof TRUST_INDICATORS_DEFAULTS)[]),
   ...(Object.keys(CATEGORY_OVERVIEW_DEFAULTS) as (keyof typeof CATEGORY_OVERVIEW_DEFAULTS)[]),
   ...(Object.keys(BESPOKE_PAGE_DEFAULTS) as (keyof typeof BESPOKE_PAGE_DEFAULTS)[]),
+  ...(Object.keys(EXPERIENCES_PAGE_DEFAULTS) as (keyof typeof EXPERIENCES_PAGE_DEFAULTS)[]),
+  ...(Object.keys(JOURNEYS_PAGE_DEFAULTS) as (keyof typeof JOURNEYS_PAGE_DEFAULTS)[]),
+  ...(Object.keys(COLLECTIONS_PAGE_DEFAULTS) as (keyof typeof COLLECTIONS_PAGE_DEFAULTS)[]),
+  ...(Object.keys(SAFARI_PAGE_DEFAULTS) as (keyof typeof SAFARI_PAGE_DEFAULTS)[]),
   "termsContent",
   "privacyPolicyContent",
   "cancellationPolicyContent",
@@ -62,6 +70,10 @@ const DEFAULTS: Record<(typeof SETTINGS_KEYS)[number], string> = {
   ...TRUST_INDICATORS_DEFAULTS,
   ...CATEGORY_OVERVIEW_DEFAULTS,
   ...BESPOKE_PAGE_DEFAULTS,
+  ...EXPERIENCES_PAGE_DEFAULTS,
+  ...JOURNEYS_PAGE_DEFAULTS,
+  ...COLLECTIONS_PAGE_DEFAULTS,
+  ...SAFARI_PAGE_DEFAULTS,
   termsContent: DEFAULT_TERMS_CONTENT,
   privacyPolicyContent: DEFAULT_PRIVACY_POLICY_CONTENT,
   cancellationPolicyContent: DEFAULT_CANCELLATION_POLICY_CONTENT,
@@ -375,6 +387,81 @@ export default async function AdminSettingsPage() {
                     </div>
                   </div>
                 </section>
+              ),
+            },
+            {
+              id: "hub-pages",
+              label: "Hub Pages",
+              content: (
+                <>
+                  <section className="card p-6">
+                    <h2 className="font-heading text-lg font-semibold text-foreground">Experiences (/experiences)</h2>
+                    <div className="mt-4 grid gap-4">
+                      <div>
+                        <label htmlFor="experiencesHeadline" className="text-xs font-medium text-foreground/60">Headline</label>
+                        <input id="experiencesHeadline" name="experiencesHeadline" defaultValue={settings.experiencesHeadline} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label htmlFor="experiencesIntro1" className="text-xs font-medium text-foreground/60">Intro, Line 1</label>
+                        <textarea id="experiencesIntro1" name="experiencesIntro1" rows={2} defaultValue={settings.experiencesIntro1} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label htmlFor="experiencesIntro2" className="text-xs font-medium text-foreground/60">Intro, Line 2 (longer SEO copy)</label>
+                        <textarea id="experiencesIntro2" name="experiencesIntro2" rows={5} defaultValue={settings.experiencesIntro2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="card p-6">
+                    <h2 className="font-heading text-lg font-semibold text-foreground">Journeys (/journeys)</h2>
+                    <div className="mt-4 grid gap-4">
+                      <div>
+                        <label htmlFor="journeysHeadline" className="text-xs font-medium text-foreground/60">Headline</label>
+                        <input id="journeysHeadline" name="journeysHeadline" defaultValue={settings.journeysHeadline} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label htmlFor="journeysIntro" className="text-xs font-medium text-foreground/60">Intro</label>
+                        <textarea id="journeysIntro" name="journeysIntro" rows={3} defaultValue={settings.journeysIntro} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="card p-6">
+                    <h2 className="font-heading text-lg font-semibold text-foreground">Collections (/collections)</h2>
+                    <p className="mt-1 text-xs text-foreground/50">
+                      The &ldquo;N curated ways to experience Africa&rdquo; line above this isn&rsquo;t editable here --
+                      it&rsquo;s generated from the live collection count so it never goes stale.
+                    </p>
+                    <div className="mt-4 grid gap-4">
+                      <div>
+                        <label htmlFor="collectionsHeadline" className="text-xs font-medium text-foreground/60">Headline</label>
+                        <input id="collectionsHeadline" name="collectionsHeadline" defaultValue={settings.collectionsHeadline} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label htmlFor="collectionsIntro" className="text-xs font-medium text-foreground/60">Intro (SEO copy)</label>
+                        <textarea id="collectionsIntro" name="collectionsIntro" rows={4} defaultValue={settings.collectionsIntro} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="card p-6">
+                    <h2 className="font-heading text-lg font-semibold text-foreground">Safari (/safari)</h2>
+                    <div className="mt-4 grid gap-4">
+                      <div>
+                        <label htmlFor="safariEyebrow" className="text-xs font-medium text-foreground/60">Eyebrow Label</label>
+                        <input id="safariEyebrow" name="safariEyebrow" defaultValue={settings.safariEyebrow} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label htmlFor="safariHeadline" className="text-xs font-medium text-foreground/60">Headline</label>
+                        <input id="safariHeadline" name="safariHeadline" defaultValue={settings.safariHeadline} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label htmlFor="safariIntro" className="text-xs font-medium text-foreground/60">Intro</label>
+                        <textarea id="safariIntro" name="safariIntro" rows={3} defaultValue={settings.safariIntro} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                    </div>
+                  </section>
+                </>
               ),
             },
             {

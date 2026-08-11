@@ -20,13 +20,22 @@
     "@t3-oss/env-nextjs": "^0.13.11",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.1",
+    "file-type": "^22.0.1",
     "lucide-react": "^1.25.0",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "resend": "^6.18.0",
+    "sharp": "^0.35.3",
     "zod": "^4.4.3"
   },
+  "browserslist": [
+    "chrome >= 109",
+    "edge >= 109",
+    "firefox >= 109",
+    "safari >= 16",
+    "not dead"
+  ],
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
     "@types/node": "^20",

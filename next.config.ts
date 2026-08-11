@@ -36,6 +36,11 @@ const nextConfig: NextConfig = {
     // can change reasonably often, and this project has already hit a
     // stale-asset surprise once with an aggressively-cached logo file.
     minimumCacheTTL: 60 * 60 * 24,
+    // Default-only quality is 75; Lighthouse's "improve image delivery"
+    // flagged tour card photography as over-compressed for its actual
+    // display size. 70 is the extra bucket TourCard opts into below --
+    // visually indistinguishable at card size, smaller transfer.
+    qualities: [70, 75],
   },
   experimental: {
     serverActions: {
@@ -51,6 +56,135 @@ const nextConfig: NextConfig = {
         source: "/tours",
         destination: "/experiences",
         permanent: true,
+      },
+    ];
+  },
+
+  // Site-wide security headers. Every one of these applies to every route
+  // (public + /admin) via the "/:path*" match below -- there was no
+  // headers() function at all before this, so the site shipped with zero
+  // of the standard defensive headers.
+  //
+  // CSP ships as Report-Only for now, deliberately: it's the one header
+  // here with real potential to break something (a legitimate script/image/
+  // connection that isn't on the allowlist gets silently blocked instead
+  // of just reported), so it needs a monitoring period against a real
+  // deployed preview -- checking the browser console for
+  // "[Report Only]" CSP violations across the public site (forms,
+  // HeroCarousel video, YouTube blog embeds, GTM/GA4/Clarity, Sentry) and
+  // /admin (Media Library upload, every *Form.tsx) -- before switching the
+  // header name to the enforcing `Content-Security-Policy`. The other four
+  // headers are all safe to enforce immediately; they only restrict
+  // behaviors (framing, MIME sniffing, referrer leakage, unused browser
+  // features) this app never relied on.
+  async headers() {
+    // Reuses the same hostname derivation as images.remotePatterns above
+    // instead of hardcoding the project ref, so this stays correct if the
+    // Supabase project ever changes without a second edit here.
+    const supabaseOrigin = supabaseHostname ? `https://${supabaseHostname}` : "";
+
+    // Sentry's browser SDK (instrumentation-client.ts) sends events
+    // directly to its ingest host -- there's no `tunnel` option configured
+    // routing that traffic through our own domain instead, so CSP has to
+    // allow it explicitly. This is the exact ingest host for this
+    // project's current DSN; if the Sentry project/org is ever recreated,
+    // this needs updating to match the new DSN's host.
+    const sentryIngestOrigin = "https://o4511839934808064.ingest.de.sentry.io";
+
+    const csp = [
+      "default-src 'self'",
+      // 'unsafe-inline' here covers two real, current needs rather than
+      // being a placeholder: Next.js App Router's own hydration/RSC
+      // bootstrap scripts are inline with no nonce wired up yet, and the
+      // Microsoft Clarity snippet (app/layout.tsx) is a genuinely inline
+      // <Script> block, not an external src. Tightening this to a
+      // nonce-based policy (middleware-generated nonce threaded through)
+      // is a real follow-up, not done here to keep this pass's blast
+      // radius (and risk of breaking hydration) contained.
+      `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms`,
+      // next/image's `fill` prop sets inline `style` attributes directly
+      // on the element (position/inset) -- without 'unsafe-inline' here,
+      // every fill image on the site (TourCard, DestinationCard,
+      // JourneyCard, HeroCarousel, CategoryOverview...) would violate this
+      // directive.
+      "style-src 'self' 'unsafe-inline'",
+      // Photography is same-origin from the browser's perspective even
+      // though it originates in Supabase Storage -- next/image proxies it
+      // through /_next/image (or Netlify's Image CDN), so the <img> tag's
+      // actual src is always our own origin. 'self' covers that; no
+      // Supabase host needed here.
+      "img-src 'self' data:",
+      // The hero background (HeroCarousel.tsx) is the one place video
+      // isn't going through next/image -- a raw <video><source> pointing
+      // straight at the Supabase Storage URL, so media-src needs it
+      // explicitly (img-src's same-origin proxying doesn't apply here).
+      `media-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+      // next/font/google self-hosts font files at build time (no runtime
+      // fonts.googleapis.com/fonts.gstatic.com request), so 'self' is
+      // genuinely sufficient here, not an oversight.
+      "font-src 'self' data:",
+      // Every real fetch()/XHR this app makes client-side: Supabase
+      // (auth session refresh, any client-side reads), Sentry error
+      // reporting, and the three analytics beacons. Resend is
+      // deliberately absent -- it's only ever called server-side from
+      // "use server" actions, never from the browser.
+      `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""} ${sentryIngestOrigin} https://www.google-analytics.com https://*.google-analytics.com https://www.clarity.ms https://*.clarity.ms`,
+      // The only embedded cross-origin content anywhere on the site:
+      // YouTube embeds in blog post video blocks (BlogContentBlocks.tsx).
+      "frame-src https://www.youtube-nocookie.com",
+      // Belt-and-suspenders with the X-Frame-Options header below --
+      // frame-ancestors is the modern equivalent and takes precedence in
+      // any browser that supports it, but costs nothing to set both.
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      // Every form on this site submits via a Next.js Server Action
+      // (same-origin by construction) -- no legitimate cross-origin form
+      // target exists to allow.
+      "form-action 'self'",
+      // No Flash/legacy plugin content anywhere; safe to fully disable.
+      "object-src 'none'",
+    ].join("; ");
+
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy-Report-Only", value: csp },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Permissions-Policy",
+            value: [
+              // Hardware/privacy-sensitive features this site has no use
+              // for at all -- fully disabled, not even for same-origin.
+              "camera=()",
+              "microphone=()",
+              "geolocation=()",
+              "payment=()",
+              "usb=()",
+              "magnetometer=()",
+              "midi=()",
+              // Legacy FLoC opt-out; costs nothing to include.
+              "interest-cohort=()",
+              // These stay open to self + the YouTube embed origin
+              // specifically (not a bare wildcard) -- the blog's YouTube
+              // video blocks (BlogContentBlocks.tsx) request exactly these
+              // via the iframe's own `allow` attribute, and a top-level
+              // Permissions-Policy that fully disabled them would override
+              // and break that delegation regardless of what the iframe
+              // itself asks for.
+              'accelerometer=(self "https://www.youtube-nocookie.com")',
+              'gyroscope=(self "https://www.youtube-nocookie.com")',
+              'autoplay=(self "https://www.youtube-nocookie.com")',
+              'encrypted-media=(self "https://www.youtube-nocookie.com")',
+              'picture-in-picture=(self "https://www.youtube-nocookie.com")',
+              'clipboard-write=(self "https://www.youtube-nocookie.com")',
+              'web-share=(self "https://www.youtube-nocookie.com")',
+              'fullscreen=(self "https://www.youtube-nocookie.com")',
+            ].join(", "),
+          },
+        ],
       },
     ];
   },

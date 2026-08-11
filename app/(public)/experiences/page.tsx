@@ -3,9 +3,13 @@ import Link from "next/link";
 import { getPublishedTours } from "@/lib/tours";
 import { getDestinations } from "@/lib/destinations";
 import { getExperienceTypes, getToursByExperienceType } from "@/lib/experienceTypes";
+import { getSiteSetting, resolveSiteText } from "@/lib/settings";
+import { EXPERIENCES_PAGE_DEFAULTS, type ExperiencesPageKey } from "@/lib/homepageContent";
 import TourCard from "@/components/TourCard";
 import Pagination from "@/components/Pagination";
 import FilterSelect from "@/components/FilterSelect";
+
+const TEXT_KEYS = Object.keys(EXPERIENCES_PAGE_DEFAULTS) as ExperiencesPageKey[];
 
 export const metadata: Metadata = {
   title: "African Travel Experiences",
@@ -30,11 +34,13 @@ interface Props {
 
 export default async function ExperiencesPage({ searchParams }: Props) {
   const { productType, destination, category, page: rawPage } = await searchParams;
-  const [allTours, destinations, experienceTypes] = await Promise.all([
+  const [allTours, destinations, experienceTypes, ...textValues] = await Promise.all([
     getPublishedTours(),
     getDestinations(),
     getExperienceTypes(),
+    ...TEXT_KEYS.map((key) => getSiteSetting(key)),
   ]);
+  const text = resolveSiteText(EXPERIENCES_PAGE_DEFAULTS, TEXT_KEYS, textValues);
   // Only fetched when a category filter is actually applied -- the join
   // query is otherwise unnecessary work on every unfiltered page view.
   const categoryTours = category ? await getToursByExperienceType(category) : undefined;
@@ -77,10 +83,9 @@ export default async function ExperiencesPage({ searchParams }: Props) {
 
   return (
     <div className="section">
-      <h1 className="h1-page">Experiences</h1>
-      <p className="mt-3 max-w-2xl text-foreground/70">
-        From street food in Nairobi to safaris in the Mara and desert camps in the Sahara.
-      </p>
+      <h1 className="h1-page">{text.experiencesHeadline}</h1>
+      <p className="mt-3 max-w-2xl whitespace-pre-line text-foreground/70">{text.experiencesIntro1}</p>
+      <p className="mt-3 max-w-2xl whitespace-pre-line text-foreground/70">{text.experiencesIntro2}</p>
 
       <div className="mt-8 flex flex-wrap gap-2">
         <Link href={buildHref({ productType: undefined })} className={pillClass(!productType)}>

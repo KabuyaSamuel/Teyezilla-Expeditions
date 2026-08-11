@@ -48,8 +48,8 @@ create table tours (
   og_image text,
   product_type text default 'experience' check (product_type in ('experience', 'safari', 'private_travel')),
   min_guests integer, max_guests integer, fitness_level text, best_for text[], languages text[],
-  transportation text, guide_info text, food_and_drinks text, important_info text,
-  bring_list text[], cancellation_policy text, availability_note text, teyezilla_moment text,
+  transportation text, guide_info text, food_and_drinks text, important_info text[],
+  bring_list text[], cancellation_policy text[], availability_note text, teyezilla_moment text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -286,8 +286,8 @@ create table journeys (
   meta_title text, meta_description text, og_image text,
   product_type text default 'signature_journey' check (product_type in ('signature_journey', 'multi_country_expedition')),
   min_guests integer, max_guests integer, fitness_level text, best_for text[], languages text[],
-  transportation text, guide_info text, food_and_drinks text, important_info text,
-  bring_list text[], cancellation_policy text, availability_note text, teyezilla_moment text,
+  transportation text, guide_info text, food_and_drinks text, important_info text[],
+  bring_list text[], cancellation_policy text[], availability_note text, teyezilla_moment text,
   created_at timestamptz default now(), updated_at timestamptz default now()
 );
 -- No destination_id shortcut column; multi-country journeys use journey_destinations only.
@@ -311,6 +311,7 @@ create table journey_journey_types (
 create table experience_types (
   id uuid primary key default gen_random_uuid(),
   name text not null unique, slug text unique not null, icon text, display_order integer default 0,
+  description text,
   created_at timestamptz default now()
 );
 create table tour_experience_types (

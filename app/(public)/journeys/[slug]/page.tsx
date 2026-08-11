@@ -166,12 +166,16 @@ export default async function JourneyPage({ params }: Props) {
 
             <ProductFactsGrid facts={facts} />
 
-            {journey.cancellationPolicy && (
+            {journey.cancellationPolicy.length > 0 && (
               <div className="rounded-2xl border border-secondary/30 bg-secondary/10 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
                   Cancellation & Refund Policy
                 </p>
-                <p className="mt-1 text-sm text-foreground/80">{journey.cancellationPolicy}</p>
+                <ul className="mt-1 space-y-1 text-sm text-foreground/80">
+                  {journey.cancellationPolicy.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
               </div>
             )}
 

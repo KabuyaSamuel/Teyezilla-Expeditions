@@ -87,7 +87,7 @@ export default function MediaUploadForm() {
       <form ref={formRef} onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
         {error && <p className="w-full text-sm text-error">{error}</p>}
         <div>
-          <label htmlFor="file" className="text-xs font-medium text-foreground/60">File(s)</label>
+          <label htmlFor="file" className="text-xs font-medium text-foreground/60">File(s) <span className="text-error">*</span></label>
           <p className="mt-0.5 text-[11px] text-foreground/40">Images/PDFs up to 10MB &middot; video up to 20MB</p>
           <input
             id="file"

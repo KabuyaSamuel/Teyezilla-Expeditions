@@ -107,9 +107,9 @@ export default function TourForm({
       transportation: String(formData.get("transportation") ?? ""),
       guideInfo: String(formData.get("guideInfo") ?? ""),
       foodAndDrinks: String(formData.get("foodAndDrinks") ?? ""),
-      importantInfo: String(formData.get("importantInfo") ?? ""),
+      importantInfo: splitLines(formData.get("importantInfo")),
       bringList: splitCommas(formData.get("bringList")),
-      cancellationPolicy: String(formData.get("cancellationPolicy") ?? ""),
+      cancellationPolicy: splitLines(formData.get("cancellationPolicy")),
       availabilityNote: String(formData.get("availabilityNote") ?? ""),
       teyezillaMoment: String(formData.get("teyezillaMoment") ?? ""),
       metaTitle: String(formData.get("metaTitle") ?? ""),
@@ -173,16 +173,17 @@ export default function TourForm({
       {error && (
         <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>
       )}
+      <p className="text-xs text-foreground/50">Fields marked with <span className="text-error">*</span> are required.</p>
 
       <section className="card p-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Basic Details</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="tourTitle" className="text-xs font-medium text-foreground/60">Tour Title</label>
+            <label htmlFor="tourTitle" className="text-xs font-medium text-foreground/60">Tour Title <span className="text-error">*</span></label>
             <input id="tourTitle" name="tourTitle" required defaultValue={existingTour?.title} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
-            <label htmlFor="destinationId" className="text-xs font-medium text-foreground/60">Destination</label>
+            <label htmlFor="destinationId" className="text-xs font-medium text-foreground/60">Destination <span className="text-error">*</span></label>
             <select id="destinationId" name="destinationId" required defaultValue={existingTour?.destinationId} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
               {destinations.map((d) => (
                 <option key={d.id} value={d.id}>{d.countryName}</option>
@@ -350,12 +351,26 @@ export default function TourForm({
           </div>
         </div>
         <div className="mt-4">
-          <label htmlFor="importantInfo" className="text-xs font-medium text-foreground/60">Important Information / Please Note</label>
-          <textarea id="importantInfo" name="importantInfo" defaultValue={existingTour?.importantInfo} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <label htmlFor="importantInfo" className="text-xs font-medium text-foreground/60">Important Information / Please Note (one per line)</label>
+          <textarea
+            id="importantInfo"
+            name="importantInfo"
+            defaultValue={existingTour?.importantInfo?.join("\n")}
+            rows={6}
+            placeholder={"Hotel pickup available from selected Nairobi locations.\nStandard pickup time is approximately 6:30 AM.\nNot recommended for guests with serious back or heart conditions."}
+            className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          />
         </div>
         <div className="mt-4">
-          <label htmlFor="cancellationPolicy" className="text-xs font-medium text-foreground/60">Cancellation & Refund Policy</label>
-          <textarea id="cancellationPolicy" name="cancellationPolicy" defaultValue={existingTour?.cancellationPolicy} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <label htmlFor="cancellationPolicy" className="text-xs font-medium text-foreground/60">Cancellation & Refund Policy (one per line)</label>
+          <textarea
+            id="cancellationPolicy"
+            name="cancellationPolicy"
+            defaultValue={existingTour?.cancellationPolicy?.join("\n")}
+            rows={4}
+            placeholder={"Free cancellation up to 14 days before departure.\n50% refund for cancellations within 7-14 days.\nNo refund within 7 days of departure."}
+            className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          />
         </div>
         <div className="mt-4">
           <label htmlFor="teyezillaMoment" className="text-xs font-medium text-foreground/60">Your Teyezilla Moment (standalone highlighted callout)</label>

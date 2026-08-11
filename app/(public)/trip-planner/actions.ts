@@ -10,7 +10,7 @@ import {
   customerTripPlannerConfirmationEmail,
   type EmailField,
 } from "@/lib/email-templates";
-import { tripPlannerSchema, zodFieldErrors, type EnquiryFormState } from "@/lib/enquiry-shared";
+import { tripPlannerSchema, zodFieldErrors, sanitizeForEmailSubject, type EnquiryFormState } from "@/lib/enquiry-shared";
 import { captureServerActionError } from "@/lib/monitoring";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { ATTRIBUTION_COOKIE, parseAttributionCookie } from "@/lib/attribution";
@@ -116,7 +116,7 @@ export async function submitTripPlannerRequest(
   ];
 
   await sendAdminNotification({
-    subject: `New trip planner request from ${input.name}: ${input.destination}`,
+    subject: `New trip planner request from ${sanitizeForEmailSubject(input.name)}: ${sanitizeForEmailSubject(input.destination)}`,
     html: adminEnquiryEmail({ heading: `New trip planner request from ${input.name}`, fields }),
   });
 

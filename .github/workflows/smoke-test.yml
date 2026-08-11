@@ -1,28 +1,47 @@
 name: Smoke Test
 
 # Hits real, deployed pages and checks they render without error --
-# catches runtime-only issues (like a missing Vercel env var) that build/
-# typecheck/RLS tests can't, since those all run without ever making an
-# HTTP request against the actual deployed environment.
+# catches runtime-only issues (like a missing env var, or a schema/code
+# mismatch after a migration) that build/typecheck/RLS tests can't, since
+# those all run without ever making an HTTP request against the actual
+# deployed environment.
 #
-# Three triggers:
-#  - deployment_status: runs automatically right after Vercel's GitHub
-#    integration reports a deployment finished. Restricted to the
-#    Production environment only -- Preview deployments sit behind
-#    Vercel's own Deployment Protection SSO wall, so a script hitting a
-#    preview URL lands on vercel.com/login instead of the real app and
-#    can't tell the difference (confirmed directly: this is what broke
-#    the admin Lighthouse check, and it means this smoke test's earlier
-#    "pass" on a preview's /admin/login was a false positive -- the SSO
-#    page returns 200 with no matching error markers). Revisit if preview
-#    checks are wanted later via Vercel's Protection Bypass for Automation.
+# Previously triggered on `deployment_status`, restricted to Vercel's
+# Production environment (Preview sits behind Vercel's Deployment
+# Protection SSO wall, so a script hitting a preview URL landed on
+# vercel.com/login instead of the real app -- confirmed directly: this is
+# what caused an earlier false-positive "pass" on a preview's
+# /admin/login, since the SSO page returns 200 with no matching error
+# markers). That trigger only ever worked because Vercel's GitHub App
+# creates a formal Deployments-API object on every push, which is what
+# deployment_status actually fires on -- Netlify's default GitHub
+# integration doesn't do that (it posts a commit status instead, a
+# different and older mechanism). After the Vercel->Netlify hosting
+# migration this workflow only kept running at all because Vercel's
+# GitHub App was still connected in parallel, testing an increasingly
+# stale target. Disconnect Vercel's GitHub App from this repo (Vercel
+# dashboard -> Project -> Settings -> Git) once this is merged -- nothing
+# here depends on it anymore.
+#
+# Three triggers now:
+#  - push to main: runs right after a merge, which is what triggers
+#    Netlify's production build. Waits a fixed amount first since there's
+#    no precise "Netlify deploy finished" signal wired up here (would
+#    need an outgoing deploy-notification webhook -- Site settings ->
+#    Build & deploy -> Deploy notifications -> "Deploy succeeded" ->
+#    pointed at https://api.github.com/repos/OWNER/REPO/dispatches with a
+#    GitHub PAT -- to trigger on `repository_dispatch` precisely instead).
+#    A run that starts slightly early just tests the previous still-live
+#    deployment instead of the new one, not a broken run.
 #  - workflow_dispatch: run on demand against production or a given URL.
 #  - schedule: a periodic production health check independent of deploys,
-#    since this exact bug class (an env var that's missing or expires)
-#    isn't tied to a code push.
+#    since this exact bug class (an env var or schema mismatch) isn't
+#    always tied to a code push -- e.g. a migration applied directly to
+#    the database without a matching code deploy.
 
 on:
-  deployment_status:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       url:
@@ -35,9 +54,6 @@ on:
 jobs:
   smoke-test:
     runs-on: ubuntu-latest
-    if: >-
-      github.event_name != 'deployment_status' ||
-      (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
     steps:
       - uses: actions/checkout@v7
 
@@ -45,16 +61,11 @@ jobs:
         with:
           node-version: 22
 
+      - name: Wait for Netlify production deploy
+        if: github.event_name == 'push'
+        run: sleep 180
+
       - name: Run smoke test
         env:
-          # Deliberately NOT using deployment_status's environment_url/
-          # target_url here: for Production, Vercel reports its own
-          # auto-generated per-deployment *.vercel.app alias, which sits
-          # behind Deployment Protection same as Preview does -- only the
-          # real custom domain is actually public (confirmed directly: a
-          # "Production" deployment_status run still hit vercel.com/login
-          # on that alias). workflow_dispatch can still target any URL
-          # explicitly; everything else falls back to smoke-test.mjs's own
-          # default (the real production domain).
           TARGET_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || '' }}
         run: node scripts/smoke-test.mjs "$TARGET_URL"

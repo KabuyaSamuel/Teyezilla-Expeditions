@@ -6,6 +6,17 @@
 
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 
+// important_info/cancellation_policy were a single text column before the
+// list-support migration (20260809120000). Reads a plain string as legacy
+// data instead of crashing on .map() -- covers the window where this code
+// ships before that migration has actually been applied to the database
+// (schema migrations here are separate deploy steps, not automatic).
+function toStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string" && value) return [value];
+  return [];
+}
+
 export interface ItineraryDay {
   day: number;
   fromLocation?: string;
@@ -66,9 +77,9 @@ export interface ProductScalars {
   transportation: string;
   guideInfo: string;
   foodAndDrinks: string;
-  importantInfo: string;
+  importantInfo: string[];
   bringList: string[];
-  cancellationPolicy: string;
+  cancellationPolicy: string[];
   availabilityNote: string;
   teyezillaMoment: string;
 }
@@ -190,9 +201,9 @@ export function mapProductScalars(row: Record<string, any>): ProductScalars {
     transportation: row.transportation ?? "",
     guideInfo: row.guide_info ?? "",
     foodAndDrinks: row.food_and_drinks ?? "",
-    importantInfo: row.important_info ?? "",
+    importantInfo: toStringArray(row.important_info),
     bringList: row.bring_list ?? [],
-    cancellationPolicy: row.cancellation_policy ?? "",
+    cancellationPolicy: toStringArray(row.cancellation_policy),
     availabilityNote: row.availability_note ?? "",
     teyezillaMoment: row.teyezilla_moment ?? "",
   };

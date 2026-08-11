@@ -39,6 +39,14 @@ export default async function DestinationsPage({ searchParams }: Props) {
       <p className="mt-3 max-w-2xl text-foreground/70">
         Five destinations open for booking today, with more of Africa on the way.
       </p>
+      <p className="mt-3 max-w-2xl text-foreground/70">
+        Kenya and Tanzania cover the classic safari circuit -- the Maasai Mara, the Serengeti, and the
+        wildebeest migration between them. Zanzibar adds the beach half of an East Africa trip, with Stone
+        Town&rsquo;s history alongside the reef. Egypt and Morocco sit further afield: the pyramids and Nile in
+        one, the Atlas Mountains, medinas, and Sahara in the other. Each destination page below covers the
+        tours and journeys available there today; switch to &ldquo;Coming Soon&rdquo; above for a look at where
+        we&rsquo;re opening next as those itineraries get finalized.
+      </p>
 
       <div className="mt-8 flex flex-wrap gap-2">
         {FILTERS.map((f) => (

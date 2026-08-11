@@ -101,7 +101,7 @@ export default function GuestRoster({
       {showForm && (
         <form onSubmit={handleAdd} className="mt-4 grid gap-3 rounded-xl bg-secondary/5 p-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="fullName" className="text-xs font-medium text-foreground/60">Full Name</label>
+            <label htmlFor="fullName" className="text-xs font-medium text-foreground/60">Full Name <span className="text-error">*</span></label>
             <input id="fullName" name="fullName" required className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>

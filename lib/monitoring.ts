@@ -5,7 +5,8 @@ import * as Sentry from "@sentry/nextjs";
 // { formError } return value instead of being thrown. Next.js's
 // onRequestError hook (see instrumentation.ts) only fires for errors that
 // actually propagate out of a Server Action, so these would otherwise be
-// invisible to Sentry -- only reachable via Vercel logs after the fact.
+// invisible to Sentry -- only reachable via Netlify function logs after
+// the fact.
 // Wraps the message in a real Error so Sentry gets a stack trace pointing
 // at this call site, which is more useful than the original DB error's own
 // (often missing) stack.

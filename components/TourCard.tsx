@@ -15,6 +15,7 @@ export default function TourCard({ tour }: { tour: Tour }) {
               alt={tour.title}
               fill
               sizes="(max-width: 768px) 100vw, 33vw"
+              quality={70}
               className="object-cover transition-transform duration-500 ease-smooth group-hover:scale-110"
             />
           )}

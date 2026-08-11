@@ -13,6 +13,23 @@ export function whatsappLink(message: string): string {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
+// Defense-in-depth for user input interpolated into an email subject line
+// (contact/trip-planner actions, e.g. `New contact form message from
+// ${input.name}`). Resend's API is JSON, not raw SMTP, so classic
+// mail()-style header injection via a literal CRLF probably isn't
+// reachable the way it would be through a raw socket -- but that's an
+// assumption about a third party's internals, not something worth
+// depending on. Strips control characters regardless of what Resend does
+// with them, and caps length so a long value can't produce an unreadable
+// subject even though zod's .max(200) on these fields already bounds the
+// worst case.
+export function sanitizeForEmailSubject(value: string, maxLength = 80): string {
+  // Strips control characters (CR/LF/etc, \x00-\x1F, \x7F) from
+  // subject-line input.
+  const singleLine = value.replace(/[\x00-\x1F\x7F]+/g, " ").trim();
+  return singleLine.length > maxLength ? `${singleLine.slice(0, maxLength - 1).trimEnd()}…` : singleLine;
+}
+
 export const BUDGET_RANGES = [
   "Under $1,000",
   "$1,000–$2,500",

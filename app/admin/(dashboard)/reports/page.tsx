@@ -191,8 +191,10 @@ export default async function AdminReportsPage() {
       </div>
 
       <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">
-        Visitor stats (page views, most-viewed product) require Google Analytics 4, wired
-        up in a later phase. Every figure above is computed from live Supabase booking data.
+        Every figure above is computed from live Supabase booking data. Google Analytics 4 tracking is
+        live on the site, but pulling page-view/most-viewed-page stats back into this dashboard needs a
+        separate integration (the GA4 Data API, via a Google Cloud service account) that isn&rsquo;t wired up
+        yet. Click counts specifically for links you&rsquo;ve generated are tracked today -- see Link Generator.
       </div>
     </div>
   );

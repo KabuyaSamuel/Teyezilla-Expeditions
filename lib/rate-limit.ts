@@ -20,8 +20,39 @@ const ratelimit =
       })
     : null;
 
+// Security audit (Part 4), Vercel -> Netlify migration: this used to trust
+// x-forwarded-for first. That's safe specifically on Vercel because its
+// edge network overwrites x-forwarded-for with a verified value before a
+// request reaches app code -- Netlify makes no such guarantee. Netlify's
+// own staff, on their support forum: "We make no guarantees on anything
+// except 'X-Nf-Client-Connection-Ip'. Please use that one instead!" --
+// x-forwarded-for is explicitly *not* one of the headers Netlify commits
+// to controlling, so on Netlify a client can set it directly and bypass
+// every IP-based limit below (contact, trip-planner, booking, admin
+// login).
+//
+// x-nf-client-connection-ip is checked first now, with x-forwarded-for/
+// x-real-ip kept only as a fallback (better than bucketing every visitor
+// under "unknown" if the Netlify-specific header is ever absent -- e.g.
+// local dev, or a platform other than Netlify) -- NOT because it's
+// trusted there. Every endpoint using getClientIp() has a corresponding
+// non-IP backstop for exactly this reason: contact/trip-planner/booking
+// are all also capped by Upstash's own abuse heuristics being moot if
+// spoofed, but more importantly checkRateLimit's "area" keys mean a
+// spoofed IP just gets its own fresh bucket rather than bypassing the
+// system entirely; admin login (app/admin/login/actions.ts) additionally
+// rate-limits by the submitted email itself, which an attacker can't
+// rotate as freely as an IP header.
+//
+// This still needs verifying against a real Netlify deployment (not done
+// here -- this audit pass is static/local analysis only, no live
+// deployment access) to confirm x-nf-client-connection-ip is actually
+// populated in production the way Netlify's docs describe.
 export async function getClientIp(): Promise<string> {
   const h = await headers();
+  const netlifyVerifiedIp = h.get("x-nf-client-connection-ip");
+  if (netlifyVerifiedIp) return netlifyVerifiedIp;
+
   const forwardedFor = h.get("x-forwarded-for");
   if (forwardedFor) return forwardedFor.split(",")[0].trim();
   return h.get("x-real-ip") ?? "unknown";

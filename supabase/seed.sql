@@ -74,13 +74,13 @@ insert into journey_types (name, slug, description) values
 ('Honeymoon Journeys', 'honeymoon-journeys', 'Romantic safari and beach journeys.'),
 ('Private Journeys', 'private-journeys', 'Exclusive journeys for individuals and groups.');
 
-insert into experience_types (name, slug, display_order) values
-('Wildlife & Safari', 'wildlife-safari', 1),
-('Beach & Islands', 'beach-islands', 2),
-('Culture & Heritage', 'culture-heritage', 3),
-('Adventure', 'adventure', 4),
-('Food & Lifestyle', 'food-lifestyle', 5),
-('Cities & Local Life', 'cities-local-life', 6);
+insert into experience_types (name, slug, display_order, description) values
+('Wildlife & Safari', 'wildlife-safari', 1, 'Africa''s wildlife heartlands are why most travelers come here first: the Maasai Mara''s wildebeest migration, the Serengeti''s endless plains, and the big cats, elephants, and rhino that call them home. Our safari itineraries mix private game drives with guided walks and community-led conservancy visits, timed around each region''s calving and migration seasons so sightings are as reliable as they can be. Whether it''s a first Kenya safari or a longer Kenya-Tanzania combination, every trip is built around the specific wildlife moments you want to see, not a fixed template.'),
+('Beach & Islands', 'beach-islands', 2, 'From Zanzibar''s spice-scented lanes and Stone Town''s coral-stone architecture to quieter island escapes along the Indian Ocean coast, this collection is for travelers who want white sand and turquoise water without giving up culture and history. Expect dhow sailing at sunset, reef snorkeling, and stays that range from boutique beach lodges to private villas -- paired, where it makes sense, with a few days of safari beforehand so the trip isn''t beach-only.'),
+('Culture & Heritage', 'culture-heritage', 3, 'Egypt''s pyramids and temples, Morocco''s medinas and the Sahara, and Kenya''s Maasai and Samburu communities all sit under this collection -- journeys built around history and living culture rather than wildlife. Expect knowledgeable local guides, visits timed to avoid the worst of the crowds, and real engagement with the people and places behind the landmarks, from a Cairo Egyptologist to a homestay with a Maasai family in the Mara.'),
+('Adventure', 'adventure', 4, 'For travelers who want Africa at a faster pace: trekking Morocco''s Atlas Mountains, crossing the Sahara by camel and 4x4, or combining a Marrakech city stay with days in the desert. These itineraries lean into physical, hands-on travel -- camping under open sky, local guides who know the terrain, and routes chosen for the experience of getting there, not just the destination.'),
+('Food & Lifestyle', 'food-lifestyle', 5, 'Nairobi''s street food stalls, Marrakech''s souks and tagine kitchens, coastal Swahili cuisine in Zanzibar -- this collection is built around eating and living like a local, not just sightseeing. Expect market tours, cooking sessions with home cooks, and itineraries that build in unhurried time in cities and neighborhoods most safari-only trips skip entirely.'),
+('Cities & Local Life', 'cities-local-life', 6, 'Beyond the safari circuit: Nairobi, Cairo, and Marrakech each have their own rhythm, and this collection is for travelers who want to spend real time in them. Expect walking tours through historic districts, local guides who live in the city rather than just pass through it, and an itinerary paced for wandering rather than checking sights off a list.');
 
 insert into tour_experience_types (tour_id, experience_type_id)
 select t.id, et.id from tours t, experience_types et where t.slug in ('maasai-mara-safari', 'serengeti-safari') and et.slug = 'wildlife-safari'

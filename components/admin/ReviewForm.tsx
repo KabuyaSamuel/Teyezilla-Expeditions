@@ -69,10 +69,11 @@ export default function ReviewForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
+      <p className="text-xs text-foreground/50">Fields marked with <span className="text-error">*</span> are required.</p>
 
       <section className="card grid gap-4 p-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="authorName" className="text-xs font-medium text-foreground/60">Author Name</label>
+          <label htmlFor="authorName" className="text-xs font-medium text-foreground/60">Author Name <span className="text-error">*</span></label>
           <input id="authorName" name="authorName" required defaultValue={existingReview?.authorName} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div>
@@ -101,7 +102,7 @@ export default function ReviewForm({
           </select>
         </div>
         <div className="sm:col-span-2">
-          <label htmlFor="quote" className="text-xs font-medium text-foreground/60">Quote</label>
+          <label htmlFor="quote" className="text-xs font-medium text-foreground/60">Quote <span className="text-error">*</span></label>
           <textarea id="quote" name="quote" required rows={3} defaultValue={existingReview?.quote} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <label htmlFor="isApproved" className="flex items-center gap-2 text-sm">

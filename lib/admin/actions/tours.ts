@@ -168,12 +168,22 @@ export async function updateTour(id: string, input: TourInput): Promise<void> {
   redirectWithSaved("/admin/tours", `"${input.title}" saved.`);
 }
 
+// 23503 = foreign key violation. bookings/reviews/inquiries reference
+// tours without cascading, so a tour that's actually been booked, reviewed,
+// or enquired about blocks the delete with a raw constraint error otherwise.
+function friendlyTourDeleteError(error: { code?: string; message: string }): string {
+  if (error.code === "23503") {
+    return "Can't delete this tour -- it's still referenced by a booking, review, or inquiry. Remove those first.";
+  }
+  return error.message;
+}
+
 export async function deleteTour(id: string): Promise<void> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
   const { error } = await supabase.from("tours").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyTourDeleteError(error));
 
   revalidatePath("/admin/tours");
   revalidatePublicSite();

@@ -250,9 +250,18 @@ export async function deleteJourney(id: string): Promise<void> {
   if (!supabase) throw new Error("Supabase not configured.");
 
   // journey_destinations / journey_journey_types / journey_experience_types /
-  // journey_safari_themes all reference journey_id on delete cascade.
+  // journey_safari_themes all reference journey_id on delete cascade, but
+  // bookings/inquiries reference it without cascading (23503 = foreign key
+  // violation) -- a journey that's actually been booked or enquired about
+  // blocks the delete with a raw constraint error otherwise.
   const { error } = await supabase.from("journeys").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw new Error(
+      error.code === "23503"
+        ? "Can't delete this journey -- it's still referenced by a booking or inquiry. Remove those first."
+        : error.message
+    );
+  }
 
   revalidatePath("/admin/journeys");
   revalidatePath("/journeys");

@@ -34,10 +34,33 @@ const CHECKS = [
   { path: "/admin/login", label: "Admin login page" },
 ];
 
+// All 9 checks below fire concurrently (see Promise.all in main()), which
+// occasionally trips a transient "fetch failed" against one or two of
+// them -- confirmed directly: a real failing run had a different random
+// subset fail each time, while pages backed by real dynamic data
+// (journey/tour detail pages, admin login) consistently passed, and
+// Lighthouse's own separate live fetches against the same deployment in
+// the same CI run succeeded cleanly. That signature is connection-level
+// flakiness from bursting 9 requests at once, not a real app error --
+// genuine HTTP error statuses and rendered error-boundary markers still
+// fail immediately below, no retry, since those are real problems.
+async function fetchWithRetry(url, attempts = 3) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fetch(url, { redirect: "follow" });
+    } catch (err) {
+      lastErr = err;
+      if (i < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
 async function checkPath({ path, label }) {
   const url = `${baseUrl}${path}`;
   try {
-    const res = await fetch(url, { redirect: "follow" });
+    const res = await fetchWithRetry(url);
     const body = await res.text();
 
     if (!res.ok) {

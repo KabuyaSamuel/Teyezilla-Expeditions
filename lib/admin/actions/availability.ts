@@ -33,6 +33,13 @@ async function removeDate(
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
+  const { data: row } = await supabase.from(table).select("booked_count").eq("id", id).maybeSingle();
+  if (row && Number(row.booked_count ?? 0) > 0) {
+    throw new Error(
+      `Can't remove this date -- it has ${row.booked_count} confirmed booking${row.booked_count === 1 ? "" : "s"} attached.`
+    );
+  }
+
   const { error } = await supabase.from(table).delete().eq("id", id);
   if (error) throw new Error(error.message);
 

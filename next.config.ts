@@ -89,7 +89,7 @@ const nextConfig: NextConfig = {
     // allow it explicitly. This is the exact ingest host for this
     // project's current DSN; if the Sentry project/org is ever recreated,
     // this needs updating to match the new DSN's host.
-    const sentryIngestOrigin = "https://o45114.ingest.de.sentry.io";
+    const sentryIngestOrigin = "https://o4511839934808064.ingest.de.sentry.io";
 
     const csp = [
       "default-src 'self'",

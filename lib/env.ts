@@ -94,7 +94,7 @@ export const env = createEnv({
   // already fails open when they're absent, so that job checks compile
   // correctness only, not real data. This is the one legitimate case for
   // skipping validation; it sets SKIP_ENV_VALIDATION=1 itself. A real
-  // build (Vercel, or a local `npm run build` without .env.local) is
+  // build (Netlify, or a local `npm run build` without .env.local) is
   // expected to fail loudly here -- that's the point of this file.
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
 });

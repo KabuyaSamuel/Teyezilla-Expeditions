@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePublicSite } from "@/lib/revalidate";
 import { redirectWithSaved } from "./saved-redirect";
+
+type SupabaseLike = NonNullable<Awaited<ReturnType<typeof getSupabaseServerClient>>>;
 import {
   syncPricingTiers,
   syncHighlights,
@@ -100,7 +102,7 @@ function toRow(input: TourInput) {
 // Replaces a tour's rows in a related-content join table wholesale: clear,
 // then re-insert whatever's currently selected, in the order given.
 async function syncRelatedTable(
-  supabase: any,
+  supabase: SupabaseLike,
   table: string,
   tourId: string,
   relatedIds: string[],
@@ -124,7 +126,7 @@ async function syncRelatedTable(
 // other's results, so they run as one batch of parallel round trips instead
 // of ~11 sequential ones -- this was the single biggest contributor to a
 // tour save feeling slow.
-async function syncTourRelations(supabase: any, tourId: string, input: TourInput) {
+async function syncTourRelations(supabase: SupabaseLike, tourId: string, input: TourInput) {
   await Promise.all([
     syncPricingTiers(supabase, "tour_pricing_tiers", "tour_id", tourId, input.pricingTiers),
     syncHighlights(supabase, "tour_highlights", "tour_id", tourId, input.highlights),

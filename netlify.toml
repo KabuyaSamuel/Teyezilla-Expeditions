@@ -48,3 +48,15 @@
   # client-shipped file -- and DSNs aren't secret credentials by design,
   # just a write-only ingest endpoint.
   SECRETS_SCAN_OMIT_KEYS = "ADMIN_NOTIFICATION_EMAIL,EMAIL_FROM,NEXT_PUBLIC_GA_MEASUREMENT_ID,SENTRY_PROJECT,NEXT_PUBLIC_WHATSAPP_NUMBER,NEXT_PUBLIC_GTM_ID,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SENTRY_DSN,SENTRY_DSN,NEXT_PUBLIC_CLARITY_PROJECT_ID"
+
+  # Different problem from the omit-by-key list above: Turbopack's build
+  # cache (.netlify/.next/cache/turbopack/*.sst) legitimately embeds
+  # resolved env var values -- including real secrets like
+  # RESEND_API_KEY -- so a subsequent build can skip re-resolving them.
+  # That's normal Next.js/Turbopack caching behavior, not a leak: this
+  # path is a build-time-only artifact, never part of the deployed output
+  # a visitor's browser can reach. Omit-by-key can't fix this (the value
+  # itself is a real secret, correctly not on that list) -- omitting the
+  # cache path entirely is Netlify's own documented fix for this exact
+  # false positive.
+  SECRETS_SCAN_OMIT_PATHS = ".netlify/.next/cache"

@@ -21,6 +21,14 @@ const LIST_SELECT = `
   journey_experience_types(journey_id)
 `;
 
+interface ExperienceTypeListRow {
+  id: string;
+  slug: string;
+  name: string;
+  tour_experience_types: { tour_id: string }[] | null;
+  journey_experience_types: { journey_id: string }[] | null;
+}
+
 export async function getAdminExperienceTypes(): Promise<AdminExperienceTypeListItem[]> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) {
@@ -38,7 +46,7 @@ export async function getAdminExperienceTypes(): Promise<AdminExperienceTypeList
     return [];
   }
 
-  return data.map((row: any) => ({
+  return (data as ExperienceTypeListRow[]).map((row) => ({
     id: row.id,
     slug: row.slug,
     name: row.name,

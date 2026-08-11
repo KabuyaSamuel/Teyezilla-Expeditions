@@ -45,6 +45,7 @@ export default function GuestRoster({
   }
 
   async function handleRemove(guestId: string) {
+    if (!confirm("Remove this guest? This can't be undone.")) return;
     setSaving(true);
     setError(null);
     try {

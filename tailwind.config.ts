@@ -64,7 +64,7 @@ const config: Config = {
         // from fadeUp (also used on the admin login page) rather than
         // tuning it globally.
         heroFadeUp: {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         float: {
@@ -78,7 +78,14 @@ const config: Config = {
       },
       animation: {
         fadeUp: "fadeUp 0.6s ease-out forwards",
-        heroFadeUp: "heroFadeUp 0.5s ease-out forwards",
+        // Was 0.5s with elements staggered only 120ms apart -- each new
+        // element started while the previous one was still 76% through its
+        // own motion (translateY + opacity), so all four elements were
+        // visibly moving at once instead of settling one after another.
+        // Shorter duration + wider stagger (see the animation-delay values
+        // in Hero.tsx) cuts that overlap to ~35%, close enough to a clean
+        // sequential reveal without the ~1.2s total feeling sluggish.
+        heroFadeUp: "heroFadeUp 0.4s ease-out forwards",
         float: "float 10s ease-in-out infinite",
         toastIn: "toastIn 0.2s ease-out forwards",
       },

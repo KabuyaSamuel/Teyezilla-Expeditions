@@ -32,8 +32,12 @@ export default async function Hero() {
 
         {/* Animated as one unit, not per-line -- the two lines sit only
             gap-1 (4px) apart, so animating each independently made them
-            visibly slide through each other's resting position. */}
-        <h1 className="h1-hero animate-heroFadeUp flex max-w-2xl flex-col items-center gap-1 [animation-delay:120ms] sm:items-start">
+            visibly slide through each other's resting position. Stagger
+            delays across this section (0/250/500/750ms) are wider than the
+            0.4s animation duration by design -- see the comment on
+            heroFadeUp in tailwind.config.ts -- so each element is mostly
+            settled before the next one starts moving. */}
+        <h1 className="h1-hero animate-heroFadeUp flex max-w-2xl flex-col items-center gap-1 [animation-delay:250ms] sm:items-start">
           <span className="inline-block text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
             {text.heroHeadlineLine1}
           </span>
@@ -42,11 +46,11 @@ export default async function Hero() {
           </span>
         </h1>
 
-        <p className="animate-heroFadeUp max-w-xl text-base leading-relaxed text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)] [animation-delay:240ms] sm:text-lg">
+        <p className="animate-heroFadeUp max-w-xl text-base leading-relaxed text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.9)] [animation-delay:500ms] sm:text-lg">
           {text.heroSubtitle}
         </p>
 
-        <div className="animate-heroFadeUp mt-1 flex flex-wrap justify-center gap-3 [animation-delay:360ms] sm:justify-start sm:gap-4">
+        <div className="animate-heroFadeUp mt-1 flex flex-wrap justify-center gap-3 [animation-delay:750ms] sm:justify-start sm:gap-4">
           <Link href={text.heroCta1Href} className="btn-primary text-sm sm:text-base">
             {text.heroCta1Label}
           </Link>

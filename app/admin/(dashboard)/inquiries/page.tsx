@@ -3,6 +3,7 @@ import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import InquiryStatusQuickSelect from "@/components/admin/InquiryStatusQuickSelect";
 import { getInquiries } from "@/lib/admin/data/inquiries";
+import { formatDateTime } from "@/lib/formatDate";
 
 const SOURCE_LABELS: Record<string, string> = {
   website: "Website",
@@ -91,7 +92,7 @@ export default async function AdminInquiriesPage({
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="font-heading font-semibold text-foreground">{inq.customerName}</p>
-                <p className="text-xs text-foreground/50">{inq.customerEmail} · {inq.createdAt}</p>
+                <p className="text-xs text-foreground/50">{inq.customerEmail} · {formatDateTime(inq.createdAt)}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone="info">{SOURCE_LABELS[inq.source]}</Badge>

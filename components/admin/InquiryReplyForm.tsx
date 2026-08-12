@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { sendInquiryReply } from "@/lib/admin/actions/inquiries";
 import type { InquiryReply } from "@/lib/admin/data/inquiry-replies";
+import { formatDateTime } from "@/lib/formatDate";
 import { useToast } from "./Toast";
 
 export default function InquiryReplyForm({
@@ -74,7 +75,7 @@ export default function InquiryReplyForm({
             <div key={r.id} className="rounded-2xl border border-secondary/30 bg-secondary/5 p-3">
               <p className="whitespace-pre-line text-sm text-foreground/80">{r.message}</p>
               <p className="mt-1.5 text-xs text-foreground/50">
-                {new Date(r.createdAt).toLocaleString()}
+                {formatDateTime(r.createdAt)}
                 {r.sentViaEmail ? " · Sent by email" : " · Not emailed"}
               </p>
             </div>

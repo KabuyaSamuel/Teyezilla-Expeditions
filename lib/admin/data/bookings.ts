@@ -169,6 +169,33 @@ export async function getBookings(): Promise<Booking[]> {
   return (data as unknown as BookingRow[]).map(mapRow);
 }
 
+export async function getBookingsPaginated(query: {
+  page: number;
+  pageSize: number;
+}): Promise<{ items: Booking[]; total: number }> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) {
+    console.warn("[bookings] Supabase not configured, returning no bookings.");
+    return { items: [], total: 0 };
+  }
+
+  const from = (query.page - 1) * query.pageSize;
+  const { data, error, count } = await supabase
+    .from("bookings")
+    .select(SELECT, { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, from + query.pageSize - 1);
+
+  if (error || !data) {
+    console.warn("[bookings] Supabase query failed:", error?.message);
+    return { items: [], total: 0 };
+  }
+
+  // SELECT is a variable, not a literal, so supabase-js can't statically
+  // parse it into a typed result -- cast to the real shape explicitly.
+  return { items: (data as unknown as BookingRow[]).map(mapRow), total: count ?? 0 };
+}
+
 export async function getBookingById(id: string): Promise<Booking | undefined> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) {

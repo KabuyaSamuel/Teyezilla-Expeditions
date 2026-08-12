@@ -18,6 +18,9 @@ export interface AdminCollectionDetail {
   status: string;
   tourIds: string[];
   journeyIds: string[];
+  metaTitle: string;
+  metaDescription: string;
+  ogImage: string;
 }
 
 const LIST_SELECT = `
@@ -45,13 +48,13 @@ export async function getAdminCollections(): Promise<AdminCollectionListItem[]> 
     return [];
   }
 
-  return data.map((row: any) => ({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    status: row.status ?? "draft",
-    tourCount: (row.collection_tours ?? []).length,
-    journeyCount: (row.collection_journeys ?? []).length,
+  return (data as Record<string, unknown>[]).map((row) => ({
+    id: row.id as string,
+    slug: row.slug as string,
+    name: row.name as string,
+    status: (row.status as string) ?? "draft",
+    tourCount: ((row.collection_tours as unknown[]) ?? []).length,
+    journeyCount: ((row.collection_journeys as unknown[]) ?? []).length,
   }));
 }
 
@@ -75,15 +78,20 @@ export async function getAdminCollectionBySlug(slug: string): Promise<AdminColle
     return undefined;
   }
 
-  const row = data as any;
+  const row = data as Record<string, unknown>;
+  const collectionTours = (row.collection_tours as { tour_id: string }[] | null) ?? [];
+  const collectionJourneys = (row.collection_journeys as { journey_id: string }[] | null) ?? [];
   return {
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    description: row.description ?? "",
-    heroImage: row.hero_image ?? "",
-    status: row.status ?? "draft",
-    tourIds: (row.collection_tours ?? []).map((c: any) => c.tour_id),
-    journeyIds: (row.collection_journeys ?? []).map((c: any) => c.journey_id),
+    id: row.id as string,
+    slug: row.slug as string,
+    name: row.name as string,
+    description: (row.description as string) ?? "",
+    heroImage: (row.hero_image as string) ?? "",
+    status: (row.status as string) ?? "draft",
+    tourIds: collectionTours.map((c) => c.tour_id),
+    journeyIds: collectionJourneys.map((c) => c.journey_id),
+    metaTitle: (row.meta_title as string) ?? "",
+    metaDescription: (row.meta_description as string) ?? "",
+    ogImage: (row.og_image as string) ?? "",
   };
 }

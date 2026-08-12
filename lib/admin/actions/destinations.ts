@@ -16,6 +16,9 @@ export interface DestinationInput {
   visaInfo: string;
   isLaunchDestination: boolean;
   featured: boolean;
+  metaTitle: string;
+  metaDescription: string;
+  ogImage: string;
 }
 
 function slugify(name: string): string {
@@ -38,6 +41,9 @@ function toRow(input: DestinationInput) {
     visa_info: input.visaInfo,
     is_launch_destination: input.isLaunchDestination,
     featured: input.featured,
+    meta_title: input.metaTitle,
+    meta_description: input.metaDescription,
+    og_image: input.ogImage,
   };
 }
 

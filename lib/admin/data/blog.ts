@@ -16,32 +16,36 @@ export interface AdminBlogPost {
   authorBio: string;
   metaTitle: string;
   metaDescription: string;
+  ogImage: string;
   featuredImage: string;
   status: "draft" | "published" | "scheduled";
   scheduledFor?: string;
   publishedAt?: string;
 }
 
-function mapRow(row: Record<string, any>): AdminBlogPost {
+function mapRow(row: Record<string, unknown>): AdminBlogPost {
+  const publishedAt = row.published_at as string | null;
+  const status = row.status as AdminBlogPost["status"];
   return {
-    id: row.id,
-    title: row.title,
-    slug: row.slug,
-    category: row.category ?? "",
-    tags: row.tags ?? [],
-    destinationId: row.destination_id ?? null,
-    excerpt: row.excerpt ?? "",
-    answer: row.answer ?? "",
-    body: row.body ?? "",
-    bodyBlocks: Array.isArray(row.body_blocks) ? row.body_blocks : [],
-    authorName: row.author_name ?? "",
-    authorBio: row.author_bio ?? "",
-    metaTitle: row.meta_title ?? "",
-    metaDescription: row.meta_description ?? "",
-    featuredImage: row.hero_image ?? "",
-    status: row.status,
-    scheduledFor: row.published_at && row.status === "scheduled" ? row.published_at : undefined,
-    publishedAt: row.status === "published" ? row.published_at : undefined,
+    id: row.id as string,
+    title: row.title as string,
+    slug: row.slug as string,
+    category: (row.category as string) ?? "",
+    tags: (row.tags as string[]) ?? [],
+    destinationId: (row.destination_id as string) ?? null,
+    excerpt: (row.excerpt as string) ?? "",
+    answer: (row.answer as string) ?? "",
+    body: (row.body as string) ?? "",
+    bodyBlocks: Array.isArray(row.body_blocks) ? (row.body_blocks as ContentBlock[]) : [],
+    authorName: (row.author_name as string) ?? "",
+    authorBio: (row.author_bio as string) ?? "",
+    metaTitle: (row.meta_title as string) ?? "",
+    metaDescription: (row.meta_description as string) ?? "",
+    ogImage: (row.og_image as string) ?? "",
+    featuredImage: (row.hero_image as string) ?? "",
+    status,
+    scheduledFor: publishedAt && status === "scheduled" ? publishedAt : undefined,
+    publishedAt: status === "published" ? (publishedAt ?? undefined) : undefined,
   };
 }
 

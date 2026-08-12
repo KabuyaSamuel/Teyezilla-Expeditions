@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: journey.metaTitle || journey.title,
       description: journey.metaDescription || journey.shortDescription,
-      images: journey.ogImage ? [journey.ogImage] : undefined,
+      images: journey.ogImage ? [journey.ogImage] : journey.heroImage ? [journey.heroImage] : undefined,
     },
   };
 }

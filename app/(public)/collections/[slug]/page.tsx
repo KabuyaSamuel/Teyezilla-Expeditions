@@ -21,9 +21,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const collection = await getCollectionBySlug(slug);
   if (!collection) return {};
   return {
-    title: collection.name,
-    description: collection.description,
+    title: collection.metaTitle || collection.name,
+    description: collection.metaDescription || collection.description,
     alternates: { canonical: `/collections/${slug}` },
+    openGraph: {
+      title: collection.metaTitle || collection.name,
+      description: collection.metaDescription || collection.description,
+      images: collection.ogImage ? [collection.ogImage] : [collection.heroImage],
+    },
   };
 }
 

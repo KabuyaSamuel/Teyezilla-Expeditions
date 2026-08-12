@@ -13,6 +13,9 @@ export interface CollectionInput {
   status: string;
   tourIds: string[];
   journeyIds: string[];
+  metaTitle: string;
+  metaDescription: string;
+  ogImage: string;
 }
 
 function slugify(name: string): string {
@@ -30,6 +33,9 @@ function toRow(input: CollectionInput) {
     description: input.description,
     hero_image: input.heroImage,
     status: input.status,
+    meta_title: input.metaTitle,
+    meta_description: input.metaDescription,
+    og_image: input.ogImage,
   };
 }
 

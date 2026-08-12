@@ -10,7 +10,9 @@ export interface ReviewInput {
   source: "Google" | "TripAdvisor" | "GetYourGuide";
   rating: number;
   quote: string;
+  /** A review links to a tour or a journey, never both -- enforced by the reviews_tour_or_journey_check DB constraint too, not just this UI. */
   tourId: string;
+  journeyId: string;
   isApproved: boolean;
 }
 
@@ -21,6 +23,7 @@ function toRow(input: ReviewInput) {
     rating: input.rating,
     quote: input.quote,
     tour_id: input.tourId || null,
+    journey_id: input.journeyId || null,
     is_approved: input.isApproved,
   };
 }

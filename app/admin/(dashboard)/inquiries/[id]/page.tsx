@@ -9,6 +9,7 @@ import { getInquiryById } from "@/lib/admin/data/inquiries";
 import { getInquiryReplies } from "@/lib/admin/data/inquiry-replies";
 import { getStaffMembers } from "@/lib/admin/data/staff";
 import { inquiryStatusTone } from "@/lib/admin/status-tone";
+import { formatDateTime } from "@/lib/formatDate";
 
 const SOURCE_LABELS: Record<string, string> = {
   website: "Website",
@@ -39,7 +40,7 @@ export default async function InquiryDetailPage({
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="info">{SOURCE_LABELS[inquiry.source]}</Badge>
             <Badge tone={inquiryStatusTone(inquiry.status)}>{inquiry.status.replace("_", " ")}</Badge>
-            <span className="text-xs text-foreground/50">{inquiry.createdAt}</span>
+            <span className="text-xs text-foreground/50">{formatDateTime(inquiry.createdAt)}</span>
           </div>
           {(inquiry.tourTitle || inquiry.journeyTitle) && (
             <p className="mt-2 text-xs text-foreground/50">Re: {inquiry.tourTitle || inquiry.journeyTitle}</p>
@@ -80,7 +81,7 @@ export default async function InquiryDetailPage({
             Reply
           </h2>
           {inquiry.repliedAt && (
-            <p className="mt-1 text-xs text-foreground/50">Last replied {new Date(inquiry.repliedAt).toLocaleString()}</p>
+            <p className="mt-1 text-xs text-foreground/50">Last replied {formatDateTime(inquiry.repliedAt)}</p>
           )}
           <div className="mt-2">
             <InquiryReplyForm

@@ -3,6 +3,7 @@ import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import { getAllReviews } from "@/lib/admin/data/reviews";
 import { setReviewApproval, setFeaturedReview, unfeatureReview } from "@/lib/admin/actions/reviews";
+import { formatDateTime } from "@/lib/formatDate";
 
 export default async function AdminReviewsPage() {
   const reviews = await getAllReviews();
@@ -32,6 +33,7 @@ export default async function AdminReviewsPage() {
               </div>
               <p className="mt-1 text-sm text-foreground/70">&ldquo;{review.quote}&rdquo;</p>
               {review.tourTitle && <p className="mt-1 text-xs text-foreground/50">{review.tourTitle}</p>}
+              <p className="mt-1 text-xs text-foreground/40">Added {formatDateTime(review.createdAt)}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Link href={`/admin/reviews/${review.id}`} className="btn-outline px-4 py-2 text-xs">

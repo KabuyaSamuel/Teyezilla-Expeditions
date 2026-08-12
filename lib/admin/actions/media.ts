@@ -214,6 +214,24 @@ export async function uploadMedia(formData: FormData): Promise<UploadedMedia> {
   return { id: inserted.id, fileUrl: publicUrl, fileType };
 }
 
+// Renames the media library's display name only -- alt_text doubles as
+// that name in the admin grid. The underlying storage path/URL is
+// untouched (it's always a random UUID, never derived from this), so
+// renaming never breaks any file_url already saved on a tour/destination/
+// blog post that references this item.
+export async function renameMedia(id: string, name: string): Promise<void> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) throw new Error("Supabase not configured.");
+
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Name can't be empty.");
+
+  const { error } = await supabase.from("media").update({ alt_text: trimmed }).eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/media");
+}
+
 export async function deleteMedia(id: string, storagePath: string | null): Promise<void> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");

@@ -45,19 +45,27 @@ export async function getUnreadNotificationCount(): Promise<number> {
   return count ?? 0;
 }
 
-export async function getNotifications(): Promise<AdminNotification[]> {
+export async function getNotificationsPaginated(query: {
+  page: number;
+  pageSize: number;
+  isRead?: boolean;
+}): Promise<{ items: AdminNotification[]; total: number }> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) {
     console.warn("[notifications] Supabase not configured, returning no notifications.");
-    return [];
+    return { items: [], total: 0 };
   }
 
-  const { data, error } = await supabase.from("notifications").select("*").order("created_at", { ascending: false });
+  let q = supabase.from("notifications").select("*", { count: "exact" }).order("created_at", { ascending: false });
+  if (query.isRead !== undefined) q = q.eq("is_read", query.isRead);
+
+  const from = (query.page - 1) * query.pageSize;
+  const { data, error, count } = await q.range(from, from + query.pageSize - 1);
 
   if (error || !data) {
     console.warn("[notifications] Supabase query failed:", error?.message);
-    return [];
+    return { items: [], total: 0 };
   }
 
-  return data.map(mapRow);
+  return { items: data.map(mapRow), total: count ?? 0 };
 }

@@ -779,6 +779,7 @@ export type Database = {
       experience_types: {
         Row: {
           created_at: string | null
+          description: string | null
           display_order: number | null
           icon: string | null
           id: string
@@ -787,6 +788,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
           icon?: string | null
           id?: string
@@ -795,6 +797,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
           icon?: string | null
           id?: string
@@ -1201,6 +1204,38 @@ export type Database = {
           },
           {
             foreignKeyName: "journey_experience_types_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journey_faqs: {
+        Row: {
+          answer: string
+          display_order: number | null
+          id: string
+          journey_id: string
+          question: string
+        }
+        Insert: {
+          answer: string
+          display_order?: number | null
+          id?: string
+          journey_id: string
+          question: string
+        }
+        Update: {
+          answer?: string
+          display_order?: number | null
+          id?: string
+          journey_id?: string
+          question?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_faqs_journey_id_fkey"
             columns: ["journey_id"]
             isOneToOne: false
             referencedRelation: "journeys"
@@ -1656,6 +1691,32 @@ export type Database = {
         }
         Relationships: []
       }
+      link_clicks: {
+        Row: {
+          clicked_at: string
+          id: string
+          tracked_link_id: string
+        }
+        Insert: {
+          clicked_at?: string
+          id?: string
+          tracked_link_id: string
+        }
+        Update: {
+          clicked_at?: string
+          id?: string
+          tracked_link_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "link_clicks_tracked_link_id_fkey"
+            columns: ["tracked_link_id"]
+            isOneToOne: false
+            referencedRelation: "tracked_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loyalty_transactions: {
         Row: {
           booking_id: string | null
@@ -1858,6 +1919,7 @@ export type Database = {
           id: string
           is_approved: boolean | null
           is_featured: boolean
+          journey_id: string | null
           quote: string | null
           rating: number | null
           source: string | null
@@ -1869,6 +1931,7 @@ export type Database = {
           id?: string
           is_approved?: boolean | null
           is_featured?: boolean
+          journey_id?: string | null
           quote?: string | null
           rating?: number | null
           source?: string | null
@@ -1880,12 +1943,20 @@ export type Database = {
           id?: string
           is_approved?: boolean | null
           is_featured?: boolean
+          journey_id?: string | null
           quote?: string | null
           rating?: number | null
           source?: string | null
           tour_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "reviews_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reviews_tour_id_fkey"
             columns: ["tour_id"]
@@ -2210,6 +2281,38 @@ export type Database = {
           },
           {
             foreignKeyName: "tour_experience_types_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tour_faqs: {
+        Row: {
+          answer: string
+          display_order: number | null
+          id: string
+          question: string
+          tour_id: string
+        }
+        Insert: {
+          answer: string
+          display_order?: number | null
+          id?: string
+          question: string
+          tour_id: string
+        }
+        Update: {
+          answer?: string
+          display_order?: number | null
+          id?: string
+          question?: string
+          tour_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_faqs_tour_id_fkey"
             columns: ["tour_id"]
             isOneToOne: false
             referencedRelation: "tours"
@@ -2594,6 +2697,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tracked_links: {
+        Row: {
+          created_at: string
+          destination_path: string
+          id: string
+          label: string | null
+          slug: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string
+        }
+        Insert: {
+          created_at?: string
+          destination_path: string
+          id?: string
+          label?: string | null
+          slug: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source: string
+        }
+        Update: {
+          created_at?: string
+          destination_path?: string
+          id?: string
+          label?: string | null
+          slug?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string
+        }
+        Relationships: []
       }
       trip_planner_requests: {
         Row: {

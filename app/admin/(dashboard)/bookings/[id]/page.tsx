@@ -15,6 +15,7 @@ import { getStatusOptions } from "@/lib/admin/data/status-options";
 import { getLoyaltyAccrualRate } from "@/lib/admin/actions/loyalty";
 import { getAdminSession } from "@/lib/admin/session";
 import { bookingStatusTone, paymentStatusTone, inquiryStatusTone } from "@/lib/admin/status-tone";
+import { formatDateTime } from "@/lib/formatDate";
 
 export default async function BookingDetailPage({
   params,
@@ -66,7 +67,7 @@ export default async function BookingDetailPage({
             <div><dt className="text-foreground/50">Travel Date</dt><dd className="font-medium text-foreground">{travelDateLabel}</dd></div>
             <div><dt className="text-foreground/50">Travelers</dt><dd className="font-medium text-foreground">{travelersLabel}</dd></div>
             {booking.children > 0 && (
-              <div><dt className="text-foreground/50">Children's Ages</dt><dd className="font-medium text-foreground">{booking.childrenAges || "Not given"}</dd></div>
+              <div><dt className="text-foreground/50">Children&rsquo;s Ages</dt><dd className="font-medium text-foreground">{booking.childrenAges || "Not given"}</dd></div>
             )}
             <div><dt className="text-foreground/50">Country of Residence</dt><dd className="font-medium text-foreground">{booking.countryOfResidence || "-"}</dd></div>
             <div><dt className="text-foreground/50">Budget Range (per person)</dt><dd className="font-medium text-foreground">{booking.budgetRange || "Not specified"}</dd></div>
@@ -110,7 +111,7 @@ export default async function BookingDetailPage({
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <Badge tone={inquiryStatusTone(linkedInquiry.status)}>{linkedInquiry.status.replace("_", " ")}</Badge>
-                <span className="text-xs text-foreground/50">{linkedInquiry.createdAt}</span>
+                <span className="text-xs text-foreground/50">{formatDateTime(linkedInquiry.createdAt)}</span>
               </div>
               <div className="mt-3">
                 <InquiryReplyForm
@@ -146,6 +147,7 @@ export default async function BookingDetailPage({
               customerLoyaltyBalance={customer?.loyaltyPoints}
               loyaltyAccrualRate={loyaltyAccrualRate}
               canRedeemLoyalty={canRedeemLoyalty}
+              canDelete={canRedeemLoyalty}
             />
           </div>
         </div>

@@ -33,6 +33,7 @@ export default function AvailabilityCalendar({
   }
 
   async function handleRemove(id: string) {
+    if (!confirm("Remove this date? This can't be undone.")) return;
     setSaving(true);
     setError(null);
     try {

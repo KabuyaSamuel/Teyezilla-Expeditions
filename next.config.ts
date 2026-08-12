@@ -108,12 +108,16 @@ const nextConfig: NextConfig = {
       // JourneyCard, HeroCarousel, CategoryOverview...) would violate this
       // directive.
       "style-src 'self' 'unsafe-inline'",
-      // Photography is same-origin from the browser's perspective even
+      // Most photography is same-origin from the browser's perspective even
       // though it originates in Supabase Storage -- next/image proxies it
       // through /_next/image (or Netlify's Image CDN), so the <img> tag's
-      // actual src is always our own origin. 'self' covers that; no
-      // Supabase host needed here.
-      "img-src 'self' data:",
+      // actual src is usually our own origin, and 'self' would be enough on
+      // its own. The Media Library lightbox (MediaGallery.tsx) is the one
+      // exception: it needs the image's real natural dimensions to size
+      // itself, which next/image's `fill` mode can't give it without a
+      // fixed-size box, so it points a raw <img> straight at Supabase
+      // Storage instead -- same reasoning as media-src below.
+      `img-src 'self' data:${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
       // The hero background (HeroCarousel.tsx) is the one place video
       // isn't going through next/image -- a raw <video><source> pointing
       // straight at the Supabase Storage URL, so media-src needs it

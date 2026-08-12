@@ -2,13 +2,22 @@ import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import Badge from "@/components/admin/Badge";
 import ResponsiveTable, { MobileCardField, MobileCardHeader } from "@/components/admin/ResponsiveTable";
-import { getBookings, type Booking } from "@/lib/admin/data/bookings";
+import Pagination from "@/components/admin/Pagination";
+import { getBookingsPaginated, type Booking } from "@/lib/admin/data/bookings";
 import { getStatusOptions } from "@/lib/admin/data/status-options";
 import { bookingStatusTone, paymentStatusTone } from "@/lib/admin/status-tone";
+import { ADMIN_LIST_PAGE_SIZE, parsePage } from "@/lib/admin/list-query";
 
-export default async function AdminBookingsPage() {
-  const [bookings, bookingStatusOptions, paymentStatusOptions] = await Promise.all([
-    getBookings(),
+export default async function AdminBookingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const page = parsePage(params);
+
+  const [{ items: bookings, total }, bookingStatusOptions, paymentStatusOptions] = await Promise.all([
+    getBookingsPaginated({ page, pageSize: ADMIN_LIST_PAGE_SIZE }),
     getStatusOptions("booking_status"),
     getStatusOptions("payment_status"),
   ]);
@@ -57,6 +66,13 @@ export default async function AdminBookingsPage() {
             </>
           );
         }}
+      />
+      <Pagination
+        basePath="/admin/bookings"
+        currentParams={{}}
+        page={page}
+        pageSize={ADMIN_LIST_PAGE_SIZE}
+        total={total}
       />
     </div>
   );

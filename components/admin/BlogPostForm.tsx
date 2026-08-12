@@ -51,6 +51,7 @@ export default function BlogPostForm({
       authorName: String(formData.get("authorName") ?? "Teyezilla Travel Team"),
       metaTitle: String(formData.get("metaTitle") ?? ""),
       metaDescription: String(formData.get("metaDescription") ?? ""),
+      ogImage: String(formData.get("ogImage") ?? ""),
       status: String(formData.get("status") ?? "draft") as "draft" | "published" | "scheduled",
       scheduledFor: String(formData.get("scheduledFor") ?? ""),
     };
@@ -155,6 +156,11 @@ export default function BlogPostForm({
           <div>
             <label htmlFor="metaDescription" className="text-xs font-medium text-foreground/60">Meta Description</label>
             <textarea id="metaDescription" name="metaDescription" defaultValue={existingPost?.metaDescription} rows={2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label htmlFor="ogImage" className="text-xs font-medium text-foreground/60">Social Share Image URL</label>
+            <p className="mt-0.5 text-[11px] text-foreground/40">Falls back to the featured image above if left blank.</p>
+            <input id="ogImage" name="ogImage" defaultValue={existingPost?.ogImage} placeholder="https://..." className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
       </section>

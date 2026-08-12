@@ -19,6 +19,7 @@ export interface BlogPostInput {
   authorName: string;
   metaTitle: string;
   metaDescription: string;
+  ogImage: string;
   status: "draft" | "published" | "scheduled";
   scheduledFor: string;
 }
@@ -52,6 +53,7 @@ function toRow(input: BlogPostInput) {
     author_name: input.authorName,
     meta_title: input.metaTitle,
     meta_description: input.metaDescription,
+    og_image: input.ogImage,
     status: input.status,
     published_at: publishedAt,
   };

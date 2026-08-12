@@ -16,6 +16,9 @@ export interface DestinationInput {
   visaInfo: string;
   isLaunchDestination: boolean;
   featured: boolean;
+  metaTitle: string;
+  metaDescription: string;
+  ogImage: string;
 }
 
 function slugify(name: string): string {
@@ -38,6 +41,9 @@ function toRow(input: DestinationInput) {
     visa_info: input.visaInfo,
     is_launch_destination: input.isLaunchDestination,
     featured: input.featured,
+    meta_title: input.metaTitle,
+    meta_description: input.metaDescription,
+    og_image: input.ogImage,
   };
 }
 
@@ -50,6 +56,13 @@ function toRow(input: DestinationInput) {
 function friendlyDestinationError(error: { code?: string; message: string }, countryName: string): string {
   if (error.code === "23505" && error.message.includes("destinations_slug_key")) {
     return `A destination named "${countryName}" already exists. Choose a different name, or edit the existing one instead.`;
+  }
+  // 23503 = foreign key violation. Deleting a destination cascades to its
+  // tours, but a tour with bookings/reviews/inquiries -- or the
+  // destination itself being used in a journey (on delete restrict) --
+  // blocks the whole delete with a raw constraint error otherwise.
+  if (error.code === "23503") {
+    return `Can't delete this destination -- it (or one of its tours) is still referenced by a booking, review, inquiry, or journey. Remove those first.`;
   }
   return error.message;
 }
@@ -85,7 +98,7 @@ export async function deleteDestination(id: string): Promise<void> {
   if (!supabase) throw new Error("Supabase not configured.");
 
   const { error } = await supabase.from("destinations").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyDestinationError(error, ""));
 
   revalidatePath("/admin/destinations");
   revalidatePath("/destinations");

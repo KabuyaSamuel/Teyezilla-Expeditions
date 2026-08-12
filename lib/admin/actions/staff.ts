@@ -104,11 +104,25 @@ export async function deleteStaffMember(id: string, authUserId: string): Promise
     throw new Error("You can't delete your own staff account.");
   }
 
-  const { error: staffError } = await supabase.from("staff").delete().eq("id", id);
-  if (staffError) throw new Error(staffError.message);
-
+  // Auth user goes first: if this fails (network blip, transient gateway
+  // error), nothing has changed yet and the admin can just retry. Doing it
+  // in the other order risks a live, login-capable Auth account surviving
+  // with no staff row to show for it if the second call fails.
   const { error: authError } = await supabase.auth.admin.deleteUser(authUserId);
   if (authError) throw new Error(authError.message);
+
+  const { error: staffError } = await supabase.from("staff").delete().eq("id", id);
+  if (staffError) {
+    console.error(
+      "[deleteStaffMember] staff row delete failed after auth user was already removed:",
+      staffError.message,
+      "-- id:",
+      id,
+      "-- authUserId:",
+      authUserId
+    );
+    throw new Error(staffError.message);
+  }
 
   revalidatePath("/admin/staff");
   redirectWithSaved("/admin/staff", "Staff member deleted.");

@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePublicSite } from "@/lib/revalidate";
 import { redirectWithSaved } from "./saved-redirect";
+
+type SupabaseLike = NonNullable<Awaited<ReturnType<typeof getSupabaseServerClient>>>;
 import {
   syncPricingTiers,
   syncHighlights,
@@ -100,7 +102,7 @@ function toRow(input: TourInput) {
 // Replaces a tour's rows in a related-content join table wholesale: clear,
 // then re-insert whatever's currently selected, in the order given.
 async function syncRelatedTable(
-  supabase: any,
+  supabase: SupabaseLike,
   table: string,
   tourId: string,
   relatedIds: string[],
@@ -124,7 +126,7 @@ async function syncRelatedTable(
 // other's results, so they run as one batch of parallel round trips instead
 // of ~11 sequential ones -- this was the single biggest contributor to a
 // tour save feeling slow.
-async function syncTourRelations(supabase: any, tourId: string, input: TourInput) {
+async function syncTourRelations(supabase: SupabaseLike, tourId: string, input: TourInput) {
   await Promise.all([
     syncPricingTiers(supabase, "tour_pricing_tiers", "tour_id", tourId, input.pricingTiers),
     syncHighlights(supabase, "tour_highlights", "tour_id", tourId, input.highlights),
@@ -168,12 +170,22 @@ export async function updateTour(id: string, input: TourInput): Promise<void> {
   redirectWithSaved("/admin/tours", `"${input.title}" saved.`);
 }
 
+// 23503 = foreign key violation. bookings/reviews/inquiries reference
+// tours without cascading, so a tour that's actually been booked, reviewed,
+// or enquired about blocks the delete with a raw constraint error otherwise.
+function friendlyTourDeleteError(error: { code?: string; message: string }): string {
+  if (error.code === "23503") {
+    return "Can't delete this tour -- it's still referenced by a booking, review, or inquiry. Remove those first.";
+  }
+  return error.message;
+}
+
 export async function deleteTour(id: string): Promise<void> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
   const { error } = await supabase.from("tours").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyTourDeleteError(error));
 
   revalidatePath("/admin/tours");
   revalidatePublicSite();

@@ -9,6 +9,7 @@ import { accrueLoyaltyForBooking, redeemLoyaltyPoints } from "@/lib/admin/action
 import { getCustomerById } from "@/lib/admin/data/customers";
 import { sendCustomerConfirmation } from "@/lib/email";
 import { customerQuoteEmail } from "@/lib/email-templates";
+import { redirectWithSaved } from "./saved-redirect";
 
 function revalidateBooking(id: string) {
   revalidatePath(`/admin/bookings/${id}`);
@@ -84,6 +85,22 @@ export async function updatePaymentStatus(id: string, status: string): Promise<v
 
 export async function cancelBooking(id: string): Promise<void> {
   return updateBookingStatus(id, "cancelled");
+}
+
+// payments / booking_guests reference booking_id on delete cascade, so
+// those go with it. inquiries.booking_id is on delete set null instead --
+// a booking-derived inquiry stays visible in Inquiry Management, just
+// unlinked from the (now-gone) booking it was mirrored from.
+export async function deleteBooking(id: string): Promise<void> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) throw new Error("Supabase not configured.");
+
+  const { error } = await supabase.from("bookings").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin/customers");
+  redirectWithSaved("/admin/bookings", "Booking deleted.");
 }
 
 // Saves the quoted amount to total_amount, moves the booking to "quoted", and

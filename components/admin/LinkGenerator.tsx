@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SITE_URL } from "@/lib/site";
-import { createTrackedLink, deleteTrackedLink } from "@/lib/admin/actions/link-generator";
+import { createTrackedLink, deleteTrackedLink, updateTrackedLink } from "@/lib/admin/actions/link-generator";
 import type { TrackedLinkListItem } from "@/lib/admin/data/link-generator";
 import { useToast } from "./Toast";
 import ConfirmDialog from "./ConfirmDialog";
@@ -31,6 +31,13 @@ export default function LinkGenerator({ links }: { links: TrackedLinkListItem[] 
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TrackedLinkListItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editPath, setEditPath] = useState("");
+  const [editSource, setEditSource] = useState("");
+  const [editMedium, setEditMedium] = useState("");
+  const [editCampaign, setEditCampaign] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const isKnownPreset = PRESETS.some((p) => p.source === source && p.medium === medium);
 
@@ -56,6 +63,36 @@ export default function LinkGenerator({ links }: { links: TrackedLinkListItem[] 
       toast.error(err instanceof Error ? err.message : "Failed to create link.");
     } finally {
       setCreating(false);
+    }
+  }
+
+  function startEdit(link: TrackedLinkListItem) {
+    setEditingId(link.id);
+    setEditLabel(link.label ?? "");
+    setEditPath(link.destinationPath);
+    setEditSource(link.utmSource);
+    setEditMedium(link.utmMedium ?? "");
+    setEditCampaign(link.utmCampaign ?? "");
+  }
+
+  async function handleUpdate() {
+    if (!editingId || !editSource.trim()) return;
+    setSaving(true);
+    try {
+      await updateTrackedLink(editingId, {
+        label: editLabel,
+        destinationPath: editPath,
+        utmSource: editSource,
+        utmMedium: editMedium,
+        utmCampaign: editCampaign,
+      });
+      toast.success("Link updated.");
+      setEditingId(null);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update link.");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -161,6 +198,43 @@ export default function LinkGenerator({ links }: { links: TrackedLinkListItem[] 
         <div className="mt-4 space-y-3">
           {links.map((link) => {
             const url = `${SITE_URL}/go/${link.slug}`;
+            if (editingId === link.id) {
+              return (
+                <div key={link.id} className="rounded-xl border border-primary/30 bg-secondary/10 p-4">
+                  <p className="text-xs font-medium text-foreground/60">Editing {url} -- short link itself can&rsquo;t be changed.</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-medium text-foreground/60">Label</label>
+                      <input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-medium text-foreground/60">Page to link to</label>
+                      <input value={editPath} onChange={(e) => setEditPath(e.target.value)} placeholder="/" className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-foreground/60">Source *</label>
+                      <input value={editSource} onChange={(e) => setEditSource(e.target.value)} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-foreground/60">Medium</label>
+                      <input value={editMedium} onChange={(e) => setEditMedium(e.target.value)} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-medium text-foreground/60">Campaign name</label>
+                      <input value={editCampaign} onChange={(e) => setEditCampaign(e.target.value)} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    </div>
+                  </div>
+                  <div className="mt-3 flex gap-3">
+                    <button type="button" onClick={handleUpdate} disabled={saving || !editSource.trim()} className="btn-primary text-sm disabled:opacity-50">
+                      {saving ? "Saving…" : "Save Changes"}
+                    </button>
+                    <button type="button" onClick={() => setEditingId(null)} disabled={saving} className="btn-outline text-sm">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              );
+            }
             return (
               <div key={link.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-secondary/10 px-4 py-3">
                 <div className="min-w-0">
@@ -180,6 +254,9 @@ export default function LinkGenerator({ links }: { links: TrackedLinkListItem[] 
                     className="text-xs font-medium text-primary hover:underline"
                   >
                     {copiedSlug === link.slug ? "Copied ✓" : "Copy"}
+                  </button>
+                  <button type="button" onClick={() => startEdit(link)} className="text-xs font-medium text-primary hover:underline">
+                    Edit
                   </button>
                   <button type="button" onClick={() => setDeleteTarget(link)} className="text-xs font-medium text-error hover:underline">
                     Delete

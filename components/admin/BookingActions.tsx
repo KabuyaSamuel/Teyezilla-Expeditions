@@ -3,12 +3,17 @@
 import { useState } from "react";
 import {
   cancelBooking,
+  deleteBooking,
   sendQuote,
   updateBookingStatus,
   updatePaymentStatus,
 } from "@/lib/admin/actions/bookings";
 import type { StatusOption } from "@/lib/admin/data/status-options";
 import { dollarValueOfPoints } from "@/lib/loyalty-shared";
+
+function isRedirectError(err: unknown): boolean {
+  return !!err && typeof err === "object" && "digest" in err && String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT");
+}
 
 export default function BookingActions({
   id,
@@ -21,6 +26,7 @@ export default function BookingActions({
   customerLoyaltyBalance,
   loyaltyAccrualRate,
   canRedeemLoyalty,
+  canDelete,
   requestedTotal,
 }: {
   id: string;
@@ -34,6 +40,8 @@ export default function BookingActions({
   customerLoyaltyBalance?: number;
   loyaltyAccrualRate: number;
   canRedeemLoyalty: boolean;
+  /** Deleting a booking is permanent (also drops guests/payment records) -- restricted to the same roles as loyalty redemption. */
+  canDelete: boolean;
   /** What the customer's enquiry auto-calculated to (base price + add-ons); pre-fills the quote input as a starting point staff can still adjust. */
   requestedTotal?: number;
 }) {
@@ -58,6 +66,19 @@ export default function BookingActions({
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm(`Delete booking ${bookingReference}? This can't be undone and also removes its guests and payment records.`)) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await deleteBooking(id);
+    } catch (err) {
+      if (isRedirectError(err)) throw err;
+      setError(err instanceof Error ? err.message : "Failed to delete booking.");
       setBusy(false);
     }
   }
@@ -142,6 +163,17 @@ export default function BookingActions({
         >
           Cancel Booking
         </button>
+
+        {canDelete && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={busy}
+            className="rounded-full px-5 py-2 text-sm font-medium text-error/70 hover:text-error hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Delete Booking
+          </button>
+        )}
       </div>
 
       {quoteOpen && (

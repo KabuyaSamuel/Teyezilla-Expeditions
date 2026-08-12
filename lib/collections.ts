@@ -7,6 +7,9 @@ export interface Collection {
   slug: string;
   description: string;
   heroImage: string;
+  metaTitle: string;
+  metaDescription: string;
+  ogImage: string;
 }
 
 export interface CollectionWithTours extends Collection {
@@ -46,7 +49,7 @@ export async function getCollections(): Promise<Collection[]> {
 
   const { data, error } = await supabase
     .from("collections")
-    .select("id, name, slug, description, hero_image")
+    .select("id, name, slug, description, hero_image, meta_title, meta_description, og_image")
     .order("display_order");
 
   if (error || !data) {
@@ -54,12 +57,15 @@ export async function getCollections(): Promise<Collection[]> {
     return [];
   }
 
-  return data.map((c: any) => ({
-    id: c.id,
-    name: c.name,
-    slug: c.slug,
-    description: c.description ?? "",
-    heroImage: c.hero_image ?? "",
+  return (data as Record<string, unknown>[]).map((c) => ({
+    id: c.id as string,
+    name: c.name as string,
+    slug: c.slug as string,
+    description: (c.description as string) ?? "",
+    heroImage: (c.hero_image as string) ?? "",
+    metaTitle: (c.meta_title as string) ?? "",
+    metaDescription: (c.meta_description as string) ?? "",
+    ogImage: (c.og_image as string) ?? "",
   }));
 }
 
@@ -72,7 +78,7 @@ export async function getCollectionBySlug(slug: string): Promise<CollectionWithT
 
   const { data, error } = await supabase
     .from("collections")
-    .select("id, name, slug, description, hero_image, collection_tours(tours(*))")
+    .select("id, name, slug, description, hero_image, meta_title, meta_description, og_image, collection_tours(tours(*))")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -81,13 +87,17 @@ export async function getCollectionBySlug(slug: string): Promise<CollectionWithT
     return undefined;
   }
 
-  const row = data as any;
+  const row = data as Record<string, unknown>;
+  const collectionTours = (row.collection_tours as { tours: Record<string, unknown> | null }[] | null) ?? [];
   return {
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    description: row.description ?? "",
-    heroImage: row.hero_image ?? "",
-    tours: (row.collection_tours ?? []).map((ct: any) => ct.tours).filter(Boolean).map(mapTourRow),
+    id: row.id as string,
+    name: row.name as string,
+    slug: row.slug as string,
+    description: (row.description as string) ?? "",
+    heroImage: (row.hero_image as string) ?? "",
+    metaTitle: (row.meta_title as string) ?? "",
+    metaDescription: (row.meta_description as string) ?? "",
+    ogImage: (row.og_image as string) ?? "",
+    tours: collectionTours.map((ct) => ct.tours).filter((t): t is Record<string, unknown> => Boolean(t)).map(mapTourRow),
   };
 }

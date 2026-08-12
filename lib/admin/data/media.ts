@@ -23,6 +23,31 @@ function mapRow(row: Tables<"media">): MediaItem {
   };
 }
 
+export async function getMediaItemsPaginated(query: {
+  page: number;
+  pageSize: number;
+  fileType?: MediaItem["fileType"];
+}): Promise<{ items: MediaItem[]; total: number }> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) {
+    console.warn("[media] Supabase not configured, returning no media.");
+    return { items: [], total: 0 };
+  }
+
+  let q = supabase.from("media").select("*", { count: "exact" }).order("uploaded_at", { ascending: false });
+  if (query.fileType) q = q.eq("file_type", query.fileType);
+
+  const from = (query.page - 1) * query.pageSize;
+  const { data, error, count } = await q.range(from, from + query.pageSize - 1);
+
+  if (error || !data) {
+    console.warn("[media] Supabase query failed:", error?.message);
+    return { items: [], total: 0 };
+  }
+
+  return { items: data.map(mapRow), total: count ?? 0 };
+}
+
 export async function getMediaItems(): Promise<MediaItem[]> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) {

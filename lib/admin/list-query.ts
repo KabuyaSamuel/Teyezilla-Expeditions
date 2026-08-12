@@ -1,8 +1,12 @@
 // Shared URL-search-param parsing for paginated admin list pages
-// (tours/journeys/destinations). Keeps the `sort` query param format
-// (`${column}_${direction}`) and page size consistent across all three.
+// (tours/journeys/destinations, etc). Keeps the `sort` query param format
+// (`${column}_${direction}`) and page size consistent across all of them.
 
 export const ADMIN_LIST_PAGE_SIZE = 10;
+
+// Thumbnail grids (media library) read fine much denser than a table list --
+// 24 divides evenly into the grid's 2/3/4-column breakpoints.
+export const MEDIA_LIBRARY_PAGE_SIZE = 24;
 
 export function parsePage(searchParams: Record<string, string | string[] | undefined>): number {
   const raw = searchParams.page;

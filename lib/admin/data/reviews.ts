@@ -3,8 +3,8 @@ import type { Tables } from "@/types/database";
 
 type AdminReviewRow = Pick<
   Tables<"reviews">,
-  "id" | "author_name" | "source" | "rating" | "quote" | "tour_id" | "is_approved" | "is_featured"
-> & { tour: Pick<Tables<"tours">, "title"> | null };
+  "id" | "author_name" | "source" | "rating" | "quote" | "tour_id" | "journey_id" | "is_approved" | "is_featured" | "created_at"
+> & { tour: Pick<Tables<"tours">, "title"> | null; journey: Pick<Tables<"journeys">, "title"> | null };
 
 export interface AdminReview {
   id: string;
@@ -14,8 +14,12 @@ export interface AdminReview {
   quote: string;
   tourId: string | null;
   tourTitle?: string;
+  journeyId: string | null;
+  journeyTitle?: string;
   isApproved: boolean;
   isFeatured: boolean;
+  /** Set automatically on insert (reviews.created_at defaults to now()) -- admin-only, never shown on the public site. */
+  createdAt: string;
 }
 
 function mapRow(row: AdminReviewRow): AdminReview {
@@ -27,8 +31,11 @@ function mapRow(row: AdminReviewRow): AdminReview {
     quote: row.quote ?? "",
     tourId: row.tour_id,
     tourTitle: row.tour?.title,
+    journeyId: row.journey_id,
+    journeyTitle: row.journey?.title,
     isApproved: Boolean(row.is_approved),
     isFeatured: Boolean(row.is_featured),
+    createdAt: row.created_at ?? "",
   };
 }
 
@@ -43,7 +50,7 @@ export async function getAllReviews(): Promise<AdminReview[]> {
 
   const { data, error } = await supabase
     .from("reviews")
-    .select("id, author_name, source, rating, quote, tour_id, is_approved, is_featured, tour:tours(title)")
+    .select("id, author_name, source, rating, quote, tour_id, journey_id, is_approved, is_featured, created_at, tour:tours(title), journey:journeys(title)")
     .order("created_at", { ascending: false });
 
   if (error || !data) {
@@ -68,7 +75,7 @@ export async function getReviewById(id: string): Promise<AdminReview | undefined
 
   const { data, error } = await supabase
     .from("reviews")
-    .select("id, author_name, source, rating, quote, tour_id, is_approved, is_featured, tour:tours(title)")
+    .select("id, author_name, source, rating, quote, tour_id, journey_id, is_approved, is_featured, created_at, tour:tours(title), journey:journeys(title)")
     .eq("id", id)
     .maybeSingle();
 

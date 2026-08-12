@@ -4,6 +4,7 @@ import Image from "next/image";
 import { getJourneys, getJourneyBySlug, getJourneysByDestination, getJourneysByIds } from "@/lib/journeys";
 import { getRelatedTours, getToursByIds } from "@/lib/tours";
 import { getRelatedBlogPosts, getBlogPostsByIds } from "@/lib/blog";
+import { getApprovedReviewsByJourneyId } from "@/lib/reviews";
 import { WHATSAPP_NUMBER } from "@/lib/enquiry-shared";
 import ProductItinerary from "@/components/ProductItinerary";
 import ProductHighlights from "@/components/ProductHighlights";
@@ -60,10 +61,11 @@ export default async function JourneyPage({ params }: Props) {
   // "Bring This to Life": staff-curated picks take priority per category;
   // any category left empty falls back to the existing destination-match
   // auto-compute.
-  const [manualRelatedJourneys, manualRelatedTours, manualRelatedArticles] = await Promise.all([
+  const [manualRelatedJourneys, manualRelatedTours, manualRelatedArticles, journeyReviews] = await Promise.all([
     getJourneysByIds(journey.relatedJourneyIds),
     getToursByIds(journey.relatedTourIds),
     getBlogPostsByIds(journey.relatedBlogPostIds),
+    getApprovedReviewsByJourneyId(journey.id),
   ]);
   const needsAutoTours = manualRelatedTours.length === 0;
   const needsAutoJourneys = manualRelatedJourneys.length === 0;
@@ -97,6 +99,15 @@ export default async function JourneyPage({ params }: Props) {
       price: journey.priceFrom,
       priceCurrency: journey.currency,
     },
+    ...(journeyReviews.length > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: Number((journeyReviews.reduce((sum, r) => sum + r.rating, 0) / journeyReviews.length).toFixed(1)),
+            reviewCount: journeyReviews.length,
+          },
+        }
+      : {}),
   };
 
   const facts = [

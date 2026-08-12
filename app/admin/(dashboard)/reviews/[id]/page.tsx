@@ -3,6 +3,8 @@ import PageHeader from "@/components/admin/PageHeader";
 import ReviewForm from "@/components/admin/ReviewForm";
 import { getReviewById } from "@/lib/admin/data/reviews";
 import { getTours } from "@/lib/tours";
+import { getAdminJourneys } from "@/lib/admin/data/journeys";
+import { formatDateTime } from "@/lib/formatDate";
 
 export default async function EditReviewPage({
   params,
@@ -10,13 +12,16 @@ export default async function EditReviewPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [review, tours] = await Promise.all([getReviewById(id), getTours()]);
+  const [review, tours, journeys] = await Promise.all([getReviewById(id), getTours(), getAdminJourneys()]);
   if (!review) notFound();
 
   return (
     <div>
-      <PageHeader title={`Edit Review: ${review.authorName}`} description="Update this testimonial." />
-      <ReviewForm existingReview={review} tours={tours} />
+      <PageHeader
+        title={`Edit Review: ${review.authorName}`}
+        description={`Update this testimonial. Added ${formatDateTime(review.createdAt)}.`}
+      />
+      <ReviewForm existingReview={review} tours={tours} journeys={journeys} />
     </div>
   );
 }

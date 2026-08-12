@@ -48,6 +48,7 @@ export interface Review {
   rating: number;
   quote: string;
   tourTitle?: string;
+  journeyTitle?: string;
 }
 
 export interface BlogPost extends SEOFields {

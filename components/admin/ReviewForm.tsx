@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Tour } from "@/types";
 import type { AdminReview } from "@/lib/admin/data/reviews";
+import type { AdminJourneyListItem } from "@/lib/admin/data/journeys";
 import { createReview, updateReview, deleteReview } from "@/lib/admin/actions/reviews";
 import { useToast } from "./Toast";
 
@@ -10,13 +11,29 @@ function isRedirectError(err: unknown): boolean {
   return !!err && typeof err === "object" && "digest" in err && String((err as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
 }
 
+// The dropdown offers one flat choice ("tour:<id>" / "journey:<id>" / ""),
+// split back into the two separate columns the DB actually stores -- a
+// review is about one or the other, never both (reviews_tour_or_journey_check).
+function parseRelated(value: string): { tourId: string; journeyId: string } {
+  if (value.startsWith("tour:")) return { tourId: value.slice(5), journeyId: "" };
+  if (value.startsWith("journey:")) return { tourId: "", journeyId: value.slice(8) };
+  return { tourId: "", journeyId: "" };
+}
+
 export default function ReviewForm({
   existingReview,
   tours,
+  journeys,
 }: {
   existingReview?: AdminReview;
   tours: Tour[];
+  journeys: AdminJourneyListItem[];
 }) {
+  const relatedDefault = existingReview?.tourId
+    ? `tour:${existingReview.tourId}`
+    : existingReview?.journeyId
+      ? `journey:${existingReview.journeyId}`
+      : "";
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,12 +44,14 @@ export default function ReviewForm({
     setSaving(true);
 
     const formData = new FormData(e.currentTarget);
+    const { tourId, journeyId } = parseRelated(String(formData.get("related") ?? ""));
     const input = {
       authorName: String(formData.get("authorName") ?? ""),
       source: String(formData.get("source") ?? "Google") as "Google" | "TripAdvisor" | "GetYourGuide",
       rating: Number(formData.get("rating") ?? 5),
       quote: String(formData.get("quote") ?? ""),
-      tourId: String(formData.get("tourId") ?? ""),
+      tourId,
+      journeyId,
       isApproved: formData.get("isApproved") === "on",
     };
 
@@ -93,12 +112,19 @@ export default function ReviewForm({
           </select>
         </div>
         <div>
-          <label htmlFor="tourId" className="text-xs font-medium text-foreground/60">Related Tour (optional)</label>
-          <select id="tourId" name="tourId" defaultValue={existingReview?.tourId ?? ""} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+          <label htmlFor="related" className="text-xs font-medium text-foreground/60">Related Tour or Journey (optional)</label>
+          <select id="related" name="related" defaultValue={relatedDefault} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
             <option value="">None</option>
-            {tours.map((t) => (
-              <option key={t.id} value={t.id}>{t.title}</option>
-            ))}
+            <optgroup label="Tours">
+              {tours.map((t) => (
+                <option key={t.id} value={`tour:${t.id}`}>{t.title}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Journeys">
+              {journeys.map((j) => (
+                <option key={j.id} value={`journey:${j.id}`}>{j.title}</option>
+              ))}
+            </optgroup>
           </select>
         </div>
         <div className="sm:col-span-2">

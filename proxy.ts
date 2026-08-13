@@ -33,24 +33,37 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  const supabase = createServerClient(url, anonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
+  let user;
+  let supabase;
+  try {
+    supabase = createServerClient(url, anonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        supabaseResponse = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
-        );
-      },
-    },
-  });
+    });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    ({
+      data: { user },
+    } = await supabase.auth.getUser());
+  } catch (error) {
+    // Fail closed: a network blip talking to Supabase (mobile connectivity,
+    // a timeout, DNS hiccup) must not surface as a raw crash of the Netlify
+    // edge function -- it should look like an ordinary "please sign in".
+    console.error("proxy: Supabase auth check failed", error);
+    const loginUrl = new URL("/admin/login", request.url);
+    loginUrl.searchParams.set("from", pathname);
+    loginUrl.searchParams.set("auth_error", "1");
+    return NextResponse.redirect(loginUrl);
+  }
 
   if (!user) {
     const loginUrl = new URL("/admin/login", request.url);

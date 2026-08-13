@@ -2,6 +2,15 @@ import type { MetadataRoute } from "next";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 import { SITE_URL } from "@/lib/site";
 
+// The sitemap must always reflect the database's CURRENT catalogue, so it's
+// deliberately not a build-time static artifact (it would otherwise keep
+// listing deleted/renamed tours, journeys, etc. until the next deploy --
+// dead URLs that hurt SEO and trip the smoke test, which discovers its
+// content checks from this file). Rendering on every request is fine for a
+// sitemap: requests are infrequent (crawlers, the smoke test) and each is a
+// small indexed select over six tables.
+export const revalidate = 0;
+
 // Queries slug + updated_at directly rather than going through lib/tours.ts
 // etc. -- those return the app-wide shape (Tour, Journey, ...), none of
 // which expose updated_at today, and adding it there would ripple into

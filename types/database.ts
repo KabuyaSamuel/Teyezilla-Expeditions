@@ -607,6 +607,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          archived_at: string | null
           created_at: string | null
           email: string
           emergency_contact: string | null
@@ -619,6 +620,7 @@ export type Database = {
           phone: string | null
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string | null
           email: string
           emergency_contact?: string | null
@@ -631,6 +633,7 @@ export type Database = {
           phone?: string | null
         }
         Update: {
+          archived_at?: string | null
           created_at?: string | null
           email?: string
           emergency_contact?: string | null

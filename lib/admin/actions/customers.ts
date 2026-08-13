@@ -49,16 +49,30 @@ export async function updateCustomer(id: string, input: CustomerInput): Promise<
   revalidatePath("/admin/customers");
 }
 
-// customers is referenced by bookings.customer_id with no ON DELETE clause
-// (defaults to RESTRICT), so this will fail with a clear FK-violation error
-// for any customer who has bookings; by design, not a bug to work around.
-export async function deleteCustomer(id: string): Promise<void> {
+// Soft-delete: customers is referenced by bookings.customer_id (no cascade,
+// so a hard delete fails for anyone with bookings) and by
+// loyalty_transactions.customer_id (which *does* cascade, so a hard delete
+// silently erases their points history for anyone without bookings).
+// Archiving avoids both -- history stays intact, the record just drops out
+// of the default list.
+export async function archiveCustomer(id: string): Promise<void> {
   const supabase = await getSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured.");
 
-  const { error } = await supabase.from("customers").delete().eq("id", id);
+  const { error } = await supabase.from("customers").update({ archived_at: new Date().toISOString() }).eq("id", id);
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/customers");
-  redirectWithSaved("/admin/customers", "Customer deleted.");
+  redirectWithSaved("/admin/customers", "Customer archived.");
+}
+
+export async function unarchiveCustomer(id: string): Promise<void> {
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) throw new Error("Supabase not configured.");
+
+  const { error } = await supabase.from("customers").update({ archived_at: null }).eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/customers");
+  redirectWithSaved(`/admin/customers/${id}`, "Customer unarchived.");
 }

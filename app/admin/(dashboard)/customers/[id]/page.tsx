@@ -39,9 +39,12 @@ export default async function CustomerProfilePage({
         title={customer.fullName}
         description={customer.email}
         action={
-          <Link href={`/admin/customers/${customer.id}/edit`} className="btn-primary text-sm">
-            Edit
-          </Link>
+          <div className="flex items-center gap-3">
+            {customer.archivedAt && <Badge tone="neutral">Archived</Badge>}
+            <Link href={`/admin/customers/${customer.id}/edit`} className="btn-primary text-sm">
+              Edit
+            </Link>
+          </div>
         }
       />
 

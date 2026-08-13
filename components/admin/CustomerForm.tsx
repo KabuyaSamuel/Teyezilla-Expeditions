@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Customer } from "@/lib/admin/data/customers";
-import { createCustomer, updateCustomer, deleteCustomer } from "@/lib/admin/actions/customers";
+import { createCustomer, updateCustomer, archiveCustomer, unarchiveCustomer } from "@/lib/admin/actions/customers";
 import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
@@ -44,15 +44,29 @@ export default function CustomerForm({ existingCustomer }: { existingCustomer?: 
     }
   }
 
-  async function handleDelete() {
+  async function handleArchive() {
     if (!existingCustomer) return;
-    if (!confirm(`Delete "${existingCustomer.fullName}"? This fails if they have any bookings.`)) return;
+    if (!confirm(`Archive "${existingCustomer.fullName}"? They'll drop off the active customer list, but their bookings, payments, and loyalty history are kept. You can unarchive them later.`)) return;
     setSaving(true);
     try {
-      await deleteCustomer(existingCustomer.id);
+      await archiveCustomer(existingCustomer.id);
     } catch (err) {
       if (isRedirectError(err)) throw err;
-      const message = err instanceof Error ? err.message : "Failed to delete customer.";
+      const message = err instanceof Error ? err.message : "Failed to archive customer.";
+      setError(message);
+      toast.error(message);
+      setSaving(false);
+    }
+  }
+
+  async function handleUnarchive() {
+    if (!existingCustomer) return;
+    setSaving(true);
+    try {
+      await unarchiveCustomer(existingCustomer.id);
+    } catch (err) {
+      if (isRedirectError(err)) throw err;
+      const message = err instanceof Error ? err.message : "Failed to unarchive customer.";
       setError(message);
       toast.error(message);
       setSaving(false);
@@ -62,6 +76,11 @@ export default function CustomerForm({ existingCustomer }: { existingCustomer?: 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
+      {existingCustomer?.archivedAt && (
+        <div className="rounded-xl bg-secondary/10 px-4 py-3 text-sm text-foreground/70">
+          Archived on {new Date(existingCustomer.archivedAt).toLocaleDateString()}. Hidden from the active customer list.
+        </div>
+      )}
       <p className="text-xs text-foreground/50">Fields marked with <span className="text-error">*</span> are required.</p>
 
       <section className="card grid gap-4 p-6 sm:grid-cols-2">
@@ -92,11 +111,15 @@ export default function CustomerForm({ existingCustomer }: { existingCustomer?: 
       </section>
 
       <div className="flex flex-wrap justify-end gap-3">
-        {existingCustomer && (
-          <button type="button" onClick={handleDelete} disabled={saving} className="rounded-full border-2 border-error px-5 py-2 text-sm font-medium text-error hover:bg-error hover:text-white transition-colors disabled:opacity-50">
-            Delete
+        {existingCustomer && (existingCustomer.archivedAt ? (
+          <button type="button" onClick={handleUnarchive} disabled={saving} className="rounded-full border-2 border-secondary/40 px-5 py-2 text-sm font-medium text-foreground/70 hover:bg-secondary/10 transition-colors disabled:opacity-50">
+            Unarchive
           </button>
-        )}
+        ) : (
+          <button type="button" onClick={handleArchive} disabled={saving} className="rounded-full border-2 border-error px-5 py-2 text-sm font-medium text-error hover:bg-error hover:text-white transition-colors disabled:opacity-50">
+            Archive
+          </button>
+        ))}
         <button type="submit" disabled={saving} className="btn-primary disabled:opacity-50">
           {saving ? "Saving…" : "Save Customer"}
         </button>

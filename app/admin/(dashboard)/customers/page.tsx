@@ -3,23 +3,38 @@ import PageHeader from "@/components/admin/PageHeader";
 import ResponsiveTable, { MobileCardField, MobileCardHeader } from "@/components/admin/ResponsiveTable";
 import { getCustomers } from "@/lib/admin/data/customers";
 
-export default async function AdminCustomersPage() {
-  const customers = await getCustomers();
+export default async function AdminCustomersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ archived?: string }>;
+}) {
+  const { archived } = await searchParams;
+  const showArchived = archived === "1";
+  const customers = await getCustomers(showArchived ? { includeArchived: true } : {});
+  const visibleCustomers = showArchived ? customers.filter((c) => c.archivedAt) : customers;
+
   return (
     <div>
       <PageHeader
-        title="Customer Management (CRM)"
-        description="Profiles, booking history, and loyalty."
+        title={showArchived ? "Archived Customers" : "Customer Management (CRM)"}
+        description={showArchived ? "Customers hidden from the active list. Their history is kept." : "Profiles, booking history, and loyalty."}
         action={
-          <Link href="/admin/customers/new" className="btn-primary text-sm">
-            + Add Customer
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href={showArchived ? "/admin/customers" : "/admin/customers?archived=1"} className="text-sm text-primary hover:underline">
+              {showArchived ? "Back to active customers" : "View archived"}
+            </Link>
+            {!showArchived && (
+              <Link href="/admin/customers/new" className="btn-primary text-sm">
+                + Add Customer
+              </Link>
+            )}
+          </div>
         }
       />
       <ResponsiveTable
-        rows={customers}
+        rows={visibleCustomers}
         keyField={(c) => c.id}
-        emptyMessage="No customers yet."
+        emptyMessage={showArchived ? "No archived customers." : "No customers yet."}
         columns={[
           { header: "Name", cell: (c) => c.fullName, className: "font-medium text-foreground" },
           { header: "Email", cell: (c) => c.email },

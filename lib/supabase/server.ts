@@ -59,20 +59,21 @@ export async function getSupabaseServerClient() {
 // can behave differently in `next build` than in `next dev`), which is the
 // more likely failure mode to guard against.
 export function getSupabaseServiceClient() {
-  // Validated here rather than in lib/env.ts's shared schema: this is
-  // exactly the var whose absence caused the Add Staff Member production
-  // incident this check was added to prevent a repeat of, but lib/env.ts
-  // is imported by every route (including public pages, via
-  // lib/supabase/public.ts) -- validating it there took the whole site
-  // down whenever this one admin-only var was missing, not just the admin
-  // action that needed it. Checking it right here keeps the same "fail
-  // loudly, don't degrade silently" intent, scoped to where it's used.
+  // Returns null rather than throwing when the key is missing, matching
+  // getSupabasePublicClient()/getSupabaseServerClient() above: every real
+  // caller of this function already does `if (!supabase) ...` itself --
+  // lib/admin/actions/staff.ts (the actual Add Staff Member code) throws
+  // its own "Supabase not configured" error at the call site, and the
+  // public contact/booking/trip-planner actions do
+  // `getSupabaseServiceClient() ?? getSupabasePublicClient()`, a fallback
+  // that only works against null. An earlier version of this function
+  // threw here directly, which broke that fallback outright -- `??`
+  // doesn't catch a thrown error, so a missing key crashed those public
+  // form submissions instead of degrading to the anon client the way they
+  // were designed to. Loud failure still happens, just at whichever call
+  // site actually needs it (staff.ts already does this correctly).
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceRoleKey) {
-    throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY is required -- see the Add Staff Member incident this check was added to prevent a repeat of."
-    );
-  }
+  if (!serviceRoleKey) return null;
 
   return createClient(env.NEXT_PUBLIC_SUPABASE_URL, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },

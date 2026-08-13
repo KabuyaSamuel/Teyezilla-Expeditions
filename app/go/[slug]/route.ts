@@ -27,6 +27,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const supabase = getSupabaseServiceClient();
+    if (!supabase) {
+      return NextResponse.redirect(fallback);
+    }
 
     const { data: link } = await supabase
       .from("tracked_links")

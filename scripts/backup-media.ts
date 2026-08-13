@@ -63,9 +63,16 @@ async function main() {
       console.error(`Skipping ${path}: ${error?.message ?? "empty download"}`);
       continue;
     }
-    const buffer = Buffer.from(await data.arrayBuffer());
-    await uploadToR2(`media/${date}/${path}`, buffer, data.type || "application/octet-stream");
-    uploaded += 1;
+    try {
+      const buffer = Buffer.from(await data.arrayBuffer());
+      await uploadToR2(`media/${date}/${path}`, buffer, data.type || "application/octet-stream");
+      uploaded += 1;
+    } catch (err) {
+      // A transient R2 hiccup on one file (of what could be hundreds)
+      // shouldn't abort the whole run -- keep going and let the
+      // uploaded-count check below still catch it and fail the workflow.
+      console.error(`Skipping ${path}: ${err instanceof Error ? err.message : err}`);
+    }
   }
 
   console.log(`Media backup uploaded: ${uploaded}/${paths.length} file(s) to media/${date}/`);

@@ -308,6 +308,48 @@ silently-broken keep-alive defeats its own purpose.
   you can confirm the run goes red and a Sentry event shows up, without touching any
   real code.
 
+### Backups
+
+`.github/workflows/backup.yml` runs `scripts/backup-database.ts` and
+`scripts/backup-media.ts` daily, uploading a full database dump and every Media Library
+file to Cloudflare R2.
+
+This exists because Supabase's automatic backups are a Pro-plan-and-up feature —
+Free-tier projects (this one; see "Supabase keep-alive" above) get none at all. Without
+this workflow, losing the Supabase project loses the database and every uploaded photo
+permanently, with nothing to restore from.
+
+**One-time setup** (not needed to run the app locally, only to have real backups):
+
+1. Create a Cloudflare account (free) and an R2 bucket — Cloudflare dashboard → R2
+   Object Storage → Create bucket. R2's free tier (10GB storage, no egress fees) is far
+   more than this project needs for a while.
+2. Create an API token scoped to R2 — R2 → Manage API Tokens → Create API Token, with
+   Object Read & Write permission. Note the Access Key ID, Secret Access Key, and your
+   Account ID (shown on the R2 overview page).
+3. Add five repo secrets (Settings → Secrets and variables → Actions → New repository
+   secret) — add the *values* there directly, never paste them into a commit, PR, or
+   chat:
+   - `DATABASE_URL` — Supabase Dashboard → Project Settings → Database → Connection
+     string → URI, **"Direct connection"** specifically (not the pgbouncer pooler —
+     `pg_dump` needs session-level features the pooler doesn't support).
+   - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` —
+     from step 2.
+
+**To verify it's working:**
+
+- Check the Actions tab for the `Backup` workflow's run history.
+- Trigger it manually any time via **Actions → Backup → Run workflow**
+  (`workflow_dispatch`), without waiting for the schedule.
+- Check the R2 bucket directly for `database/<date>.sql.gz` and `media/<date>/...`
+  objects after a run.
+
+**Restoring:** download a `database/<date>.sql.gz`, `gunzip` it, and run
+`psql <target-connection-string> -f database.sql` against a fresh Supabase project (or
+any Postgres instance). Actually run this once against a scratch project so the restore
+path is proven before the day it's needed for real — a backup nobody has restored isn't
+a verified backup.
+
 ## Making changes — where things live
 
 - `app/(public)/` — public-facing pages (route group so `/admin/*` doesn't inherit the

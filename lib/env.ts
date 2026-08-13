@@ -6,9 +6,21 @@ import { z } from "zod";
 // app silently degrading (per the fail-open pattern in lib/supabase/*,
 // lib/email.ts) until someone happens to hit the one feature that needed
 // it. That silent-degradation pattern is deliberate for things that should
-// never block a form submission (email), but it's exactly what let a
-// missing SUPABASE_SERVICE_ROLE_KEY reach production undetected -- this is
-// the fix, layered on top of (not replacing) those existing fallbacks.
+// never block a form submission (email).
+//
+// SUPABASE_SERVICE_ROLE_KEY is deliberately NOT here even though it's
+// required for admin writes to work: this module is imported from
+// app/layout.tsx (every route, public and admin) and lib/supabase/public.ts
+// (every public page's data fetching), both purely for unrelated optional
+// fields. Validating it eagerly here means *any* request -- including a
+// public storefront page or the favicon route -- 500s the instant this var
+// is missing or wrong in the hosting platform's env vars, which is exactly
+// what happened in production: the whole site went down, not just the one
+// admin action that actually needed it. It's validated instead right where
+// it's used, in getSupabaseServiceClient() (lib/supabase/server.ts), which
+// only ever runs on the admin write paths that need it -- still fails
+// loudly (the original intent, from the Add Staff Member incident), just
+// scoped to its actual blast radius.
 //
 // "Required" here only for values the app cannot correctly serve real
 // traffic without: the Supabase connection itself. Email/Sentry/WhatsApp/
@@ -20,8 +32,6 @@ import { z } from "zod";
 // caught instead of failing silently later.
 export const env = createEnv({
   server: {
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, "SUPABASE_SERVICE_ROLE_KEY is required -- see the Add Staff Member incident this was added to prevent a repeat of."),
-
     RESEND_API_KEY: z.string().min(1).optional(),
     ADMIN_NOTIFICATION_EMAIL: z.string().email().optional(),
     EMAIL_FROM: z.string().min(1).optional(),
@@ -62,7 +72,6 @@ export const env = createEnv({
   // can't see into a loop/spread -- every var has to be listed explicitly
   // here even though it's mechanical.
   runtimeEnv: {
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     ADMIN_NOTIFICATION_EMAIL: process.env.ADMIN_NOTIFICATION_EMAIL,
     EMAIL_FROM: process.env.EMAIL_FROM,

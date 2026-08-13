@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { StaffMember } from "@/lib/admin/data/staff";
 import type { StaffRole } from "@/lib/admin/permissions";
 import { ROLE_LABELS } from "@/lib/admin/permissions";
-import { createStaffMember, updateStaffMember, deleteStaffMember } from "@/lib/admin/actions/staff";
+import { createStaffMember, updateStaffMember, deleteStaffMember, resetStaffPassword } from "@/lib/admin/actions/staff";
 import { useToast } from "./Toast";
 
 function isRedirectError(err: unknown): boolean {
@@ -18,7 +18,7 @@ export default function StaffForm({ existingStaff }: { existingStaff?: StaffMemb
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [tempPassword, setTempPassword] = useState<{ password: string; mode: "created" | "reset" } | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,7 +37,7 @@ export default function StaffForm({ existingStaff }: { existingStaff?: StaffMemb
         await updateStaffMember(existingStaff.id, { fullName: input.fullName, role: input.role });
       } else {
         const { tempPassword } = await createStaffMember(input);
-        setTempPassword(tempPassword);
+        setTempPassword({ password: tempPassword, mode: "created" });
       }
     } catch (err) {
       if (isRedirectError(err)) throw err;
@@ -64,14 +64,32 @@ export default function StaffForm({ existingStaff }: { existingStaff?: StaffMemb
     }
   }
 
+  async function handleResetPassword() {
+    if (!existingStaff) return;
+    if (!confirm(`Reset ${existingStaff.fullName}'s password? Their current password stops working immediately.`)) return;
+    setSaving(true);
+    try {
+      const { tempPassword } = await resetStaffPassword(existingStaff.authUserId);
+      setTempPassword({ password: tempPassword, mode: "reset" });
+    } catch (err) {
+      if (isRedirectError(err)) throw err;
+      const message = err instanceof Error ? err.message : "Failed to reset password.";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (tempPassword) {
     return (
       <div className="card space-y-4 p-6">
         <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">
-          Account created. Share this temporary password with them securely; it won&apos;t be shown again.
-          They should change it after logging in.
+          {tempPassword.mode === "created"
+            ? "Account created. Share this temporary password with them securely; it won't be shown again. They should change it after logging in."
+            : "Password reset. Share this new temporary password with them securely; it won't be shown again. Their previous password no longer works."}
         </div>
-        <p className="rounded-xl bg-secondary/10 p-4 font-mono text-lg">{tempPassword}</p>
+        <p className="rounded-xl bg-secondary/10 p-4 font-mono text-lg">{tempPassword.password}</p>
         <Link href="/admin/staff" className="btn-primary inline-flex">Done</Link>
       </div>
     );
@@ -111,6 +129,11 @@ export default function StaffForm({ existingStaff }: { existingStaff?: StaffMemb
       </section>
 
       <div className="flex flex-wrap justify-end gap-3">
+        {existingStaff && (
+          <button type="button" onClick={handleResetPassword} disabled={saving} className="rounded-full border-2 border-secondary/40 px-5 py-2 text-sm font-medium text-foreground/70 hover:bg-secondary/10 transition-colors disabled:opacity-50">
+            Reset Password
+          </button>
+        )}
         {existingStaff && (
           <button type="button" onClick={handleDelete} disabled={saving} className="rounded-full border-2 border-error px-5 py-2 text-sm font-medium text-error hover:bg-error hover:text-white transition-colors disabled:opacity-50">
             Remove Access

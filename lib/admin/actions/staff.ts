@@ -77,6 +77,24 @@ export async function createStaffMember(input: StaffInput): Promise<{ tempPasswo
   return { tempPassword };
 }
 
+// Issues a new temp password via the Auth Admin API, same mechanism as
+// createStaffMember -- Supabase Auth already owns credentials entirely (see
+// lib/admin/data/staff.ts), so this needs no schema of its own, just the
+// same admin-only gate and one-time-display pattern as account creation.
+export async function resetStaffPassword(authUserId: string): Promise<{ tempPassword: string }> {
+  await requireAdmin();
+
+  const supabase = getSupabaseServiceClient();
+  if (!supabase) throw new Error("Supabase not configured.");
+
+  const tempPassword = randomTempPassword();
+
+  const { error } = await supabase.auth.admin.updateUserById(authUserId, { password: tempPassword });
+  if (error) throw new Error(error.message);
+
+  return { tempPassword };
+}
+
 export async function updateStaffMember(id: string, input: { fullName: string; role: StaffRole }): Promise<void> {
   await requireAdmin();
 

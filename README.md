@@ -331,8 +331,12 @@ permanently, with nothing to restore from.
    secret) — add the *values* there directly, never paste them into a commit, PR, or
    chat:
    - `DATABASE_URL` — Supabase Dashboard → Project Settings → Database → Connection
-     string → URI, **"Direct connection"** specifically (not the pgbouncer pooler —
-     `pg_dump` needs session-level features the pooler doesn't support).
+     string → URI, **"Session pooler"** specifically. Not "Direct connection" —
+     confirmed directly, it resolves IPv6-only on newer Supabase projects and GitHub
+     Actions runners have no IPv6 egress, so the first live run of this workflow failed
+     with "Network is unreachable". Not "Transaction pooler" either — it doesn't
+     support the session-level features `pg_dump` needs. Session pooler is the one
+     that's both IPv4-reachable from Actions and session-capable.
    - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` —
      from step 2.
 

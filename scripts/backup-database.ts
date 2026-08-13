@@ -4,11 +4,15 @@
 // why that's known, not assumed), so nothing backs up the database at all
 // without this running on a schedule.
 //
-// Uses pg_dump directly against the database's *direct* connection string
-// (port 5432), not the pgbouncer transaction-mode pooler (port 6543) --
-// pg_dump needs session-level features the transaction pooler doesn't
-// support. Find it in Supabase Dashboard -> Project Settings -> Database ->
-// Connection string -> URI, "Direct connection".
+// Uses pg_dump against Supabase's Session pooler connection string --
+// specifically NOT "Direct connection" (confirmed directly: it resolves
+// IPv6-only on newer Supabase projects, and GitHub Actions runners have no
+// IPv6 egress, so the first live run of this script failed with "Network
+// is unreachable") and NOT the Transaction pooler either (doesn't support
+// the session-level features pg_dump needs). Session pooler is both
+// IPv4-reachable from Actions and session-capable. Find it in Supabase
+// Dashboard -> Project Settings -> Database -> Connection string -> URI,
+// "Session pooler" tab.
 //
 // Usage: DATABASE_URL=postgresql://... npx tsx scripts/backup-database.ts
 // Also needs R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY,

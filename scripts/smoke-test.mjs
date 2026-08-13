@@ -58,7 +58,7 @@ const CONTENT_TYPE_CHECKS = [
 // flakiness from bursting requests at once, not a real app error --
 // genuine HTTP error statuses and rendered error-boundary markers still
 // fail immediately below, no retry, since those are real problems.
-async function fetchWithRetry(url, attempts = 3) {
+async function fetchWithRetry(url, attempts = 5) {
   let lastErr;
   for (let i = 0; i < attempts; i++) {
     try {

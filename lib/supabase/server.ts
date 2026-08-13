@@ -59,13 +59,22 @@ export async function getSupabaseServerClient() {
 // can behave differently in `next build` than in `next dev`), which is the
 // more likely failure mode to guard against.
 export function getSupabaseServiceClient() {
-  // env.SUPABASE_SERVICE_ROLE_KEY is required (see lib/env.ts) -- this is
+  // Validated here rather than in lib/env.ts's shared schema: this is
   // exactly the var whose absence caused the Add Staff Member production
-  // incident this validation was added to prevent a repeat of. Importing
-  // this module now throws a clear error immediately if it's missing,
-  // instead of degrading silently until someone hits the one admin action
-  // that needed it.
-  return createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+  // incident this check was added to prevent a repeat of, but lib/env.ts
+  // is imported by every route (including public pages, via
+  // lib/supabase/public.ts) -- validating it there took the whole site
+  // down whenever this one admin-only var was missing, not just the admin
+  // action that needed it. Checking it right here keeps the same "fail
+  // loudly, don't degrade silently" intent, scoped to where it's used.
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY is required -- see the Add Staff Member incident this check was added to prevent a repeat of."
+    );
+  }
+
+  return createClient(env.NEXT_PUBLIC_SUPABASE_URL, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }

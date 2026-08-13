@@ -16,6 +16,16 @@
 //   /journeys/great-kenyan-frontier-expedition            90    96  100 100
 //   /tours/zanzibar-beach-escape                          89    96  100 100
 //
+// /tours/zanzibar-beach-escape above no longer exists in the catalogue as
+// of 2026-08-13 (confirmed 404 both live and in the Lighthouse workflow
+// run right after PR #45's merge -- https://github.com/KabuyaSamuel/
+// Teyezilla-Expeditions/actions/runs/31672995465) -- swapped for
+// /tours/maasai-mara-safari, a currently-published, statically-generated
+// tour page. Not re-baselined with its own measured row above: the
+// existing thresholds below are already the loosest (worst-page minus
+// margin) across the rest of this set, so they still apply without
+// fabricating a number for a page that hasn't actually been measured.
+//
 // The homepage is the clear outlier on performance (hero video carousel);
 // every other page scores 82+. Thresholds below are the worst-page score
 // minus a 5-point margin, so a real regression fails without flagging
@@ -34,7 +44,7 @@ module.exports = {
         `${baseUrl}/journeys`,
         `${baseUrl}/destinations`,
         `${baseUrl}/journeys/great-kenyan-frontier-expedition`,
-        `${baseUrl}/tours/zanzibar-beach-escape`,
+        `${baseUrl}/tours/maasai-mara-safari`,
       ],
       numberOfRuns: 1,
       settings: {

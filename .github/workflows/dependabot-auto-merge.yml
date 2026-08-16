@@ -1,12 +1,29 @@
 name: Dependabot auto-merge
 
 # Enables auto-merge on a Dependabot PR for minor/patch npm bumps and every
-# GitHub Actions bump (those are almost never breaking) -- it doesn't merge
-# immediately; GitHub queues it and merges once every required status check
-# on main (build, rls-tests -- see branch protection) actually passes.
-# Major npm version bumps (e.g. a future Tailwind v4 or TypeScript 7
-# attempt) are deliberately excluded -- those get a real look before
-# merging, not just a green check.
+# GitHub Actions bump (those are almost never breaking). Major npm version
+# bumps (e.g. a future Tailwind v4 or TypeScript 7 attempt) are deliberately
+# excluded -- those get a real look before merging, not just a green check.
+#
+# The "Enable auto-merge" step below explicitly polls the CI workflow's own
+# run for this exact commit and only merges if it concluded successfully --
+# this repo has no branch protection to lean on for that (private repo on
+# GitHub's free tier; confirmed directly via the API, which 403s on branch
+# protection endpoints with "Upgrade to GitHub Pro or make this repository
+# public"). Without this, `gh pr merge --auto` had nothing real to wait on
+# for a minor/patch bump: confirmed live when PR #52 (a major eslint bump,
+# correctly excluded by the condition above) still failed CI outright, which
+# is what surfaced that the described safety net didn't actually exist for
+# the bumps this workflow *does* auto-merge. Revisit this once the repo is
+# public or on a paid plan and real required-status-checks exist -- at that
+# point this manual poll can be replaced by relying on branch protection
+# again, same as the comment here used to (incorrectly) assume.
+#
+# Polls the CI workflow directly (by filename + head SHA) rather than
+# `gh pr checks --watch` on the whole PR: this job's own check ("Dependabot
+# auto-merge") would itself show up as one of the PR's checks and still be
+# "in_progress" while this step runs, so watching all PR checks from inside
+# one of those checks would deadlock waiting on itself.
 
 on: pull_request
 
@@ -25,11 +42,38 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Enable auto-merge for minor/patch and GitHub Actions updates
+      - name: Wait for CI, then enable auto-merge for minor/patch and GitHub Actions updates
         if: |
           steps.metadata.outputs.update-type != 'version-update:semver-major' ||
           steps.metadata.outputs.package-ecosystem == 'github_actions'
-        run: gh pr merge --auto --merge "$PR_URL"
+        run: |
+          sha="${{ github.event.pull_request.head.sha }}"
+          branch="${{ github.head_ref }}"
+          status=""
+          conclusion=""
+          for i in $(seq 1 60); do
+            # gh's own bundled --jq (not a standalone jq dependency) emits
+            # "status conclusion" as one line so a single `read` can split
+            # it -- avoids assuming a second jq binary is on the runner.
+            result=$(gh run list --workflow=ci.yml --branch "$branch" --json headSha,status,conclusion \
+              --jq "[.[] | select(.headSha == \"$sha\")][0] | \"\(.status // \"\") \(.conclusion // \"\")\"")
+            read -r status conclusion <<< "$result"
+            if [ "$status" = "completed" ]; then
+              break
+            fi
+            echo "CI status for $sha: ${status:-not started yet} (attempt $i/60), waiting 30s..."
+            sleep 30
+          done
+          if [ "$status" != "completed" ]; then
+            echo "Timed out waiting for CI to conclude on $sha."
+            exit 1
+          fi
+          echo "CI concluded: $conclusion"
+          if [ "$conclusion" != "success" ]; then
+            echo "CI did not succeed ($conclusion) -- not enabling auto-merge."
+            exit 1
+          fi
+          gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

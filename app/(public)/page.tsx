@@ -16,8 +16,9 @@ import { getRegionsWithDestinations, type RegionWithDestinations } from "@/lib/r
 import { getFeaturedTours, getPublishedTours } from "@/lib/tours";
 import { getFeaturedJourneys, getJourneys } from "@/lib/journeys";
 import { getApprovedReviews, getFeaturedReview } from "@/lib/reviews";
-import { getSiteSetting } from "@/lib/settings";
+import { getSiteSetting, resolveSiteText } from "@/lib/settings";
 import { FEATURED_DESTINATIONS_COUNT, FEATURED_EXPERIENCES_COUNT, FEATURED_JOURNEYS_COUNT, fillToCount } from "@/lib/featuredCounts";
+import { FEATURED_SECTIONS_DEFAULTS, type FeaturedSectionsKey } from "@/lib/homepageContent";
 
 export const revalidate = 3600;
 
@@ -51,7 +52,8 @@ function pickBalancedDestinations(
 }
 
 export default async function HomePage() {
-  const [destinationsAll, regions, featuredDestinationsAllRaw, featuredToursRaw, allToursRaw, featuredJourneysAllRaw, journeysAllRaw, reviews, featuredReview, happyTravelersCount] =
+  const featuredSectionKeys = Object.keys(FEATURED_SECTIONS_DEFAULTS) as FeaturedSectionsKey[];
+  const [destinationsAll, regions, featuredDestinationsAllRaw, featuredToursRaw, allToursRaw, featuredJourneysAllRaw, journeysAllRaw, reviews, featuredReview, happyTravelersCount, featuredSectionValues] =
     await Promise.all([
       getDestinations(),
       getRegionsWithDestinations(),
@@ -63,7 +65,9 @@ export default async function HomePage() {
       getApprovedReviews(),
       getFeaturedReview(),
       getSiteSetting("happy_travelers_count"),
+      Promise.all(featuredSectionKeys.map((key) => getSiteSetting(key))),
     ]);
+  const featuredSectionText = resolveSiteText(FEATURED_SECTIONS_DEFAULTS, featuredSectionKeys, featuredSectionValues);
 
   // A destination/tour/journey without a hero image can't be featured on
   // the homepage -- an empty/placeholder card in these grids undercuts the
@@ -116,10 +120,10 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
         <ScrollReveal>
           <h2 className="h2-section">
-            Featured Destinations
+            {featuredSectionText.featuredDestinationsHeadline}
           </h2>
           <p className="mt-2 text-foreground/70">
-            A balanced spread across Africa, from safari heartlands to island escapes.
+            {featuredSectionText.featuredDestinationsSubtext}
           </p>
         </ScrollReveal>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -140,10 +144,10 @@ export default async function HomePage() {
         <section className="mx-auto max-w-7xl px-6 py-12 md:py-16 bg-secondary/10">
           <ScrollReveal>
             <h2 className="h2-section">
-              Featured Journeys
+              {featuredSectionText.featuredJourneysHeadline}
             </h2>
             <p className="mt-2 text-foreground/70">
-              Curated multi-day journeys connecting wildlife, culture, and place.
+              {featuredSectionText.featuredJourneysSubtext}
             </p>
           </ScrollReveal>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -164,10 +168,10 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
         <ScrollReveal>
           <h2 className="h2-section">
-            Featured Experiences
+            {featuredSectionText.featuredExperiencesHeadline}
           </h2>
           <p className="mt-2 text-foreground/70">
-            Handpicked tours our travelers book again and again.
+            {featuredSectionText.featuredExperiencesSubtext}
           </p>
         </ScrollReveal>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

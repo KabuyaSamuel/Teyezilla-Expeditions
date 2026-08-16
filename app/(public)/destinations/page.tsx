@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import DestinationCard from "@/components/DestinationCard";
 import { getDestinations } from "@/lib/destinations";
+import { getSiteSetting, resolveSiteText } from "@/lib/settings";
+import { DESTINATIONS_PAGE_DEFAULTS, type DestinationsPageKey } from "@/lib/homepageContent";
 
 export const metadata: Metadata = {
   title: "African Destinations: Kenya, Tanzania, Zanzibar, Egypt, Morocco & More",
@@ -33,19 +35,18 @@ export default async function DestinationsPage({ searchParams }: Props) {
       ? allDestinations
       : allDestinations.filter((d) => (filter === "available" ? d.isLaunchDestination : !d.isLaunchDestination));
 
+  const pageKeys = Object.keys(DESTINATIONS_PAGE_DEFAULTS) as DestinationsPageKey[];
+  const pageValues = await Promise.all(pageKeys.map((key) => getSiteSetting(key)));
+  const pageText = resolveSiteText(DESTINATIONS_PAGE_DEFAULTS, pageKeys, pageValues);
+
   return (
     <div className="section">
-      <h1 className="h1-page">Destinations</h1>
+      <h1 className="h1-page">{pageText.destinationsHeadline}</h1>
       <p className="mt-3 max-w-2xl text-foreground/70">
-        Five destinations open for booking today, with more of Africa on the way.
+        {pageText.destinationsIntro1}
       </p>
       <p className="mt-3 max-w-2xl text-foreground/70">
-        Kenya and Tanzania cover the classic safari circuit -- the Maasai Mara, the Serengeti, and the
-        wildebeest migration between them. Zanzibar adds the beach half of an East Africa trip, with Stone
-        Town&rsquo;s history alongside the reef. Egypt and Morocco sit further afield: the pyramids and Nile in
-        one, the Atlas Mountains, medinas, and Sahara in the other. Each destination page below covers the
-        tours and journeys available there today; switch to &ldquo;Coming Soon&rdquo; above for a look at where
-        we&rsquo;re opening next as those itineraries get finalized.
+        {pageText.destinationsIntro2}
       </p>
 
       <div className="mt-8 flex flex-wrap gap-2">

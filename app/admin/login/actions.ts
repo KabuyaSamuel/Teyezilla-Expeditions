@@ -25,14 +25,14 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
   // kind -- every public form (contact/trip-planner/booking) already
   // calls checkRateLimit, but the one endpoint actually gated behind
   // credentials had none. Limits on two dimensions rather than one:
-  // by IP (getClientIp -- see that function's own comment on why this is
-  // NOT fully trustworthy on Netlify, unlike Vercel) catches a
-  // credential-spray hitting many staff emails from one source, and by
-  // the submitted email itself catches a single account getting
-  // brute-forced across rotating IPs, which an IP-only limit would miss
-  // entirely if x-forwarded-for spoofing turns out to bypass the IP
-  // dimension on Netlify. Fails open (allowed: true) if Upstash isn't
-  // configured, matching every other checkRateLimit call in this app.
+  // by IP (getClientIp -- see that function's own comment on how much to
+  // trust this depends on which platform is actually serving the
+  // request) catches a credential-spray hitting many staff emails from
+  // one source, and by the submitted email itself catches a single
+  // account getting brute-forced across rotating IPs, which an IP-only
+  // limit would miss entirely if IP spoofing turns out to bypass that
+  // dimension. Fails open (allowed: true) if Upstash isn't configured,
+  // matching every other checkRateLimit call in this app.
   const ip = await getClientIp();
   const [ipLimit, emailLimit] = await Promise.all([
     checkRateLimit("login-ip", ip),

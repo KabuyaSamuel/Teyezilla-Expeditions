@@ -190,6 +190,16 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Was a Netlify-only header rule (netlify.toml); moved here so it's
+      // host-agnostic instead of silently dropping on any other platform.
+      // public/*.png (logo, og-image) are plain filenames, not content-
+      // hashed like _next/static, so a long cache risks repeating the
+      // stale-logo confusion this project already ran into once -- a day,
+      // not a year/immutable.
+      {
+        source: "/:path*.png",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, must-revalidate" }],
+      },
     ];
   },
 };

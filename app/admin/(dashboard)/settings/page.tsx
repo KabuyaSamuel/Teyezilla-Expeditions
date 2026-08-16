@@ -10,12 +10,15 @@ import {
   WHY_CHOOSE_DEFAULTS,
   TRUST_INDICATORS_DEFAULTS,
   CATEGORY_OVERVIEW_DEFAULTS,
+  EXPLORE_TEYEZILLA_HEADING_DEFAULTS,
+  FEATURED_SECTIONS_DEFAULTS,
   BESPOKE_PAGE_DEFAULTS,
   CATEGORY_DESCRIPTION_MAX_LENGTH,
   EXPERIENCES_PAGE_DEFAULTS,
   JOURNEYS_PAGE_DEFAULTS,
   COLLECTIONS_PAGE_DEFAULTS,
   SAFARI_PAGE_DEFAULTS,
+  DESTINATIONS_PAGE_DEFAULTS,
 } from "@/lib/homepageContent";
 import {
   DEFAULT_TERMS_CONTENT,
@@ -40,11 +43,14 @@ const SETTINGS_KEYS = [
   ...(Object.keys(WHY_CHOOSE_DEFAULTS) as (keyof typeof WHY_CHOOSE_DEFAULTS)[]),
   ...(Object.keys(TRUST_INDICATORS_DEFAULTS) as (keyof typeof TRUST_INDICATORS_DEFAULTS)[]),
   ...(Object.keys(CATEGORY_OVERVIEW_DEFAULTS) as (keyof typeof CATEGORY_OVERVIEW_DEFAULTS)[]),
+  ...(Object.keys(EXPLORE_TEYEZILLA_HEADING_DEFAULTS) as (keyof typeof EXPLORE_TEYEZILLA_HEADING_DEFAULTS)[]),
+  ...(Object.keys(FEATURED_SECTIONS_DEFAULTS) as (keyof typeof FEATURED_SECTIONS_DEFAULTS)[]),
   ...(Object.keys(BESPOKE_PAGE_DEFAULTS) as (keyof typeof BESPOKE_PAGE_DEFAULTS)[]),
   ...(Object.keys(EXPERIENCES_PAGE_DEFAULTS) as (keyof typeof EXPERIENCES_PAGE_DEFAULTS)[]),
   ...(Object.keys(JOURNEYS_PAGE_DEFAULTS) as (keyof typeof JOURNEYS_PAGE_DEFAULTS)[]),
   ...(Object.keys(COLLECTIONS_PAGE_DEFAULTS) as (keyof typeof COLLECTIONS_PAGE_DEFAULTS)[]),
   ...(Object.keys(SAFARI_PAGE_DEFAULTS) as (keyof typeof SAFARI_PAGE_DEFAULTS)[]),
+  ...(Object.keys(DESTINATIONS_PAGE_DEFAULTS) as (keyof typeof DESTINATIONS_PAGE_DEFAULTS)[]),
   "termsContent",
   "privacyPolicyContent",
   "cancellationPolicyContent",
@@ -69,11 +75,14 @@ const DEFAULTS: Record<(typeof SETTINGS_KEYS)[number], string> = {
   ...WHY_CHOOSE_DEFAULTS,
   ...TRUST_INDICATORS_DEFAULTS,
   ...CATEGORY_OVERVIEW_DEFAULTS,
+  ...EXPLORE_TEYEZILLA_HEADING_DEFAULTS,
+  ...FEATURED_SECTIONS_DEFAULTS,
   ...BESPOKE_PAGE_DEFAULTS,
   ...EXPERIENCES_PAGE_DEFAULTS,
   ...JOURNEYS_PAGE_DEFAULTS,
   ...COLLECTIONS_PAGE_DEFAULTS,
   ...SAFARI_PAGE_DEFAULTS,
+  ...DESTINATIONS_PAGE_DEFAULTS,
   termsContent: DEFAULT_TERMS_CONTENT,
   privacyPolicyContent: DEFAULT_PRIVACY_POLICY_CONTENT,
   cancellationPolicyContent: DEFAULT_CANCELLATION_POLICY_CONTENT,
@@ -296,7 +305,18 @@ export default async function AdminSettingsPage() {
                     <h2 className="font-heading text-lg font-semibold text-foreground">Explore Teyezilla (&ldquo;Seven Ways to Discover Africa&rdquo;)</h2>
                     <p className="mt-1 text-xs text-foreground/50">Description and image for each of the 7 category cards (labels and links are fixed).</p>
 
-                    <div className="mt-4 grid gap-6 sm:grid-cols-2">
+                    <div className="mt-4 grid gap-4 border-b border-secondary/20 pb-6 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="exploreTeyezillaHeadline" className="text-xs font-medium text-foreground/60">Section Headline</label>
+                        <input id="exploreTeyezillaHeadline" name="exploreTeyezillaHeadline" defaultValue={settings.exploreTeyezillaHeadline} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label htmlFor="exploreTeyezillaSubtext" className="text-xs font-medium text-foreground/60">Section Subtext</label>
+                        <input id="exploreTeyezillaSubtext" name="exploreTeyezillaSubtext" defaultValue={settings.exploreTeyezillaSubtext} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                    </div>
+
+                    <div className="mt-6 grid gap-6 sm:grid-cols-2">
                       {(
                         [
                           ["Destinations", "categoryDestinationsDescription", "categoryDestinationsImage"],
@@ -325,6 +345,47 @@ export default async function AdminSettingsPage() {
                             />
                           </div>
                           <SettingsImageField id={imageKey} name={imageKey} label="Image" defaultValue={settings[imageKey]} mediaItems={mediaItems} />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="card p-6">
+                    <h2 className="font-heading text-lg font-semibold text-foreground">Featured Sections</h2>
+                    <p className="mt-1 text-xs text-foreground/50">
+                      Headline and subtext for the three &ldquo;Featured&rdquo; rows below the homepage search bar.
+                      The cards themselves come from whichever destinations/tours/journeys are marked Featured
+                      elsewhere in the admin, not from here.
+                    </p>
+
+                    <div className="mt-4 grid gap-6 sm:grid-cols-2">
+                      {(
+                        [
+                          ["Featured Destinations", "featuredDestinationsHeadline", "featuredDestinationsSubtext"],
+                          ["Featured Journeys", "featuredJourneysHeadline", "featuredJourneysSubtext"],
+                          ["Featured Experiences", "featuredExperiencesHeadline", "featuredExperiencesSubtext"],
+                        ] as const
+                      ).map(([label, headlineKey, subtextKey]) => (
+                        <div key={label} className="space-y-3 rounded-2xl border border-secondary/20 p-4">
+                          <h3 className="text-sm font-semibold text-foreground">{label}</h3>
+                          <div>
+                            <label htmlFor={headlineKey} className="text-xs font-medium text-foreground/60">Headline</label>
+                            <input
+                              id={headlineKey}
+                              name={headlineKey}
+                              defaultValue={settings[headlineKey]}
+                              className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor={subtextKey} className="text-xs font-medium text-foreground/60">Subtext</label>
+                            <input
+                              id={subtextKey}
+                              name={subtextKey}
+                              defaultValue={settings[subtextKey]}
+                              className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -394,6 +455,24 @@ export default async function AdminSettingsPage() {
               label: "Hub Pages",
               content: (
                 <>
+                  <section className="card p-6">
+                    <h2 className="font-heading text-lg font-semibold text-foreground">Destinations (/destinations)</h2>
+                    <div className="mt-4 grid gap-4">
+                      <div>
+                        <label htmlFor="destinationsHeadline" className="text-xs font-medium text-foreground/60">Headline</label>
+                        <input id="destinationsHeadline" name="destinationsHeadline" defaultValue={settings.destinationsHeadline} className="mt-1 w-full rounded-full border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label htmlFor="destinationsIntro1" className="text-xs font-medium text-foreground/60">Intro, Line 1</label>
+                        <textarea id="destinationsIntro1" name="destinationsIntro1" rows={2} defaultValue={settings.destinationsIntro1} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                      <div>
+                        <label htmlFor="destinationsIntro2" className="text-xs font-medium text-foreground/60">Intro, Line 2 (longer SEO copy)</label>
+                        <textarea id="destinationsIntro2" name="destinationsIntro2" rows={5} defaultValue={settings.destinationsIntro2} className="mt-1 w-full rounded-2xl border border-secondary/40 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                      </div>
+                    </div>
+                  </section>
+
                   <section className="card p-6">
                     <h2 className="font-heading text-lg font-semibold text-foreground">Experiences (/experiences)</h2>
                     <div className="mt-4 grid gap-4">

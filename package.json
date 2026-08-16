@@ -21,6 +21,8 @@
     "@t3-oss/env-nextjs": "^0.13.11",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.2",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "file-type": "^22.0.1",
     "lucide-react": "^1.31.0",
     "next": "16.3.0",

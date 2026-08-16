@@ -1,4 +1,3 @@
-import path from "node:path";
 import { defineConfig } from "vitest/config";
 import { loadEnv } from "vite";
 
@@ -8,7 +7,7 @@ export default defineConfig(({ mode }) => ({
     // typechecking, but vitest needs its own alias to resolve it at
     // runtime for tests that import application code (e.g.
     // tests/rate-limit.test.ts importing lib/rate-limit.ts).
-    alias: { "@": path.resolve(__dirname, ".") },
+    alias: { "@": import.meta.dirname },
   },
   test: {
     // Loads .env.local (and friends) for local runs; in CI the same

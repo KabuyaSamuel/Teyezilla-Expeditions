@@ -58,14 +58,23 @@ jobs:
       # run with "server version mismatch". The official PGDG apt repo
       # (added via postgresql-common's bundled script, the documented way
       # to do this non-interactively) carries versioned packages, so this
-      # pins the client to 17 -- matching or ahead of the server, which is
+      # installs client 17 -- matching or ahead of the server, which is
       # what pg_dump actually requires.
+      #
+      # Installing the package alone isn't enough though -- confirmed
+      # directly on a second run: GitHub's runner image already has an
+      # older pg_dump earlier on PATH (not managed by postgresql-common's
+      # own version-dispatch wrapper here), so `pg_dump` kept resolving to
+      # 16.14 even after 17 was installed alongside it. Prepending the
+      # versioned bin directory to PATH forces the right binary to win
+      # regardless of whatever the image ships by default.
       - name: Install postgresql-client
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-common
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install -y postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
 
       - name: Back up database
         run: npx tsx scripts/backup-database.ts

@@ -8,7 +8,7 @@ confirmation in the admin dashboard. There's no online payment gateway yet — t
 business quotes by email/WhatsApp and takes payment offline (see Roadmap).
 
 Live at **[teyezillaexpeditions.com](https://www.teyezillaexpeditions.com)**, hosted on
-Netlify, built from the `main` branch. `Dev2` is the active development branch — every
+Vercel, built from the `main` branch. `Dev2` is the active development branch — every
 push there runs full CI (typecheck, build, changed-file lint, RLS + rate-limit
 regression tests) before anything is merged to `main`.
 
@@ -86,8 +86,9 @@ None of this is a bug or an oversight — these were reviewed and explicitly dep
 - **Supabase** — Postgres + Auth + Storage. All data reads/writes go through `lib/`
   (public site) and `lib/admin/data/` + `lib/admin/actions/` (admin), with seed-data
   fallback when Supabase env vars are absent
-- **Netlify** — production hosting, including the Next.js runtime and image
-  optimization CDN
+- **Vercel** — production hosting, including the Next.js runtime and image
+  optimization CDN. (Netlify was production for a period before this; `netlify.toml`
+  is kept in the repo as a ready-to-reactivate backup — see its own header comment.)
 - **Sharp** + **file-type** — upload-time image resize/re-encode and magic-byte file
   type verification (Media Library)
 - **Sentry** — error monitoring, client + server
@@ -118,9 +119,13 @@ Other hardening worth knowing about if you're extending these areas:
   subject line is run through `sanitizeForEmailSubject()` (`lib/enquiry-shared.ts`);
   HTML bodies already escape every user value via `escapeHtml()`
   (`lib/email-templates.ts`).
-- **Rate limiting** (`lib/rate-limit.ts`) — prefers Netlify's platform-verified
-  `x-nf-client-connection-ip` header over the spoofable `x-forwarded-for`. Applies to
-  contact, trip planner, booking, and admin login (by IP and by the submitted email).
+- **Rate limiting** (`lib/rate-limit.ts`) — `getClientIp()` branches on `process.env.VERCEL`
+  rather than assuming one platform: trusts `x-forwarded-for` on Vercel (its edge network
+  overwrites it with a verified value before app code sees it) and Netlify's
+  platform-verified `x-nf-client-connection-ip` header otherwise, since Netlify makes no
+  such guarantee about `x-forwarded-for`. Correct on whichever platform is actually live
+  — see the function's own comment for the full reasoning. Applies to contact, trip
+  planner, booking, and admin login (by IP and by the submitted email).
 - **AI integration**: no LLM is wired up yet (the trip planner is a form). Required
   practices for whoever builds that feature are documented in
   `docs/ai-integration-guidelines.md`, written now so it's designed safely from the
@@ -228,11 +233,11 @@ optional:
   `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`, WhatsApp Business API vars,
   `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `NEXT_PUBLIC_GA_MEASUREMENT_ID`,
   `NEXT_PUBLIC_GTM_ID`, `NEXT_PUBLIC_CLARITY_PROJECT_ID`.
-- Production values for all of the above live in Netlify's Site settings → Environment
-  variables, not just `.env.local` — a var added locally has no effect on the deployed
+- Production values for all of the above live in Vercel's Project settings → Environment
+  Variables, not just `.env.local` — a var added locally has no effect on the deployed
   site until it's also added there and a build runs.
 - CI builds without any Supabase secrets by setting `SKIP_ENV_VALIDATION=1` — that job
-  checks compile correctness only, not real data. A real build (Netlify, or a local
+  checks compile correctness only, not real data. A real build (Vercel, or a local
   `npm run build` without `.env.local`) is expected to fail loudly on the required vars.
 
 ### Verifying a production build
@@ -242,7 +247,7 @@ npm run build
 ```
 
 `next/font/google` fetches fonts from Google at build time, so the build machine needs
-outbound internet access to `fonts.googleapis.com` — works on Netlify and any normal dev
+outbound internet access to `fonts.googleapis.com` — works on Vercel and any normal dev
 machine by default.
 
 ### Tests

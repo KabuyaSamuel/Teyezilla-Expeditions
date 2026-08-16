@@ -20,30 +20,38 @@ export default function AdminSidebar({
 }) {
   const pathname = usePathname();
   const { pinned, groups } = getGroupedModulesForRole(role);
-  // Lazy initializer (not an effect) reads the staff member's saved collapse
-  // preference synchronously on first client render, same pattern as
-  // HeroCarousel's prefers-reduced-motion check -- window/localStorage are
-  // unavailable during SSR, so this only ever runs client-side anyway.
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
+  // Both start at their SSR-safe default (nothing collapsed) rather than a
+  // lazy initializer reading localStorage -- that runs during SSR too
+  // (falling back to the default there), and would diverge from a
+  // returning staff member's real client hydration pass whenever they
+  // actually have a saved preference, the same hydration-mismatch failure
+  // mode confirmed directly in HeroCarousel/TestimonialsCarousel. Synced
+  // from localStorage once on mount in the effect below instead.
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   // Whole-sidebar icon rail, separate from per-group collapsing above --
   // for a small screen that still fits md:flex, or a staff member who just
   // wants the nav out of the way while working a form.
-  const [railCollapsed, setRailCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
+  const [railCollapsed, setRailCollapsed] = useState(false);
+
+  // Runs exactly once on mount ([] deps) to hydrate from localStorage --
+  // not a recurring subscription, so react-hooks/set-state-in-effect's
+  // "cascading renders" concern doesn't apply here; this is the one
+  // extra render every mount takes to pick up a saved preference,
+  // deliberately deferred out of the initial render for hydration safety.
+  useEffect(() => {
     try {
-      return localStorage.getItem(RAIL_STORAGE_KEY) === "true";
+      const saved = localStorage.getItem(STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (saved) setCollapsed(new Set(JSON.parse(saved)));
     } catch {
-      return false;
+      // Default (nothing collapsed) already set.
     }
-  });
+    try {
+      setRailCollapsed(localStorage.getItem(RAIL_STORAGE_KEY) === "true");
+    } catch {
+      // Default (false) already set.
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...collapsed]));

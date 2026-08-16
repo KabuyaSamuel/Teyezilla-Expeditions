@@ -2,6 +2,13 @@ import type { MetadataRoute } from "next";
 import { getSupabasePublicClient } from "@/lib/supabase/public";
 import { SITE_URL } from "@/lib/site";
 
+// Without this, sitemap.ts is generated once at build time and cached
+// indefinitely -- a tour/destination/blog post published or removed via
+// the admin panel (which writes straight to Supabase, no rebuild) would
+// never show up in sitemap.xml until the next deploy. Hourly keeps it
+// close to live without hammering Supabase on every crawler hit.
+export const revalidate = 3600;
+
 // Queries slug + updated_at directly rather than going through lib/tours.ts
 // etc. -- those return the app-wide shape (Tour, Journey, ...), none of
 // which expose updated_at today, and adding it there would ripple into

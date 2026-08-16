@@ -63,6 +63,24 @@ const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 const withBypass = (url) =>
   bypassSecret ? `${url}?x-vercel-protection-bypass=${bypassSecret}&x-vercel-set-bypass-cookie=true` : url;
 
+// best-practices dropped from the 100 in the baseline table above (measured
+// pre-Clarity) to a real, permanent ceiling of ~0.79 after Microsoft
+// Clarity was added on 2026-08-09 (commit 6f6a883) -- confirmed via the
+// actual Lighthouse report JSON from a live Dev2 run, not just the
+// pass/fail summary. Root cause: Clarity's tracking pixel redirects
+// through a Bing Ads sync pixel (c.bing.com/c.gif) that sets third-party
+// cookies (CLID, MUID, SRM_B, etc.), tripping both the "third-party
+// cookies" audit (weight 5/28) and the resulting "issues logged in
+// DevTools" audit (weight 1/28) -- 6 of 28 points lost on every single
+// page, deterministically, not run-to-run noise. This is Clarity's own
+// default snippet behavior, not an opt-in integration -- confirmed
+// directly in the Clarity dashboard's Integrations page, which shows
+// Microsoft Ads as "Not Connected". Not fixable via CSP (a same-origin-
+// permitted request setting a cookie isn't a policy violation to block).
+// Decision made 2026-08-16: keep Clarity (heatmaps/session replay GA4
+// doesn't provide) and accept this ceiling rather than rip it out.
+// Unrelated to performance/accessibility/SEO, which stay fully achievable
+// at 90-100 -- this is the one category Clarity puts a hard cap on.
 module.exports = {
   ci: {
     collect: {
@@ -86,7 +104,7 @@ module.exports = {
         "categories:performance": ["warn", { minScore: 0.58 }],
         "categories:accessibility": ["error", { minScore: 0.87 }],
         ...(isProduction ? { "categories:seo": ["error", { minScore: 0.95 }] } : {}),
-        "categories:best-practices": ["error", { minScore: 0.95 }],
+        "categories:best-practices": ["error", { minScore: 0.74 }],
       },
     },
     upload: {

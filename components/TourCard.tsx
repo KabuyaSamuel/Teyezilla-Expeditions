@@ -4,7 +4,12 @@ import type { Tour } from "@/types";
 import { formatTourDuration } from "@/lib/duration";
 import WishlistButton from "./WishlistButton";
 
-export default function TourCard({ tour }: { tour: Tour }) {
+// Every grid this renders in is sm:grid-cols-2 lg:grid-cols-3 except the
+// homepage's Featured Experiences section (lg:grid-cols-4) -- default
+// matches the common case, that one call site passes its own override.
+const DEFAULT_SIZES = "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw";
+
+export default function TourCard({ tour, sizes = DEFAULT_SIZES }: { tour: Tour; sizes?: string }) {
   return (
     <div className="card group flex h-full flex-col overflow-hidden">
       <Link href={`/tours/${tour.slug}`} className="block">
@@ -14,7 +19,12 @@ export default function TourCard({ tour }: { tour: Tour }) {
               src={tour.heroImage}
               alt={tour.title}
               fill
-              sizes="(max-width: 768px) 100vw, 33vw"
+              // The old 768px cutoff didn't correspond to either Tailwind
+              // breakpoint the actual grids use (sm:640px/lg:1024px), so
+              // next/image was fetching oversized/undersized images in
+              // the gaps between them -- confirmed via real PageSpeed
+              // Insights flagging this exact issue.
+              sizes={sizes}
               quality={70}
               className="object-cover transition-transform duration-500 ease-smooth group-hover:scale-110"
             />

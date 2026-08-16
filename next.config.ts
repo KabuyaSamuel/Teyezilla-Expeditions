@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import { SENTRY_INGEST_ORIGIN } from "./lib/site";
 
 const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
@@ -86,10 +87,18 @@ const nextConfig: NextConfig = {
     // Sentry's browser SDK (instrumentation-client.ts) sends events
     // directly to its ingest host -- there's no `tunnel` option configured
     // routing that traffic through our own domain instead, so CSP has to
-    // allow it explicitly. This is the exact ingest host for this
-    // project's current DSN; if the Sentry project/org is ever recreated,
-    // this needs updating to match the new DSN's host.
-    const sentryIngestOrigin = "https://o4511839934808064.ingest.de.sentry.io";
+    // allow it explicitly. Shared with app/layout.tsx's preconnect hint
+    // via lib/site.ts -- see SENTRY_INGEST_ORIGIN's own comment for why.
+    const sentryIngestOrigin = SENTRY_INGEST_ORIGIN;
+
+    // Vercel injects its own Live Feedback toolbar script (vercel.live) on
+    // Preview deployments only -- never on production -- so allowlisting it
+    // is scoped to non-production builds specifically, rather than widening
+    // the production CSP for a script that never actually loads there.
+    // VERCEL_ENV is baked in per-deployment at build time (preview and
+    // production are separate builds), so this evaluates correctly for
+    // whichever deployment is serving the request.
+    const isProductionDeploy = process.env.VERCEL_ENV === "production";
 
     const csp = [
       "default-src 'self'",
@@ -101,7 +110,14 @@ const nextConfig: NextConfig = {
       // nonce-based policy (middleware-generated nonce threaded through)
       // is a real follow-up, not done here to keep this pass's blast
       // radius (and risk of breaking hydration) contained.
-      `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms`,
+      // Clarity needs the wildcard, not just www.clarity.ms: the initial
+      // tag at www.clarity.ms only bootstraps the real script, which then
+      // loads from scripts.clarity.ms -- confirmed directly via a real
+      // Lighthouse run against a deployed preview, which showed Clarity's
+      // own script blocked by this exact gap (Chrome DevTools Issues panel,
+      // CSP issueType). connect-src below already used the wildcard for the
+      // same reason; script-src just hadn't been widened to match.
+      `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.clarity.ms${isProductionDeploy ? "" : " https://vercel.live"}`,
       // next/image's `fill` prop sets inline `style` attributes directly
       // on the element (position/inset) -- without 'unsafe-inline' here,
       // every fill image on the site (TourCard, DestinationCard,
@@ -116,8 +132,16 @@ const nextConfig: NextConfig = {
       // exception: it needs the image's real natural dimensions to size
       // itself, which next/image's `fill` mode can't give it without a
       // fixed-size box, so it points a raw <img> straight at Supabase
-      // Storage instead -- same reasoning as media-src below.
-      `img-src 'self' data:${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+      // Storage instead -- same reasoning as media-src below. Clarity's own
+      // tracking pixel (c.clarity.ms/c.gif) is the other real need here --
+      // same blocked-script discovery as script-src above. That pixel
+      // itself 302-redirects to a Bing Ads sync pixel (c.bing.com/c.gif,
+      // part of Clarity's Microsoft Ads integration, not something this
+      // app calls directly) -- confirmed via the request's actual network
+      // trace, so the redirect target needs allowlisting too, or the
+      // browser blocks the redirected request even though the initial one
+      // was permitted.
+      `img-src 'self' data: https://*.clarity.ms https://*.bing.com${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
       // The hero background (HeroCarousel.tsx) is the one place video
       // isn't going through next/image -- a raw <video><source> pointing
       // straight at the Supabase Storage URL, so media-src needs it

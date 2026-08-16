@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Review } from "@/types";
 import ReviewCard from "./ReviewCard";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 
 const PER_PAGE_DESKTOP = 3;
 const PER_PAGE_MOBILE = 1;
@@ -14,30 +15,27 @@ const MOBILE_QUERY = "(max-width: 639px)";
 // to the first, Prev from the first page wraps to the last, via modulo
 // arithmetic on the page index.
 export default function TestimonialsCarousel({ reviews }: { reviews: Review[] }) {
-  // Lazy initializer (not an effect) reads the viewport synchronously on
-  // first client render, same pattern as HeroCarousel's prefers-reduced-
-  // motion check -- window is unavailable during SSR, so this only ever
-  // runs client-side anyway.
-  const [perPage, setPerPage] = useState(() =>
-    typeof window !== "undefined" && window.matchMedia(MOBILE_QUERY).matches
-      ? PER_PAGE_MOBILE
-      : PER_PAGE_DESKTOP
-  );
+  // useMediaQuery (useSyncExternalStore under the hood) rather than a
+  // useState lazy initializer reading window.matchMedia directly -- that
+  // ran during SSR too (window undefined there, always falling back to
+  // desktop) and diverged from a real mobile client's first hydration
+  // pass, which would slice `visible` to a different length than the
+  // server rendered. Confirmed directly: a genuine React hydration error
+  // (extra ReviewCard nodes) on any page load on a mobile viewport.
+  const isMobile = useMediaQuery(MOBILE_QUERY);
+  const perPage = isMobile ? PER_PAGE_MOBILE : PER_PAGE_DESKTOP;
   const [page, setPage] = useState(0);
-
-  useEffect(() => {
-    const query = window.matchMedia(MOBILE_QUERY);
-    const onChange = (e: MediaQueryListEvent) => setPerPage(e.matches ? PER_PAGE_MOBILE : PER_PAGE_DESKTOP);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
 
   const pageCount = Math.max(1, Math.ceil(reviews.length / perPage));
 
   // perPage changing (crossing the breakpoint) can push the current page
   // out of range -- clamp it back onto the last valid page instead of
-  // rendering an empty slice.
+  // rendering an empty slice. Only ever fires in response to pageCount
+  // actually changing after mount (matchMedia's live breakpoint crossing),
+  // not on the initial render, so there's no cascading-render risk despite
+  // react-hooks/set-state-in-effect's generic warning here.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage((p) => Math.min(p, pageCount - 1));
   }, [pageCount]);
 

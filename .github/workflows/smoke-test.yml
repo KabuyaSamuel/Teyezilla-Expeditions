@@ -6,33 +6,29 @@ name: Smoke Test
 # those all run without ever making an HTTP request against the actual
 # deployed environment.
 #
-# Previously triggered on `deployment_status`, restricted to Vercel's
-# Production environment (Preview sits behind Vercel's Deployment
-# Protection SSO wall, so a script hitting a preview URL landed on
-# vercel.com/login instead of the real app -- confirmed directly: this is
-# what caused an earlier false-positive "pass" on a preview's
-# /admin/login, since the SSO page returns 200 with no matching error
-# markers). That trigger only ever worked because Vercel's GitHub App
-# creates a formal Deployments-API object on every push, which is what
-# deployment_status actually fires on -- Netlify's default GitHub
-# integration doesn't do that (it posts a commit status instead, a
-# different and older mechanism). After the Vercel->Netlify hosting
-# migration this workflow only kept running at all because Vercel's
-# GitHub App was still connected in parallel, testing an increasingly
-# stale target. Disconnect Vercel's GitHub App from this repo (Vercel
-# dashboard -> Project -> Settings -> Git) once this is merged -- nothing
-# here depends on it anymore.
+# Runs on push to both main and Dev2 -- Dev2 was deliberately left out
+# before, so a regression only ever surfaced on main, after merge. Vercel
+# creates a real Deployments-API object with a real status for every push
+# to any branch (Preview for Dev2, Production for main), unlike Netlify,
+# which only posted an older commit-status mechanism deployment_status
+# doesn't fire on -- that's what forced the old fixed `sleep 180` +
+# hardcoded production-URL fallback this replaces. The resolve-url job
+# below polls that real status instead: precise on both branches, and it
+# tests Dev2's actual preview deployment rather than guessing at
+# readiness or silently falling back to testing production for a Dev2
+# push.
 #
-# Three triggers now:
-#  - push to main: runs right after a merge, which is what triggers
-#    Netlify's production build. Waits a fixed amount first since there's
-#    no precise "Netlify deploy finished" signal wired up here (would
-#    need an outgoing deploy-notification webhook -- Site settings ->
-#    Build & deploy -> Deploy notifications -> "Deploy succeeded" ->
-#    pointed at https://api.github.com/repos/OWNER/REPO/dispatches with a
-#    GitHub PAT -- to trigger on `repository_dispatch` precisely instead).
-#    A run that starts slightly early just tests the previous still-live
-#    deployment instead of the new one, not a broken run.
+# Dev2's preview deployments sit behind Vercel's Deployment Protection SSO
+# wall -- confirmed directly, this is what caused an earlier false-positive
+# "pass" against a preview's /admin/login (the SSO login page returns 200
+# with none of the error markers this script checks for). Fixed via
+# Vercel's documented "Protection Bypass for Automation" header
+# (VERCEL_AUTOMATION_BYPASS_SECRET, generated in the project's Deployment
+# Protection settings), plus an explicit off-domain-redirect check in
+# smoke-test.mjs itself as defense in depth if that secret is ever
+# missing or stale.
+#
+# Other triggers:
 #  - workflow_dispatch: run on demand against production or a given URL.
 #  - schedule: a periodic production health check independent of deploys,
 #    since this exact bug class (an env var or schema mismatch) isn't
@@ -41,7 +37,7 @@ name: Smoke Test
 
 on:
   push:
-    branches: [main]
+    branches: [main, Dev2]
   workflow_dispatch:
     inputs:
       url:
@@ -52,7 +48,47 @@ on:
     - cron: "0 */6 * * *"
 
 jobs:
+  resolve-url:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: read
+    outputs:
+      url: ${{ steps.resolve.outputs.url }}
+    steps:
+      - name: Wait for the Vercel deployment for this commit, resolve its URL
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sha="${{ github.sha }}"
+          for i in $(seq 1 40); do
+            deployment=$(gh api "repos/${{ github.repository }}/deployments?sha=$sha" --jq 'sort_by(.created_at) | reverse | .[0]')
+            if [ -n "$deployment" ] && [ "$deployment" != "null" ]; then
+              id=$(echo "$deployment" | jq -r .id)
+              status_json=$(gh api "repos/${{ github.repository }}/deployments/$id/statuses" --jq '.[0] // {}')
+              state=$(echo "$status_json" | jq -r '.state // empty')
+              url=$(echo "$status_json" | jq -r '.environment_url // empty')
+              if [ "$state" = "success" ] && [ -n "$url" ]; then
+                echo "Resolved deployment for $sha: $url"
+                echo "url=$url" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              if [ "$state" = "failure" ] || [ "$state" = "error" ]; then
+                echo "::error::Vercel deployment for $sha ended in state '$state' -- not smoke-testing a broken deployment."
+                exit 1
+              fi
+            fi
+            echo "Deployment for $sha not ready yet (attempt $i/40), waiting 15s..."
+            sleep 15
+          done
+          echo "::error::Timed out waiting for a Vercel deployment for $sha."
+          exit 1
+
   smoke-test:
+    needs: resolve-url
+    if: always() && (github.event_name != 'push' || needs.resolve-url.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -61,11 +97,8 @@ jobs:
         with:
           node-version: 22
 
-      - name: Wait for Netlify production deploy
-        if: github.event_name == 'push'
-        run: sleep 180
-
       - name: Run smoke test
         env:
-          TARGET_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || '' }}
+          TARGET_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || needs.resolve-url.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: node scripts/smoke-test.mjs "$TARGET_URL"

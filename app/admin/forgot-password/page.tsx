@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
 
       <div className="relative w-full max-w-md">
         <div className="flex animate-fadeUp flex-col items-center text-center">
-          <Image src="/logo.png" alt="Teyezilla Expeditions" width={132} height={127} priority className="h-16 w-auto" />
+          <Image src="/logo.png" alt="Teyezilla Expeditions" width={132} height={127} priority quality={70} className="h-16 w-auto" />
         </div>
 
         <div className="card mt-6 animate-fadeUp p-8 [animation-delay:100ms]">

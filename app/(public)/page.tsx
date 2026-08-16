@@ -177,7 +177,7 @@ export default async function HomePage() {
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {featuredExperiences.map((tour, i) => (
             <ScrollReveal key={tour.id} delay={(i % 4) * 100}>
-              <TourCard tour={tour} />
+              <TourCard tour={tour} sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw" />
             </ScrollReveal>
           ))}
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import type { HeroSlide } from "@/lib/hero";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 
 const SLIDE_MS = 9000;
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".m4v"];
@@ -22,16 +23,7 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   // just the active slide's media instead of also eagerly preloading
   // whichever slide would arithmetically be "previous".
   const [prevIndex, setPrevIndex] = useState<number | null>(null);
-  const [reducedMotion, setReducedMotion] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const onChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   useEffect(() => {
     if (reducedMotion || slides.length <= 1) return;

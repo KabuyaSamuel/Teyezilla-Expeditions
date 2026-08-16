@@ -9,7 +9,19 @@ import WishlistButton from "./WishlistButton";
 // matches the common case, that one call site passes its own override.
 const DEFAULT_SIZES = "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw";
 
-export default function TourCard({ tour, sizes = DEFAULT_SIZES }: { tour: Tour; sizes?: string }) {
+export default function TourCard({
+  tour,
+  sizes = DEFAULT_SIZES,
+  priority = false,
+}: {
+  tour: Tour;
+  sizes?: string;
+  // Set on the first card of a page's main grid (e.g. /experiences) so
+  // that card's image -- the real LCP element on mobile, confirmed via
+  // PageSpeed Insights -- skips lazy-loading and gets fetchpriority=high
+  // instead of being discovered only after JS runs.
+  priority?: boolean;
+}) {
   return (
     <div className="card group flex h-full flex-col overflow-hidden">
       <Link href={`/tours/${tour.slug}`} className="block">
@@ -26,6 +38,7 @@ export default function TourCard({ tour, sizes = DEFAULT_SIZES }: { tour: Tour; 
               // Insights flagging this exact issue.
               sizes={sizes}
               quality={70}
+              priority={priority}
               className="object-cover transition-transform duration-500 ease-smooth group-hover:scale-110"
             />
           )}

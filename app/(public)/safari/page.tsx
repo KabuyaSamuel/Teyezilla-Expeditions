@@ -79,8 +79,8 @@ export default async function SafariPage({
           )}
         </div>
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {safariTours.map((tour) => (
-            <TourCard key={tour.id} tour={tour} />
+          {safariTours.map((tour, i) => (
+            <TourCard key={tour.id} tour={tour} priority={i === 0} />
           ))}
           {safariTours.length === 0 && (
             <p className="text-sm text-foreground/50">

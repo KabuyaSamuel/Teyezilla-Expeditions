@@ -58,6 +58,33 @@ export const CATEGORY_OVERVIEW_DEFAULTS = {
 
 export type CategoryOverviewKey = keyof typeof CATEGORY_OVERVIEW_DEFAULTS;
 
+// The "Explore Teyezilla" section heading/subtext above the 7 category
+// cards -- kept as its own defaults object rather than folded into
+// CATEGORY_OVERVIEW_DEFAULTS since resolveSiteText's structural-field
+// regex (image|href) and CATEGORY_DESCRIPTION_MAX_LENGTH both apply only
+// to the per-card fields, not this section-level copy.
+export const EXPLORE_TEYEZILLA_HEADING_DEFAULTS = {
+  exploreTeyezillaHeadline: "Explore Teyezilla",
+  exploreTeyezillaSubtext: "Seven ways to discover Africa, all in one place.",
+} as const;
+
+export type ExploreTeyezillaHeadingKey = keyof typeof EXPLORE_TEYEZILLA_HEADING_DEFAULTS;
+
+// Heading/subtext for the homepage's three "Featured X" sections
+// (Destinations, Journeys, Experiences) -- the cards themselves are
+// driven by real data (getFeaturedDestinations/Tours/Journeys), only this
+// section-level copy is static text worth making staff-editable.
+export const FEATURED_SECTIONS_DEFAULTS = {
+  featuredDestinationsHeadline: "Featured Destinations",
+  featuredDestinationsSubtext: "A balanced spread across Africa, from safari heartlands to island escapes.",
+  featuredJourneysHeadline: "Featured Journeys",
+  featuredJourneysSubtext: "Curated multi-day journeys connecting wildlife, culture, and place.",
+  featuredExperiencesHeadline: "Featured Experiences",
+  featuredExperiencesSubtext: "Handpicked tours our travelers book again and again.",
+} as const;
+
+export type FeaturedSectionsKey = keyof typeof FEATURED_SECTIONS_DEFAULTS;
+
 // Hard cap enforced on the admin description fields (Settings -> Explore
 // Teyezilla) so the card display -- fixed at 4 clamped lines, see
 // CategoryOverview.tsx -- never has to truncate with an ellipsis. Measured
@@ -129,3 +156,12 @@ export const SAFARI_PAGE_DEFAULTS = {
 } as const;
 
 export type SafariPageKey = keyof typeof SAFARI_PAGE_DEFAULTS;
+
+export const DESTINATIONS_PAGE_DEFAULTS = {
+  destinationsHeadline: "Destinations",
+  destinationsIntro1: "Five destinations open for booking today, with more of Africa on the way.",
+  destinationsIntro2:
+    "Kenya and Tanzania cover the classic safari circuit -- the Maasai Mara, the Serengeti, and the wildebeest migration between them. Zanzibar adds the beach half of an East Africa trip, with Stone Town's history alongside the reef. Egypt and Morocco sit further afield: the pyramids and Nile in one, the Atlas Mountains, medinas, and Sahara in the other. Each destination page below covers the tours and journeys available there today; switch to \"Coming Soon\" above for a look at where we're opening next as those itineraries get finalized.",
+} as const;
+
+export type DestinationsPageKey = keyof typeof DESTINATIONS_PAGE_DEFAULTS;

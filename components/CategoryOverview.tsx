@@ -2,7 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import ScrollReveal from "./ScrollReveal";
 import { getSiteSetting, resolveSiteText } from "@/lib/settings";
-import { CATEGORY_OVERVIEW_DEFAULTS, type CategoryOverviewKey } from "@/lib/homepageContent";
+import {
+  CATEGORY_OVERVIEW_DEFAULTS,
+  EXPLORE_TEYEZILLA_HEADING_DEFAULTS,
+  type CategoryOverviewKey,
+  type ExploreTeyezillaHeadingKey,
+} from "@/lib/homepageContent";
 
 // label/href are structural (tied to real routes), so they stay fixed;
 // only description/image are admin-editable, via site_settings.
@@ -18,14 +23,19 @@ const CATEGORIES = [
 
 export default async function CategoryOverview() {
   const keys = Object.keys(CATEGORY_OVERVIEW_DEFAULTS) as CategoryOverviewKey[];
-  const values = await Promise.all(keys.map((key) => getSiteSetting(key)));
+  const headingKeys = Object.keys(EXPLORE_TEYEZILLA_HEADING_DEFAULTS) as ExploreTeyezillaHeadingKey[];
+  const [values, headingValues] = await Promise.all([
+    Promise.all(keys.map((key) => getSiteSetting(key))),
+    Promise.all(headingKeys.map((key) => getSiteSetting(key))),
+  ]);
   const text = resolveSiteText(CATEGORY_OVERVIEW_DEFAULTS, keys, values);
+  const heading = resolveSiteText(EXPLORE_TEYEZILLA_HEADING_DEFAULTS, headingKeys, headingValues);
 
   return (
     <section className="mx-auto max-w-7xl px-6 pb-16 pt-10 md:pb-24 md:pt-14">
       <ScrollReveal>
-        <h2 className="h2-section">Explore Teyezilla</h2>
-        <p className="mt-2 text-foreground/70">Seven ways to discover Africa, all in one place.</p>
+        <h2 className="h2-section">{heading.exploreTeyezillaHeadline}</h2>
+        <p className="mt-2 text-foreground/70">{heading.exploreTeyezillaSubtext}</p>
       </ScrollReveal>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">

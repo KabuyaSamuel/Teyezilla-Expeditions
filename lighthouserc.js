@@ -35,14 +35,33 @@
 
 const baseUrl = (process.env.LHCI_BASE_URL || "https://www.teyezillaexpeditions.com").replace(/\/$/, "");
 
+// Vercel sends `X-Robots-Tag: noindex` on every preview deployment
+// automatically (confirmed directly) -- correct, deliberate platform
+// behavior, not something this app controls or should try to override.
+// Lighthouse's SEO category penalizes exactly that ("blocked from
+// indexing"), so asserting on it against a Dev2 preview would be
+// asserting on Vercel's own noindex header, not a real regression --
+// same reasoning lighthouserc.admin.js already applies to the
+// deliberately-noindex'd admin dashboard.
+const isProduction = baseUrl === "https://www.teyezillaexpeditions.com";
+
 // Preview deployments (Dev2 pushes) sit behind Vercel's Deployment
 // Protection SSO wall -- confirmed directly: an unauthenticated request to
 // a preview URL 302s to vercel.com/sso-api instead of serving the app.
-// Vercel's own documented workaround is this header, generated once as
-// "Protection Bypass for Automation" in the project's Deployment
-// Protection settings; harmless to omit (production isn't protected, so
-// this is only ever set for the Dev2/preview case).
+// Appended as query params rather than sent via collect.settings.extraHeaders
+// (a header, unlike a cookie, isn't scoped by origin) -- confirmed directly
+// that broke things: extraHeaders applies to *every* request the page
+// makes, including cross-origin ones like the browser's own Sentry error
+// reporting, whose CORS preflight rejected the unexpected header and
+// blocked the request outright, a real console error that only existed
+// because of this test setup, not a real app bug. Vercel's response to a
+// request carrying these sets a bypass cookie instead, which the browser
+// naturally only ever re-sends to Vercel's own origin on later navigations
+// -- correctly scoped without any extra work. Harmless to omit
+// (production isn't protected, so this is only ever set for Dev2/preview).
 const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const withBypass = (url) =>
+  bypassSecret ? `${url}?x-vercel-protection-bypass=${bypassSecret}&x-vercel-set-bypass-cookie=true` : url;
 
 module.exports = {
   ci: {
@@ -54,22 +73,19 @@ module.exports = {
         `${baseUrl}/destinations`,
         `${baseUrl}/journeys/great-kenyan-frontier-expedition`,
         `${baseUrl}/tours/maasai-mara-safari`,
-      ],
+      ].map(withBypass),
       numberOfRuns: 1,
       settings: {
         // GitHub Actions runners (and this dev sandbox) need --no-sandbox
         // for Chrome to launch at all; without it, Lighthouse just hangs.
         chromeFlags: "--no-sandbox --headless",
-        ...(bypassSecret
-          ? { extraHeaders: JSON.stringify({ "x-vercel-protection-bypass": bypassSecret }) }
-          : {}),
       },
     },
     assert: {
       assertions: {
         "categories:performance": ["warn", { minScore: 0.58 }],
         "categories:accessibility": ["error", { minScore: 0.87 }],
-        "categories:seo": ["error", { minScore: 0.95 }],
+        ...(isProduction ? { "categories:seo": ["error", { minScore: 0.95 }] } : {}),
         "categories:best-practices": ["error", { minScore: 0.95 }],
       },
     },

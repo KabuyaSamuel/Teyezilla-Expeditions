@@ -43,8 +43,15 @@ if (!process.env.LHCI_ADMIN_COOKIE) {
   );
 }
 
-// Same Deployment Protection bypass as lighthouserc.js -- see its comment.
+// Same Deployment Protection bypass as lighthouserc.js -- see its comment
+// on why this is a URL query param (Vercel sets a properly origin-scoped
+// bypass cookie in response) rather than sent via extraHeaders, which
+// would apply the header to every request the page makes regardless of
+// origin -- confirmed directly that broke the admin dashboard's own
+// Sentry error reporting the same way it broke the public config.
 const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const withBypass = (url) =>
+  bypassSecret ? `${url}?x-vercel-protection-bypass=${bypassSecret}&x-vercel-set-bypass-cookie=true` : url;
 
 module.exports = {
   ci: {
@@ -55,14 +62,11 @@ module.exports = {
         `${baseUrl}/admin/journeys`,
         `${baseUrl}/admin/bookings`,
         `${baseUrl}/admin/operations`,
-      ],
+      ].map(withBypass),
       numberOfRuns: 1,
       settings: {
         chromeFlags: "--no-sandbox --headless",
-        extraHeaders: JSON.stringify({
-          Cookie: process.env.LHCI_ADMIN_COOKIE,
-          ...(bypassSecret ? { "x-vercel-protection-bypass": bypassSecret } : {}),
-        }),
+        extraHeaders: JSON.stringify({ Cookie: process.env.LHCI_ADMIN_COOKIE }),
       },
     },
     assert: {

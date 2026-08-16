@@ -164,12 +164,6 @@ export default async function AdminDashboardPage() {
         </div>
         <span className="mt-4 inline-block text-sm font-medium text-primary">View all inquiries →</span>
       </Link>
-
-      <div className="mt-6 rounded-xl bg-secondary/10 p-4 text-xs text-foreground/60">
-        Visitor stats require Google Analytics 4 (wired up in a later phase). Bookings,
-        revenue, and inquiries above reflect live Supabase data; revenue is the total of
-        bookings staff have marked as paid.
-      </div>
     </div>
   );
 }

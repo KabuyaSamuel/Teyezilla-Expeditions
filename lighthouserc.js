@@ -35,6 +35,15 @@
 
 const baseUrl = (process.env.LHCI_BASE_URL || "https://www.teyezillaexpeditions.com").replace(/\/$/, "");
 
+// Preview deployments (Dev2 pushes) sit behind Vercel's Deployment
+// Protection SSO wall -- confirmed directly: an unauthenticated request to
+// a preview URL 302s to vercel.com/sso-api instead of serving the app.
+// Vercel's own documented workaround is this header, generated once as
+// "Protection Bypass for Automation" in the project's Deployment
+// Protection settings; harmless to omit (production isn't protected, so
+// this is only ever set for the Dev2/preview case).
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+
 module.exports = {
   ci: {
     collect: {
@@ -51,6 +60,9 @@ module.exports = {
         // GitHub Actions runners (and this dev sandbox) need --no-sandbox
         // for Chrome to launch at all; without it, Lighthouse just hangs.
         chromeFlags: "--no-sandbox --headless",
+        ...(bypassSecret
+          ? { extraHeaders: JSON.stringify({ "x-vercel-protection-bypass": bypassSecret }) }
+          : {}),
       },
     },
     assert: {

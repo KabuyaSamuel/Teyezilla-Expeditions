@@ -57,7 +57,24 @@ async function diagnosePage(page, label) {
 
 try {
   const page = await browser.newPage();
-  await page.goto(`${baseUrl}/admin/login`, { waitUntil: "networkidle0" });
+
+  // Preview deployments (Dev2) sit behind Vercel's Deployment Protection
+  // SSO wall -- these query params are Vercel's documented bypass for
+  // exactly this multi-step browser-navigation case: unlike a plain
+  // header (which would need to be re-applied to every subsequent
+  // request this script makes), Vercel sets a bypass cookie in response
+  // to the *first* request carrying them, which then rides along
+  // automatically on every request this same Puppeteer page makes for
+  // the rest of the script -- the login POST, the post-login redirect,
+  // everything. Harmless to omit (production isn't protected).
+  const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  const loginUrl = new URL(`${baseUrl}/admin/login`);
+  if (bypassSecret) {
+    loginUrl.searchParams.set("x-vercel-protection-bypass", bypassSecret);
+    loginUrl.searchParams.set("x-vercel-set-bypass-cookie", "true");
+  }
+
+  await page.goto(loginUrl.toString(), { waitUntil: "networkidle0" });
 
   // networkidle0 only guarantees the network went quiet, not that the
   // client-rendered LoginForm has actually mounted -- wait for the real

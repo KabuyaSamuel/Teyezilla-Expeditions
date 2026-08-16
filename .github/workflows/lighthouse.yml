@@ -8,37 +8,25 @@ name: Lighthouse
 # yet); reports upload to temporary-public-storage and the shareable link
 # is printed in the job log either way.
 #
-# Previously triggered on `deployment_status`, restricted to Vercel's
-# Production environment -- that only ever worked because Vercel's GitHub
-# App creates a formal Deployments-API object or every push, which is
-# what deployment_status actually fires on. Netlify's default GitHub
-# integration doesn't do that (it posts a commit status, a different and
-# older mechanism) -- confirmed directly: after the Vercel->Netlify
-# hosting migration, this workflow only kept running at all because
-# Vercel's GitHub App was still connected and still deploying in
-# parallel, auditing an increasingly stale target that no longer
-# reflects the real site. Disconnect Vercel's GitHub App from this repo
-# (Vercel dashboard -> Project -> Settings -> Git) once this is merged --
-# nothing here depends on it anymore, and leaving it connected means
-# every push keeps showing a misleading "Vercel - Deployment" check.
+# Runs on push to both main and Dev2 -- Dev2 was deliberately left out
+# before, so a regression only ever surfaced on main, after merge (found
+# directly: a real hydration bug shipped to main and only failed here,
+# with no earlier signal on Dev2 to catch it first). Vercel creates a
+# real Deployments-API object with a real status for every push to any
+# branch (Preview for Dev2, Production for main), unlike Netlify, which
+# only posted an older commit-status mechanism deployment_status doesn't
+# fire on -- that's what forced the old fixed `sleep 180` + hardcoded
+# production-URL fallback this replaces. The resolve-url job below polls
+# that real status instead: precise on both branches, and it audits
+# Dev2's actual preview deployment rather than guessing at readiness or
+# silently falling back to auditing production for a Dev2 push.
 #
-# Now runs on push to main -- i.e. right after a merge, which is what
-# triggers Netlify's production build -- with a fixed wait for that build
-# to finish before auditing. There's no signal available to know exactly
-# when Netlify's deploy actually completes without wiring up an outgoing
-# deploy-notification webhook (Site settings -> Build & deploy -> Deploy
-# notifications -> add one for "Deploy succeeded", pointed at
-# https://api.github.com/repos/OWNER/REPO/dispatches with a GitHub PAT --
-# would let this trigger on `repository_dispatch` precisely instead of a
-# guess); the wait below is a "good enough" heuristic given this
-# workflow's own stated non-blocking, trend-tracking purpose -- a run
-# that starts slightly early just audits the previous still-live
-# deployment instead of the new one, not a broken run. workflow_dispatch
-# remains for an exact on-demand run against any URL, deployed or not.
+# workflow_dispatch remains for an exact on-demand run against any URL,
+# deployed or not -- resolve-url is skipped entirely for that trigger.
 
 on:
   push:
-    branches: [main]
+    branches: [main, Dev2]
   workflow_dispatch:
     inputs:
       url:
@@ -47,7 +35,47 @@ on:
         type: string
 
 jobs:
+  resolve-url:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: read
+    outputs:
+      url: ${{ steps.resolve.outputs.url }}
+    steps:
+      - name: Wait for the Vercel deployment for this commit, resolve its URL
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sha="${{ github.sha }}"
+          for i in $(seq 1 40); do
+            deployment=$(gh api "repos/${{ github.repository }}/deployments?sha=$sha" --jq 'sort_by(.created_at) | reverse | .[0]')
+            if [ -n "$deployment" ] && [ "$deployment" != "null" ]; then
+              id=$(echo "$deployment" | jq -r .id)
+              status_json=$(gh api "repos/${{ github.repository }}/deployments/$id/statuses" --jq '.[0] // {}')
+              state=$(echo "$status_json" | jq -r '.state // empty')
+              url=$(echo "$status_json" | jq -r '.environment_url // empty')
+              if [ "$state" = "success" ] && [ -n "$url" ]; then
+                echo "Resolved deployment for $sha: $url"
+                echo "url=$url" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              if [ "$state" = "failure" ] || [ "$state" = "error" ]; then
+                echo "::error::Vercel deployment for $sha ended in state '$state' -- not auditing a broken deployment."
+                exit 1
+              fi
+            fi
+            echo "Deployment for $sha not ready yet (attempt $i/40), waiting 15s..."
+            sleep 15
+          done
+          echo "::error::Timed out waiting for a Vercel deployment for $sha."
+          exit 1
+
   lighthouse-public:
+    needs: resolve-url
+    if: always() && (github.event_name != 'push' || needs.resolve-url.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -59,16 +87,10 @@ jobs:
 
       - run: npm ci
 
-      # Netlify's own build + CDN propagation for this site typically
-      # finishes well under this -- see the comment above for why this is
-      # a heuristic rather than a precise "deploy finished" signal.
-      - name: Wait for Netlify production deploy
-        if: github.event_name == 'push'
-        run: sleep 180
-
       - name: Lighthouse (public pages)
         env:
-          LHCI_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || '' }}
+          LHCI_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || needs.resolve-url.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: npx lhci autorun --config=./lighthouserc.js
 
   # Logs into the admin dashboard as a dedicated CI-only staff account
@@ -80,6 +102,8 @@ jobs:
   # LHCI_ADMIN_PASSWORD as repo secrets; fails fast with a clear error if
   # they're missing or login doesn't succeed.
   lighthouse-admin:
+    needs: resolve-url
+    if: always() && (github.event_name != 'push' || needs.resolve-url.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -91,16 +115,13 @@ jobs:
 
       - run: npm ci
 
-      - name: Wait for Netlify production deploy
-        if: github.event_name == 'push'
-        run: sleep 180
-
       - name: Fetch admin session cookie
         id: cookie
         env:
-          LHCI_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || '' }}
+          LHCI_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || needs.resolve-url.outputs.url }}
           LHCI_ADMIN_EMAIL: ${{ secrets.LHCI_ADMIN_EMAIL }}
           LHCI_ADMIN_PASSWORD: ${{ secrets.LHCI_ADMIN_PASSWORD }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           COOKIE=$(node scripts/fetch-admin-auth-cookie.mjs)
           echo "::add-mask::$COOKIE"
@@ -108,6 +129,7 @@ jobs:
 
       - name: Lighthouse (admin dashboard, authenticated)
         env:
-          LHCI_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || '' }}
+          LHCI_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || needs.resolve-url.outputs.url }}
           LHCI_ADMIN_COOKIE: ${{ steps.cookie.outputs.cookie }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: npx lhci autorun --config=./lighthouserc.admin.js

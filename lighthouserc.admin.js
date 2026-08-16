@@ -43,6 +43,9 @@ if (!process.env.LHCI_ADMIN_COOKIE) {
   );
 }
 
+// Same Deployment Protection bypass as lighthouserc.js -- see its comment.
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+
 module.exports = {
   ci: {
     collect: {
@@ -56,7 +59,10 @@ module.exports = {
       numberOfRuns: 1,
       settings: {
         chromeFlags: "--no-sandbox --headless",
-        extraHeaders: JSON.stringify({ Cookie: process.env.LHCI_ADMIN_COOKIE }),
+        extraHeaders: JSON.stringify({
+          Cookie: process.env.LHCI_ADMIN_COOKIE,
+          ...(bypassSecret ? { "x-vercel-protection-bypass": bypassSecret } : {}),
+        }),
       },
     },
     assert: {

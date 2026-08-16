@@ -14,6 +14,13 @@
 
 const baseUrl = (process.argv[2] || process.env.SMOKE_TEST_URL || "https://www.teyezillaexpeditions.com").replace(/\/$/, "");
 
+// Preview deployments (Dev2) sit behind Vercel's Deployment Protection SSO
+// wall -- generated once as "Protection Bypass for Automation" in the
+// project's Deployment Protection settings. Harmless to omit (production
+// isn't protected, so this is only ever set for the Dev2/preview case).
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const bypassHeaders = bypassSecret ? { "x-vercel-protection-bypass": bypassSecret } : {};
+
 // Server-render error markers Next.js/React actually emit in production,
 // distinct from any ordinary page content that happens to mention "error"
 // (e.g. an FAQ about cancellations).
@@ -62,7 +69,7 @@ async function fetchWithRetry(url, attempts = 3) {
   let lastErr;
   for (let i = 0; i < attempts; i++) {
     try {
-      return await fetch(url, { redirect: "follow" });
+      return await fetch(url, { redirect: "follow", headers: bypassHeaders });
     } catch (err) {
       lastErr = err;
       if (i < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
@@ -77,6 +84,13 @@ async function fetchWithRetry(url, attempts = 3) {
 // last written.
 async function fetchSitemapPaths() {
   const res = await fetchWithRetry(`${baseUrl}/sitemap.xml`);
+  // See the matching check in checkPath() -- otherwise this would silently
+  // parse zero <loc> entries out of Vercel's login page and every
+  // content-type check below would misreport "no content currently
+  // published" instead of the real cause.
+  if (!res.url.startsWith(baseUrl)) {
+    throw new Error(`redirected off-domain to ${res.url} -- likely Vercel Deployment Protection intercepting this request`);
+  }
   if (!res.ok) throw new Error(`sitemap.xml returned HTTP ${res.status}`);
   const xml = await res.text();
   return [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
@@ -103,6 +117,20 @@ async function checkPath({ path, label, status: presetStatus, reason: presetReas
   const url = `${baseUrl}${path}`;
   try {
     const res = await fetchWithRetry(url);
+
+    // Defense in depth alongside the bypass header above: if Deployment
+    // Protection ever intercepts a request anyway (a missing/stale bypass
+    // secret, Vercel changing how protection works), `redirect: "follow"`
+    // would otherwise land on vercel.com's real login page, return a
+    // normal 200, and silently pass -- confirmed directly, this exact
+    // false-positive already happened once against a preview URL before
+    // the bypass header existed. Failing loudly on an unexpected
+    // off-domain landing closes that gap instead of trusting body-content
+    // matching alone to catch it.
+    if (!res.url.startsWith(baseUrl)) {
+      return { path, label, status: "fail", reason: `redirected off-domain to ${res.url} -- likely Vercel Deployment Protection intercepting this request` };
+    }
+
     const body = await res.text();
 
     if (!res.ok) {

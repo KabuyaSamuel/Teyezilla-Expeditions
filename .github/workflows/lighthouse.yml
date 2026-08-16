@@ -77,6 +77,13 @@ jobs:
     needs: resolve-url
     if: always() && (github.event_name != 'push' || needs.resolve-url.result == 'success')
     runs-on: ubuntu-latest
+    # This repo's default GITHUB_TOKEN permissions are read-only (confirmed
+    # via the repo's Actions settings) -- without this explicit grant,
+    # LHCI_GITHUB_TOKEN below would silently fail to post its per-URL
+    # commit statuses (403, not a job failure) instead of actually working.
+    permissions:
+      contents: read
+      statuses: write
     steps:
       - uses: actions/checkout@v7
 
@@ -91,6 +98,7 @@ jobs:
         env:
           LHCI_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || needs.resolve-url.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          LHCI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx lhci autorun --config=./lighthouserc.js
 
   # Logs into the admin dashboard as a dedicated CI-only staff account
@@ -105,6 +113,13 @@ jobs:
     needs: resolve-url
     if: always() && (github.event_name != 'push' || needs.resolve-url.result == 'success')
     runs-on: ubuntu-latest
+    # This repo's default GITHUB_TOKEN permissions are read-only (confirmed
+    # via the repo's Actions settings) -- without this explicit grant,
+    # LHCI_GITHUB_TOKEN below would silently fail to post its per-URL
+    # commit statuses (403, not a job failure) instead of actually working.
+    permissions:
+      contents: read
+      statuses: write
     steps:
       - uses: actions/checkout@v7
 
@@ -132,4 +147,5 @@ jobs:
           LHCI_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.url || needs.resolve-url.outputs.url }}
           LHCI_ADMIN_COOKIE: ${{ steps.cookie.outputs.cookie }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          LHCI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx lhci autorun --config=./lighthouserc.admin.js

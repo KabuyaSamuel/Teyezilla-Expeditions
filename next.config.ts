@@ -91,6 +91,25 @@ const nextConfig: NextConfig = {
     // via lib/site.ts -- see SENTRY_INGEST_ORIGIN's own comment for why.
     const sentryIngestOrigin = SENTRY_INGEST_ORIGIN;
 
+    // CSP ships Report-Only with no report-uri today, so violations are
+    // only ever caught by a developer manually watching the console --
+    // easy to miss (the last two CSP commits were both found that way).
+    // Sentry already ingests errors from this app (sentry.server.config.ts,
+    // instrumentation-client.ts), so its own DSN doubles as a report
+    // endpoint: Sentry's "security header" URL is the DSN's origin +
+    // /api/<project_id>/security/?sentry_key=<public_key>, derived here
+    // instead of a second hardcoded project ID so it can't drift out of
+    // sync with the real DSN. The DSN is write-only by design, not a
+    // secret (see netlify.toml's SECRETS_SCAN_OMIT_KEYS comment) -- fine
+    // to expose in a response header.
+    const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+    let sentryReportUri: string | undefined;
+    if (sentryDsn) {
+      const dsnUrl = new URL(sentryDsn);
+      const projectId = dsnUrl.pathname.replace(/^\//, "");
+      sentryReportUri = `${dsnUrl.origin}/api/${projectId}/security/?sentry_key=${dsnUrl.username}`;
+    }
+
     // Vercel injects its own Live Feedback toolbar script (vercel.live) on
     // Preview deployments only -- never on production -- so allowlisting it
     // is scoped to non-production builds specifically, rather than widening
@@ -171,6 +190,7 @@ const nextConfig: NextConfig = {
       "form-action 'self'",
       // No Flash/legacy plugin content anywhere; safe to fully disable.
       "object-src 'none'",
+      ...(sentryReportUri ? [`report-uri ${sentryReportUri}`] : []),
     ].join("; ");
 
     return [

@@ -77,8 +77,8 @@ export default async function DestinationsPage({ searchParams }: Props) {
               a bare h1 followed directly by h3s skips a heading level. */}
           <h2 className="sr-only">Destinations</h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {destinations.map((destination) => (
-              <DestinationCard key={destination.id} destination={destination} />
+            {destinations.map((destination, i) => (
+              <DestinationCard key={destination.id} destination={destination} priority={i === 0} />
             ))}
           </div>
         </>

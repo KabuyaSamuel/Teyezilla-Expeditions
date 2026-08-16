@@ -3,7 +3,18 @@ import Image from "next/image";
 import type { Destination } from "@/types";
 import WishlistButton from "./WishlistButton";
 
-export default function DestinationCard({ destination }: { destination: Destination }) {
+export default function DestinationCard({
+  destination,
+  priority = false,
+}: {
+  destination: Destination;
+  // Set on the first card of a page's main grid (e.g. /destinations) so
+  // that card's image -- the likely LCP element on mobile, same pattern
+  // confirmed via PageSpeed Insights on TourCard -- skips lazy-loading
+  // and gets fetchpriority=high instead of being discovered only after
+  // JS runs.
+  priority?: boolean;
+}) {
   return (
     <Link
       href={`/destinations/${destination.slug}`}
@@ -23,6 +34,7 @@ export default function DestinationCard({ destination }: { destination: Destinat
             // between 768-1024px (still 2-col, not yet 3), confirmed via
             // real PageSpeed Insights flagging oversized downloads.
             sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+            priority={priority}
             className="object-cover transition-transform duration-500 ease-smooth group-hover:scale-110"
           />
         )}

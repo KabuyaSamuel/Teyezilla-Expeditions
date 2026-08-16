@@ -44,8 +44,8 @@ export default async function ExperienceCategoryPage({ params }: Props) {
         {tours.length} experience{tours.length !== 1 ? "s" : ""} in this category.
       </p>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {tours.map((tour) => (
-          <TourCard key={tour.id} tour={tour} />
+        {tours.map((tour, i) => (
+          <TourCard key={tour.id} tour={tour} priority={i === 0} />
         ))}
         {tours.length === 0 && <p className="text-sm text-foreground/50">No tours published in this category yet.</p>}
       </div>

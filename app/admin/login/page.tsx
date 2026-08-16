@@ -4,7 +4,7 @@ import LoginForm from "@/components/admin/LoginForm";
 export default async function AdminLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; config_error?: string; expired?: string }>;
+  searchParams: Promise<{ from?: string; config_error?: string; expired?: string; reset?: string; reset_error?: string }>;
 }) {
   const params = await searchParams;
 
@@ -39,6 +39,16 @@ export default async function AdminLoginPage({
           {params.expired && (
             <p className="mt-4 rounded-xl bg-secondary/15 px-4 py-2 text-sm text-foreground/70">
               Your session expired. Please log in again.
+            </p>
+          )}
+          {params.reset === "success" && (
+            <p className="mt-4 rounded-xl bg-success/10 px-4 py-2 text-sm text-success">
+              Password updated. Log in with your new password.
+            </p>
+          )}
+          {params.reset_error && (
+            <p className="mt-4 rounded-xl bg-error/10 px-4 py-2 text-sm text-error">
+              That reset link is invalid or has expired. Request a new one below.
             </p>
           )}
 

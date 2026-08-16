@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { login, type LoginState } from "@/app/admin/login/actions";
 
@@ -52,7 +53,12 @@ export default function LoginForm({ from }: { from: string }) {
           />
         </div>
         <div>
-          <label htmlFor="password" className="text-xs font-medium text-foreground/60">Password</label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className="text-xs font-medium text-foreground/60">Password</label>
+            <Link href="/admin/forgot-password" className="text-xs font-medium text-primary">
+              Forgot password?
+            </Link>
+          </div>
           <input
             id="password"
             name="password"

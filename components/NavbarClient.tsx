@@ -132,6 +132,7 @@ export default function NavbarClient({
             width={50}
             height={48}
             priority
+            quality={70}
             className={`h-10 w-auto lg:h-12 transition-all duration-300 ${
               transparent ? "brightness-0 invert" : ""
             }`}

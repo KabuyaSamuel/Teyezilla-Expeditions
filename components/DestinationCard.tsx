@@ -15,7 +15,14 @@ export default function DestinationCard({ destination }: { destination: Destinat
             src={destination.heroImage}
             alt={`${destination.countryName} travel and safari tours`}
             fill
-            sizes="(max-width: 768px) 100vw, 33vw"
+            // Breakpoints match every grid this renders in (sm:grid-cols-2
+            // lg:grid-cols-3) exactly -- the old 768px cutoff didn't
+            // correspond to either Tailwind breakpoint actually used,
+            // so next/image was fetching a full-width image between
+            // 640-768px (already a 2-col grid there) and a too-small one
+            // between 768-1024px (still 2-col, not yet 3), confirmed via
+            // real PageSpeed Insights flagging oversized downloads.
+            sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
             className="object-cover transition-transform duration-500 ease-smooth group-hover:scale-110"
           />
         )}

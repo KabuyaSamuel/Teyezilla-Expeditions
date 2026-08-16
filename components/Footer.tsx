@@ -46,6 +46,7 @@ export default async function Footer() {
               alt="Teyezilla Expeditions"
               width={50}
               height={48}
+              quality={70}
               className="h-12 w-auto brightness-0 invert"
             />
           </Link>

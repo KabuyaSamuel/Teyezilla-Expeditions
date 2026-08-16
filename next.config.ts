@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import { SENTRY_INGEST_ORIGIN } from "./lib/site";
 
 const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
@@ -86,10 +87,9 @@ const nextConfig: NextConfig = {
     // Sentry's browser SDK (instrumentation-client.ts) sends events
     // directly to its ingest host -- there's no `tunnel` option configured
     // routing that traffic through our own domain instead, so CSP has to
-    // allow it explicitly. This is the exact ingest host for this
-    // project's current DSN; if the Sentry project/org is ever recreated,
-    // this needs updating to match the new DSN's host.
-    const sentryIngestOrigin = "https://o4511839934808064.ingest.de.sentry.io";
+    // allow it explicitly. Shared with app/layout.tsx's preconnect hint
+    // via lib/site.ts -- see SENTRY_INGEST_ORIGIN's own comment for why.
+    const sentryIngestOrigin = SENTRY_INGEST_ORIGIN;
 
     const csp = [
       "default-src 'self'",

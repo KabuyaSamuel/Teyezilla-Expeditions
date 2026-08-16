@@ -51,12 +51,21 @@ jobs:
 
       - run: npm ci
 
-      # Ubuntu's default runner image ships postgresql-client already, but
-      # pinned explicitly rather than relying on whatever version happens
-      # to be preinstalled -- pg_dump's wire compatibility with Supabase's
-      # Postgres version matters for a backup that needs to actually work.
+      # Ubuntu 24.04's default apt repo only has postgresql-client 16, but
+      # pg_dump refuses to run against a server newer than itself --
+      # confirmed directly: Supabase runs Postgres 17.6, and a plain
+      # `apt-get install postgresql-client` pulled 16.14, aborting every
+      # run with "server version mismatch". The official PGDG apt repo
+      # (added via postgresql-common's bundled script, the documented way
+      # to do this non-interactively) carries versioned packages, so this
+      # pins the client to 17 -- matching or ahead of the server, which is
+      # what pg_dump actually requires.
       - name: Install postgresql-client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
 
       - name: Back up database
         run: npx tsx scripts/backup-database.ts

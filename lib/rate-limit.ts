@@ -31,25 +31,30 @@ const ratelimit =
 // every IP-based limit below (contact, trip-planner, booking, admin
 // login).
 //
-// x-nf-client-connection-ip is checked first now, with x-forwarded-for/
-// x-real-ip kept only as a fallback (better than bucketing every visitor
-// under "unknown" if the Netlify-specific header is ever absent -- e.g.
-// local dev, or a platform other than Netlify) -- NOT because it's
-// trusted there. Every endpoint using getClientIp() has a corresponding
-// non-IP backstop for exactly this reason: contact/trip-planner/booking
-// are all also capped by Upstash's own abuse heuristics being moot if
-// spoofed, but more importantly checkRateLimit's "area" keys mean a
-// spoofed IP just gets its own fresh bucket rather than bypassing the
-// system entirely; admin login (app/admin/login/actions.ts) additionally
-// rate-limits by the submitted email itself, which an attacker can't
-// rotate as freely as an IP header.
-//
-// This still needs verifying against a real Netlify deployment (not done
-// here -- this audit pass is static/local analysis only, no live
-// deployment access) to confirm x-nf-client-connection-ip is actually
-// populated in production the way Netlify's docs describe.
+// Netlify -> Vercel migration (back): the trust question is platform-
+// dependent, not fixed, so this branches on process.env.VERCEL (set
+// automatically by Vercel's runtime, both build and serverless) instead
+// of a fixed priority order -- correct on whichever platform is actually
+// serving a given request, which matters during the migration window
+// itself (DNS cutover isn't instantaneous, and this code ships before
+// that happens) as well as long-term if either host is ever revisited
+// again. Every endpoint using getClientIp() has a corresponding non-IP
+// backstop regardless of platform, for defense in depth if either
+// header's guarantee ever turns out weaker than documented: contact/
+// trip-planner/booking are also capped by Upstash's own abuse heuristics,
+// and checkRateLimit's "area" keys mean a spoofed IP just gets its own
+// fresh bucket rather than bypassing the system entirely; admin login
+// (app/admin/login/actions.ts) additionally rate-limits by the submitted
+// email itself, which an attacker can't rotate as freely as an IP header.
 export async function getClientIp(): Promise<string> {
   const h = await headers();
+
+  if (process.env.VERCEL) {
+    const forwardedFor = h.get("x-forwarded-for");
+    if (forwardedFor) return forwardedFor.split(",")[0].trim();
+    return h.get("x-real-ip") ?? "unknown";
+  }
+
   const netlifyVerifiedIp = h.get("x-nf-client-connection-ip");
   if (netlifyVerifiedIp) return netlifyVerifiedIp;
 

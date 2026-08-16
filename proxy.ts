@@ -7,7 +7,25 @@ import { SESSION_EXPIRY_COOKIE, isSessionExpired } from "@/lib/admin/sessionExpi
 // @supabase/ssr; without it, sessions expire unexpectedly. See:
 // https://supabase.com/docs/guides/auth/server-side/nextjs
 
+// Vercel's auto-assigned project alias otherwise serves the site directly
+// under its own hostname alongside the real domain -- duplicate-content
+// risk, and exactly the *.netlify.app situation netlify.toml already
+// redirected before this migration. This belongs here rather than as a
+// next.config.ts `redirects()` `has: host` rule (the documented approach
+// for this) -- confirmed directly that rule never fired, in both `next dev`
+// and a real production `next start` build, so the host check is done
+// explicitly here instead, where there's no ambiguity about whether it
+// actually runs.
+const VERCEL_ALIAS_HOST = "teyezillaexpeditions.vercel.app";
+
 export async function proxy(request: NextRequest) {
+  if (request.headers.get("host") === VERCEL_ALIAS_HOST) {
+    return NextResponse.redirect(
+      new URL(request.nextUrl.pathname + request.nextUrl.search, "https://www.teyezillaexpeditions.com"),
+      308
+    );
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -95,5 +113,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  // Broadened from "/admin/:path*" to also catch the Vercel-alias redirect
+  // above on every real page route. Static assets/image-optimization/
+  // favicon paths are excluded (standard Next.js pattern) since a redirect
+  // only ever needs to fire on the initial document request -- the browser
+  // never gets far enough to request a sub-resource from the wrong host.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png).*)"],
 };

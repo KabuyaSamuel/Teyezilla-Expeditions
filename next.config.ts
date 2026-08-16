@@ -208,7 +208,12 @@ const nextConfig: NextConfig = {
               'encrypted-media=(self "https://www.youtube-nocookie.com")',
               'picture-in-picture=(self "https://www.youtube-nocookie.com")',
               'clipboard-write=(self "https://www.youtube-nocookie.com")',
-              'web-share=(self "https://www.youtube-nocookie.com")',
+              // Not "web-share" -- browsers don't recognize that as a valid
+              // Permissions-Policy HTTP-header directive (only as an
+              // iframe `allow` attribute value, which BlogContentBlocks.tsx
+              // already sets independently for the YouTube embeds), so
+              // declaring it here just logged a console warning on every
+              // page load for zero effect.
               'fullscreen=(self "https://www.youtube-nocookie.com")',
             ].join(", "),
           },

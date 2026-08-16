@@ -1,3 +1,10 @@
+# NOT ACTIVE IN PRODUCTION. Production hosting moved back to Vercel
+# (2026-08-16); the Netlify project is disabled and this file governs
+# nothing live right now. Kept, not deleted, as a backup: switching back to
+# Netlify again would only take re-enabling the project and connecting the
+# domain -- this config would already be correct and ready, nothing to
+# rebuild. See README.md for the current (Vercel) hosting setup.
+
 # Canonicalizes the Netlify subdomain to the real domain -- e.g. a link
 # shared before DNS cutover, a stray bookmark, or a bot that resolved the
 # *.netlify.app URL. Must come before any catch-all/SPA fallback redirect

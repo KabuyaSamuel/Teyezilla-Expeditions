@@ -134,8 +134,14 @@ const nextConfig: NextConfig = {
       // fixed-size box, so it points a raw <img> straight at Supabase
       // Storage instead -- same reasoning as media-src below. Clarity's own
       // tracking pixel (c.clarity.ms/c.gif) is the other real need here --
-      // same blocked-script discovery as script-src above.
-      `img-src 'self' data: https://*.clarity.ms${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+      // same blocked-script discovery as script-src above. That pixel
+      // itself 302-redirects to a Bing Ads sync pixel (c.bing.com/c.gif,
+      // part of Clarity's Microsoft Ads integration, not something this
+      // app calls directly) -- confirmed via the request's actual network
+      // trace, so the redirect target needs allowlisting too, or the
+      // browser blocks the redirected request even though the initial one
+      // was permitted.
+      `img-src 'self' data: https://*.clarity.ms https://*.bing.com${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
       // The hero background (HeroCarousel.tsx) is the one place video
       // isn't going through next/image -- a raw <video><source> pointing
       // straight at the Supabase Storage URL, so media-src needs it

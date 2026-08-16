@@ -15,7 +15,14 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/admin/login") {
+  // Unauthenticated-by-definition admin routes: a locked-out staff member
+  // hitting these has no session yet (forgot-password, the emailed link's
+  // landing route), and reset-password intentionally runs on a Supabase
+  // recovery session rather than the SESSION_EXPIRY_COOKIE the isSessionExpired
+  // check below enforces -- gating it on that cookie would reject a valid
+  // recovery session that never went through login().
+  const PUBLIC_ADMIN_PATHS = ["/admin/login", "/admin/forgot-password", "/admin/reset-password"];
+  if (PUBLIC_ADMIN_PATHS.includes(pathname) || pathname.startsWith("/admin/auth/")) {
     return supabaseResponse;
   }
 
